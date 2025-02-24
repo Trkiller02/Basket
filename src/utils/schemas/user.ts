@@ -22,7 +22,7 @@ export const initValUser: User & { password: string; repeat_password: string } =
 		repeat_password: "",
 	};
 
-export const userSchema = Yup.object().shape({
+export const userSchema = Yup.object({
 	name: Yup.string()
 		.matches(regexList.onlyString, Messages.match_err)
 		.required(Messages.required),

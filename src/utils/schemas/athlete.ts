@@ -18,7 +18,7 @@ export const initValAthlete: Athlete = {
 	},
 };
 
-export const athleteSchema = Yup.object().shape({
+export const athleteSchema = Yup.object({
 	birth_date: Yup.string().datetime().required(Messages.required),
 	age: Yup.number().required(Messages.required),
 	birth_place: Yup.string().required(Messages.required),

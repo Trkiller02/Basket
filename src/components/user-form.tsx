@@ -12,6 +12,8 @@ import { initValUser, userSchema } from "@/utils/schemas/user";
 
 export default function UserForm({ data }: { data?: User }) {
 	const form = useForm<User & { password: string; repeat_password: string }>({
+		reValidateMode: "onChange",
+		mode: "all",
 		defaultValues: data ?? initValUser,
 		resolver: yupResolver(userSchema),
 	});

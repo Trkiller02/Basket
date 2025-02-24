@@ -15,13 +15,15 @@ import { dateHandler } from "@/utils/dateHandler";
 
 export default function AthleteForm({ data }: { data?: Athlete }) {
 	const form = useForm<Athlete>({
+		reValidateMode: "onChange",
+		mode: "all",
 		defaultValues: data ?? initValAthlete,
 		resolver: yupResolver(athleteSchema),
 	});
 
 	return (
 		<form
-			className="h-2/4 w-3/4 border border-gray-300 rounded-xl shadow-xl p-8"
+			className="h-2/4 w-3/4 border border-gray-300 rounded-xl shadow-xl p-8 mt-8"
 			onReset={() => form.reset()}
 			onSubmit={form.handleSubmit(console.log)}
 		>
@@ -35,6 +37,7 @@ export default function AthleteForm({ data }: { data?: Athlete }) {
 				<Input
 					{...form.register("user_id.ci_number")}
 					isRequired={!data}
+					name="user_id.ci_number"
 					label="Cédula de identidad:"
 					description="Ingrese su Cédula de identidad"
 					variant="bordered"
@@ -82,6 +85,7 @@ export default function AthleteForm({ data }: { data?: Athlete }) {
 				{/* NAME FIELD */}
 				<Input
 					{...form.register("user_id.name")}
+					name="user_id.name"
 					isRequired={!data}
 					label="Nombres:"
 					description="Ingrese sus Nombres"
@@ -93,6 +97,7 @@ export default function AthleteForm({ data }: { data?: Athlete }) {
 				{/* LASTNAME FIELD */}
 				<Input
 					{...form.register("user_id.lastname")}
+					name="user_id.lastname"
 					isRequired={!data}
 					label="Apellidos:"
 					description="Ingrese sus Apellidos"
@@ -104,6 +109,7 @@ export default function AthleteForm({ data }: { data?: Athlete }) {
 				{/* EMAIL FIELD */}
 				<Input
 					{...form.register("user_id.email")}
+					name="user_id.email"
 					label="Correo electrónico:"
 					type="email"
 					description="Ingrese su correo electrónico"
@@ -115,6 +121,7 @@ export default function AthleteForm({ data }: { data?: Athlete }) {
 				{/* PHONE_NUMBER FIELD */}
 				<Input
 					{...form.register("user_id.phone_number")}
+					name="user_id.phone_number"
 					label="Número telefónico:"
 					description="Ingrese su número de teléfono"
 					variant="bordered"
@@ -124,6 +131,7 @@ export default function AthleteForm({ data }: { data?: Athlete }) {
 
 				<Input
 					{...form.register("address")}
+					name="address"
 					label="Dirección:"
 					description="Ingrese su dirección"
 					variant="bordered"
@@ -137,6 +145,7 @@ export default function AthleteForm({ data }: { data?: Athlete }) {
 
 				<Input
 					{...form.register("birth_place")}
+					name="birth_place"
 					label="Lugar de nacimiento:"
 					variant="bordered"
 					errorMessage={form.formState.errors.birth_place?.message}
@@ -147,6 +156,7 @@ export default function AthleteForm({ data }: { data?: Athlete }) {
 				<DatePicker
 					showMonthAndYearPickers
 					{...form.register("birth_date")}
+					name="birth_date"
 					onChange={(date) => {
 						form.setValue("birth_date", date?.toString() ?? "");
 
@@ -163,6 +173,7 @@ export default function AthleteForm({ data }: { data?: Athlete }) {
 
 				<NumberInput
 					{...form.register("age")}
+					name="age"
 					onChange={(value) => form.setValue("age", value as number)}
 					isReadOnly
 					label="Edad:"
@@ -170,6 +181,10 @@ export default function AthleteForm({ data }: { data?: Athlete }) {
 					errorMessage={form.formState.errors.birth_place?.message}
 					className="col-span-3"
 				/>
+			</div>
+			<div className="flex justify-between w-full pt-4">
+				<Button type="submit">Guardar</Button>
+				<Button type="reset">Limpiar</Button>
 			</div>
 		</form>
 	);
