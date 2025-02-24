@@ -9,9 +9,32 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@heroui/button": "^2.2.13",
+    "@heroui/card": "^2.2.13",
+    "@heroui/chip": "^2.2.10",
+    "@heroui/date-picker": "^2.3.13",
+    "@heroui/dropdown": "^2.3.13",
+    "@heroui/input": "^2.4.13",
+    "@heroui/input-otp": "^2.1.12",
+    "@heroui/modal": "^2.2.11",
+    "@heroui/number-input": "^2.0.3",
+    "@heroui/pagination": "^2.2.12",
+    "@heroui/select": "^2.4.13",
+    "@heroui/system": "^2.4.10",
+    "@heroui/table": "^2.2.12",
+    "@heroui/theme": "^2.4.9",
+    "@heroui/tooltip": "^2.2.11",
+    "@heroui/user": "^2.2.10",
+    "@hookform/resolvers": "^4.1.1",
+    "better-auth": "^1.1.19",
+    "framer-motion": "^12.4.7",
+    "lucide-react": "^0.475.0",
+    "next": "15.1.7",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "next": "15.1.7"
+    "react-hook-form": "^7.54.2",
+    "yup": "^1.6.1",
+    "zustand": "^5.0.3"
   },
   "devDependencies": {
     "typescript": "^5",
