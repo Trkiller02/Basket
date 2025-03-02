@@ -1,7 +1,7 @@
-import type { User } from "better-auth/types";
+import type { User } from "./user";
 
 export type Representative = {
 	occupation: string;
-	height: number;
+	height?: number;
 	user_id: User;
 };

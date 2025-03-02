@@ -22,19 +22,25 @@ export const initValUser: User & { password: string; repeat_password: string } =
 		repeat_password: "",
 	};
 
-export const userSchema = Yup.object({
+export const userSchema = Yup.object().shape({
 	name: Yup.string()
 		.matches(regexList.onlyString, Messages.match_err)
+		.min(2, Messages.min_err)
+		.max(50, Messages.max_err)
 		.required(Messages.required),
 	lastname: Yup.string()
 		.matches(regexList.onlyString, Messages.match_err)
+		.min(2, Messages.min_err)
+		.max(50, Messages.max_err)
 		.required(Messages.required),
 	phone_number: Yup.string()
 		.optional()
 		.matches(regexList.forPersonalPhoneNumber, Messages.phone_format),
 	ci_number: Yup.string()
-		.matches(regexList.forDNI, Messages.dni_match)
-		.required(Messages.required),
+		.required(Messages.required)
+		.min(8, Messages.min_err)
+		.max(10, Messages.max_err)
+		.matches(regexList.forDNI, Messages.dni_match),
 	email: Yup.string().email(Messages.email_err).required(Messages.required),
 	password: Yup.string()
 		.required(Messages.required)

@@ -16,7 +16,7 @@ export const fetchData = async <T>(
 	if (token) headers.append("Authorization", `Bearer ${token}`);
 
 	try {
-		const response = await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + url, {
+		const response = await fetch(process.env.BACKEND_URL + url, {
 			method: method ?? "GET",
 			body:
 				!["GET", "DELETE"].includes(method ?? "GET") && options?.body
