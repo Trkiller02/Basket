@@ -1,24 +1,32 @@
-import AthleteForm from "@/components/athlete-form";
-import HealthForm from "@/components/health-form";
-import RepresentativeForm from "@/components/representative-form";
+import AthleteForm from "@/components/forms/athlete";
+import HealthForm from "@/components/forms/health";
+import RepresentativeForm from "@/components/forms/representative";
+import { Button, ButtonGroup } from "@heroui/button";
+import { redirect } from "next/navigation";
 
 export default async function Page(props: {
 	searchParams: Promise<{ [key: string]: string | undefined }>;
 }) {
-	const { step } = await props.searchParams;
+	const { etapa } = await props.searchParams;
 
-	if (step === "athlete") {
-		return (
-			<section>
-				<AthleteForm />
-				<HealthForm />
-			</section>
-		);
-	}
+	if (!etapa) return redirect("/registrar?etapa=atleta");
 
 	return (
-		<>
-			<RepresentativeForm />
-		</>
+		<section className="flex flex-col items-center justify-center gap-4 p-4 w-full h-full self-center">
+			{etapa === "atleta" && <AthleteForm />}
+			{etapa === "salud" && <HealthForm />}
+			{etapa === "representante" && <RepresentativeForm />}
+			<div className="flex w-full justify-between">
+				<Button type="button">Cancelar</Button>
+				<ButtonGroup>
+					<Button type="button" isDisabled={etapa === "atleta"}>
+						Anterior
+					</Button>
+					<Button type="submit" form={`${etapa}-form`} color="primary">
+						{etapa === "resumen" ? "Finalizar" : "Próximo"}
+					</Button>
+				</ButtonGroup>
+			</div>
+		</section>
 	);
 }
