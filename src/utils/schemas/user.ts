@@ -8,7 +8,7 @@ export const initValPerson: User = {
 	lastname: "",
 	phone_number: "+584",
 	ci_number: "V",
-	email: "",
+	email: "@gmail.com",
 };
 
 export const initValUser: User & { password: string; repeat_password: string } =
@@ -22,7 +22,7 @@ export const initValUser: User & { password: string; repeat_password: string } =
 		repeat_password: "",
 	};
 
-export const userSchema = Yup.object().shape({
+export const userSchema = Yup.object({
 	name: Yup.string()
 		.matches(regexList.onlyString, Messages.match_err)
 		.min(2, Messages.min_err)
@@ -37,10 +37,10 @@ export const userSchema = Yup.object().shape({
 		.optional()
 		.matches(regexList.forPersonalPhoneNumber, Messages.phone_format),
 	ci_number: Yup.string()
-		.required(Messages.required)
+		.matches(regexList.forDNI, Messages.dni_match)
 		.min(8, Messages.min_err)
 		.max(10, Messages.max_err)
-		.matches(regexList.forDNI, Messages.dni_match),
+		.required(Messages.required),
 	email: Yup.string().email(Messages.email_err).required(Messages.required),
 	password: Yup.string()
 		.required(Messages.required)

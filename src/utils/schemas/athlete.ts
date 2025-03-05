@@ -1,6 +1,6 @@
 import * as Yup from "yup";
 import { Messages } from "../messages";
-import { personSchema } from "./user";
+import { initValPerson, personSchema } from "./user";
 import type { Athlete } from "../interfaces/athlete";
 
 export const initValAthlete: Athlete = {
@@ -9,13 +9,7 @@ export const initValAthlete: Athlete = {
 	birth_place: "",
 	address: "",
 	solvent: false,
-	user_id: {
-		ci_number: "",
-		name: "",
-		lastname: "",
-		email: "",
-		phone_number: "",
-	},
+	user_id: initValPerson,
 };
 
 export const athleteSchema = Yup.object({

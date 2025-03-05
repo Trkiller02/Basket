@@ -1,6 +1,6 @@
 export const regexList = {
 	forAuth: /^([^\s@]+@[^\s@]+\.[^\s@]+|[VEve]\d{8,10})$/,
-	onlyString: /^\D+$g/,
+	onlyString: /^\D+$/g,
 	forDir: /^[A-Za-z0-9\s\\.\\-]+$/,
 	forDNI: /^[VEve]\d{8,10}$/g,
 	forRelation: /^[A-Za-z]+$/,
