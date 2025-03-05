@@ -37,10 +37,10 @@ export default function RepresentativeForm({
 
 	return (
 		<form
-			className="w-1/4 rounded-xl shadow-xl p-8 flex flex-col gap-3"
+			className="grid grid-cols-2 gap-3 w-full"
+			onSubmit={form.handleSubmit(console.log)}
 			onReset={() => form.reset()}
-			onSubmit={form.handleSubmit(onSubmit)}
-			id="atleta-form"
+			id="representante-form"
 		>
 			{/* CI FIELD */}
 			<Controller
@@ -50,8 +50,10 @@ export default function RepresentativeForm({
 					<Input
 						{...field}
 						isRequired={!data}
+						color={error ? "danger" : "default"}
 						label="Cédula de identidad:"
 						description="Ingrese su Cédula de identidad"
+						isInvalid={!!error}
 						errorMessage={error?.message}
 						endContent={
 							!data && (
@@ -65,18 +67,18 @@ export default function RepresentativeForm({
 										onPress={
 											() => {}
 											/* toast.promise(searchStudent(values.person_id?.ci_number), {
-									loading: "Procesando...",
-									success: (data) => {
-										router.push(`/search/student/${data?.ci_number}`);
-										return "Búsqueda exitosa.";
-									},
-									error: (error: Error) => {
-										if (error.message === "Failed to fetch") {
-											return "Error en conexión.";
-										}
-										return error.message;
-									},
-								}) */
+											loading: "Procesando...",
+											success: (data) => {
+												router.push(`/search/student/${data?.ci_number}`);
+												return "Búsqueda exitosa.";
+											},
+											error: (error: Error) => {
+												if (error.message === "Failed to fetch") {
+													return "Error en conexión.";
+												}
+												return error.message;
+											},
+										}) */
 										}
 									>
 										<Search className="px-1" />
@@ -87,65 +89,71 @@ export default function RepresentativeForm({
 					/>
 				)}
 			/>
-
+			&nbsp;
 			{/* NAME FIELD */}
 			<Controller
-				control={form.control}
 				name="user_id.name"
+				control={form.control}
 				render={({ field, fieldState: { error } }) => (
 					<Input
 						{...field}
+						color={error ? "danger" : "default"}
 						isRequired={!data}
 						label="Nombres:"
 						description="Ingrese sus Nombres"
+						isInvalid={!!error}
 						errorMessage={error?.message}
 					/>
 				)}
 			/>
-
 			{/* LASTNAME FIELD */}
 			<Controller
-				control={form.control}
 				name="user_id.lastname"
+				control={form.control}
 				render={({ field, fieldState: { error } }) => (
 					<Input
 						{...field}
+						color={error ? "danger" : "default"}
 						isRequired={!data}
 						label="Apellidos:"
 						description="Ingrese sus Apellidos"
+						isInvalid={!!error}
 						errorMessage={error?.message}
 					/>
 				)}
 			/>
-
 			{/* EMAIL FIELD */}
 			<Controller
-				control={form.control}
 				name="user_id.email"
+				control={form.control}
 				render={({ field, fieldState: { error } }) => (
 					<Input
 						{...field}
+						color={error ? "danger" : "default"}
 						label="Correo electrónico:"
+						type="email"
 						description="Ingrese su correo electrónico"
+						isInvalid={!!error}
 						errorMessage={error?.message}
 					/>
 				)}
 			/>
-
 			{/* PHONE_NUMBER FIELD */}
 			<Controller
-				control={form.control}
 				name="user_id.phone_number"
+				control={form.control}
 				render={({ field, fieldState: { error } }) => (
 					<Input
 						{...field}
+						name="user_id.phone_number"
+						color={error ? "danger" : "default"}
 						label="Número telefónico:"
 						description="Ingrese su número de teléfono"
+						isInvalid={!!error}
 						errorMessage={error?.message}
 					/>
 				)}
 			/>
-
 			{/* OCCUPATION FIELD */}
 			<Controller
 				control={form.control}
@@ -155,11 +163,11 @@ export default function RepresentativeForm({
 						{...field}
 						label="Ocupación:"
 						description="¿En qué ocupación trabaja?"
+						isInvalid={!!error}
 						errorMessage={error?.message}
 					/>
 				)}
 			/>
-
 			{/* HEIGHT FIELD */}
 			<Controller
 				control={form.control}
@@ -169,11 +177,11 @@ export default function RepresentativeForm({
 						{...field}
 						onChange={(value) => form.setValue("height", value as number)}
 						label="Estatura:"
+						isInvalid={!!error}
 						errorMessage={error?.message}
 					/>
 				)}
 			/>
-
 			<button type="submit">Enviar</button>
 		</form>
 	);
