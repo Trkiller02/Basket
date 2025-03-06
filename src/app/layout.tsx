@@ -29,7 +29,7 @@ export default function RootLayout({
 				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
 			>
 				<Provider>
-					<main className="flex flex-col justify-center items-center min-h-[90vh] mt-12">
+					<main className="flex justify-center items-center h-screen">
 						{children}
 					</main>
 				</Provider>

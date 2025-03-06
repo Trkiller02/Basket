@@ -1,4 +1,4 @@
-import AthleteForm from "@/components/athlete-form";
+import AthleteForm from "@/components/forms/athlete";
 
 export default function Home() {
 	return <AthleteForm />;
