@@ -31,7 +31,7 @@ export const representativeController = new Elysia({
 			body: UpdateRepresentativeDto,
 		},
 	)
-	.delete("/:id", ({ params: { id }, service }) => service.delete(id));
+	.delete("/:id", ({ params: { id }, service }) => service.remove(id));
 
 export const GET = representativeController.handle;
 export const PATCH = representativeController.handle;

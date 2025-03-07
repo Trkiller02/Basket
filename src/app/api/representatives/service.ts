@@ -1,10 +1,11 @@
-import type { Nullable, SearchQuery } from "@/utils/interfaces/search";
+import type { SearchQuery } from "@/utils/interfaces/search";
 import type { CreateRepresentativeDto } from "./dto/create-representative.dto";
+import type { UpdateRepresentativeDto } from "./dto/update-representative.dto";
+
 import { db } from "@/lib/db";
 import { representatives } from "@drizzle/schema";
 import { users } from "@drizzle/schema";
 import { and, eq, ilike, isNotNull, isNull } from "drizzle-orm";
-import type { UpdateRepresentativeDto } from "./dto/update-representative.dto";
 
 export class RepresentativeService {
 	async create(body: CreateRepresentativeDto) {
@@ -106,25 +107,30 @@ export class RepresentativeService {
 
 		const representative = await this.findOne(id);
 
-		await db
-			.update(representatives)
-			.set(restBody)
-			.where(eq(representatives.id, id));
+		if (restBody) {
+			await db
+				.update(representatives)
+				.set(restBody)
+				.where(eq(representatives.id, id));
+		}
 
-		if (body?.user_id) {
+		if (user_id) {
 			await db
 				.update(users)
-				.set(body.user_id)
+				.set(user_id)
 				.where(eq(users.id, representative.user_id.id));
 		}
 
 		return { message: "Representative updated successfully" };
 	}
 
-	async delete(id: string) {
+	async remove(id: string) {
 		const user = await this.findOne(id);
 
-		await db.delete(representatives).where(eq(representatives.id, user.id));
+		await db
+			.update(users)
+			.set({ deleted_at: new Date().toISOString() })
+			.where(eq(users.id, user.user_id.id));
 
 		return { message: `DELETED ${id}` };
 	}

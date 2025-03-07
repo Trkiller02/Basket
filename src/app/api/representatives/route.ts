@@ -1,6 +1,6 @@
 import { Elysia, t } from "elysia";
 import { RepresentativeService } from "./service";
-import { CreateRepresentativeDto } from "./dto/create-representative.dto";
+import { CreateRepresentativeDto } from "../../../actions/dto/create-representative.dto";
 import { NextResponse } from "next/server";
 
 export const representativeController = new Elysia({
