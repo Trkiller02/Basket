@@ -1,6 +1,6 @@
 import { t } from "elysia";
 import { createUpdateSchema } from "drizzle-typebox";
-import { UpdateUserDto } from "@/users/dto/create-user.dto";
+import { UpdateUserDto } from "@api/users/dto/create-user.dto";
 import { athletes } from "@drizzle/schema";
 
 export const UpdateAthletesDto = createUpdateSchema(athletes, {

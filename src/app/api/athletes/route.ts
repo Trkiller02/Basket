@@ -15,23 +15,7 @@ export const athletesController = new Elysia({
 			deleted: t.Optional(t.Boolean()),
 		}),
 	})
-	.get(
-		"/:id",
-		({ params: { id }, query, service }) => service.findOne(id, query),
-		{
-			query: t.Object({
-				deleted: t.Optional(t.Boolean()),
-			}),
-		},
-	)
+
 	.post("/", ({ body, service }) => service.create(body), {
 		body: CreateAthletesDto,
-	})
-	.patch(
-		"/:id",
-		({ params: { id }, body, service }) => service.update(id, body),
-		{
-			body: UpdateAthletesDto,
-		},
-	)
-	.delete("/:id", ({ params: { id }, service }) => service.delete(id));
+	});

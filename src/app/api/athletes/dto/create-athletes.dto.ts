@@ -1,6 +1,6 @@
 import { createInsertSchema } from "drizzle-typebox";
 import { athletes } from "@drizzle/schema";
-import { CreateUserDto } from "../../users/dto/create-user.dto";
+import { CreateUserDto } from "@api/users/dto/create-user.dto";
 
 export const CreateAthletesDto = createInsertSchema(athletes, {
 	user_id: CreateUserDto,
