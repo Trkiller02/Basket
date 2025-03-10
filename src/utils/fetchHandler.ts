@@ -8,29 +8,19 @@ export const fetchData = async <T>(
 	url: string,
 	options: FetchData = { method: "GET" },
 ): Promise<T | undefined> => {
-	const { method, token } = options;
+	const { method } = options;
 
-	const headers = new Headers();
-	headers.append("Content-Type", "application/json");
+	const response = await fetch(url, {
+		method: method ?? "GET",
+		body:
+			!["GET", "DELETE"].includes(method ?? "GET") && options?.body
+				? await JSON.stringify(options?.body)
+				: undefined,
+	});
 
-	if (token) headers.append("Authorization", `Bearer ${token}`);
+	const data = await response.json();
 
-	try {
-		const response = await fetch(process.env.BACKEND_URL + url, {
-			method: method ?? "GET",
-			body:
-				!["GET", "DELETE"].includes(method ?? "GET") && options?.body
-					? await JSON.stringify(options?.body)
-					: undefined,
-			headers,
-		});
+	if (!response.ok) throw new Error(data.message);
 
-		const data = await response.json();
-
-		if (!response.ok) throw new Error(data.message);
-
-		return data;
-	} catch (error) {
-		console.log(error);
-	}
+	return data;
 };

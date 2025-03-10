@@ -1,18 +1,18 @@
 export const entitySelect = [
 	{
-		label: "Estudiantes",
-		value: "estudiante",
-		description: "Buscar Estudiantes inscritos en la institución.",
+		label: "Atletas",
+		value: "atleta",
+		description: "Buscar atletas inscritos en el sistema.",
 	},
 	{
 		label: "Representantes",
 		value: "representante",
-		description: "Buscar Representantes vinculados a estudiantes.",
+		description: "Buscar Representantes vinculados a atletas.",
 	},
 	{
 		label: "Usuarios",
 		value: "usuario",
-		description: "Buscar Usuarios dentro del sistema.",
+		description: "Buscar usuarios dentro del sistema.",
 	},
 ];
 
@@ -22,24 +22,6 @@ export const sexSelect = [
 	},
 	{
 		value: "FEMENINO",
-	},
-];
-
-export const roleSelect = [
-	{
-		label: "EVALUACIÓN",
-		value: 2,
-		description: "Perteneciente al Depto. de Evaluación.",
-	},
-	{
-		label: "DOCENTE",
-		value: 3,
-		description: "Perteneciente a los Docentes habilitados para inscribir.",
-	},
-	{
-		label: "ADMINISTRACIÓN",
-		value: 4,
-		description: "Perteneciente al Depto. de Administración.",
 	},
 ];
 
@@ -54,10 +36,11 @@ export const bloodList = [
 	{ key: "O-" },
 ];
 
-export const formEntities = [
-	"estudiante",
+export const formEntities = new Set<string>([
+	"atleta",
+	"salud",
 	"representante",
 	"padre",
 	"madre",
-	"salud",
-];
+	"resumen",
+]);
