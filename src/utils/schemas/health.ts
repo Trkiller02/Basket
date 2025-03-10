@@ -12,12 +12,12 @@ export const initValHealth = {
 };
 
 export const healthSchema = Yup.object({
-	medical_authorization: Yup.boolean().required(),
+	medical_authorization: Yup.boolean().optional(),
 	blood_type: Yup.string().required(),
-	has_allergies: Yup.string().required(),
-	takes_medications: Yup.string().required(),
-	surgical_intervention: Yup.string().required(),
-	injuries: Yup.string().required(),
-	current_illnesses: Yup.string().required(),
-	has_asthma: Yup.boolean().required(),
+	has_allergies: Yup.string().optional(),
+	takes_medications: Yup.string().optional(),
+	surgical_intervention: Yup.string().optional(),
+	injuries: Yup.string().optional(),
+	current_illnesses: Yup.string().optional(),
+	has_asthma: Yup.boolean().optional(),
 });

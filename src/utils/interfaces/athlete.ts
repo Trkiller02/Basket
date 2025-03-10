@@ -5,6 +5,13 @@ export type Athlete = {
 	age: number;
 	birth_place: string;
 	address: string;
-	solvent?: boolean;
+	solvent?: number;
 	user_id: User;
 };
+
+export interface DataRequest
+	extends Partial<Pick<Athlete, "solvent" | "age">>,
+		Pick<User, "name" | "lastname" | "email" | "phone_number" | "ci_number"> {
+	id: string;
+	role_id?: string;
+}

@@ -23,7 +23,8 @@ export const athletes = pgTable(
 		age: integer().notNull(),
 		birth_place: text().notNull(),
 		address: text().notNull(),
-		solvent: boolean().default(true).notNull(),
+		solvent: integer().default(0).notNull(),
+		category: text(),
 		user_id: uuid(),
 	},
 	(table) => [
@@ -37,7 +38,7 @@ export const athletes = pgTable(
 		),
 		index("public_idx_solvente").using(
 			"btree",
-			table.solvent.asc().nullsLast().op("bool_ops"),
+			table.solvent.asc().nullsLast(),
 		),
 		foreignKey({
 			columns: [table.user_id],
