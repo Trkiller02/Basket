@@ -4,7 +4,7 @@ import { Input } from "@heroui/input";
 import { NumberInput } from "@heroui/number-input";
 import { Button } from "@heroui/button";
 import { Tooltip } from "@heroui/tooltip";
-import { Search } from "lucide-react";
+import { Check, Search, UserX, X } from "lucide-react";
 
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Controller, useForm } from "react-hook-form";
@@ -13,35 +13,136 @@ import {
 	initValRepresentative,
 	representativeSchema,
 } from "@/utils/schemas/representative";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useRegisterStore } from "@/store/useRegisterStore";
+import { useRouter } from "next/navigation";
+import { getEntityData } from "@/lib/action-data";
+import { addToast } from "@heroui/toast";
+import { getStep } from "@/utils/getStep";
+import { Select, SelectItem } from "@heroui/select";
+import { relationSelect } from "@/utils/selectList";
+import { setUpper } from "@/utils/setUpper";
 
 export default function RepresentativeForm({
 	data,
-}: { data?: Representative }) {
+	etapa,
+}: { data?: Representative; etapa: "representante" | "madre" | "padre" }) {
+	const [disKeys, setDisKeys] = useState<Set<string>>(new Set([]));
+	const [relation, setRelation] = useState<string>("representante");
+	const [isAvailable, setIsAvailable] = useState<boolean | undefined>();
+
+	const registerData = useRegisterStore((state) => state.registerData);
+	const setRegisterData = useRegisterStore((state) => state.setRegisterData);
+	const router = useRouter();
+
 	const form = useForm<Representative>({
 		mode: "all",
-		criteriaMode: "all",
-		reValidateMode: "onChange",
-		defaultValues: data ?? initValRepresentative,
+		criteriaMode: "firstError",
+		defaultValues: data,
 		resolver: yupResolver(representativeSchema),
+		shouldUseNativeValidation: true,
+		progressive: true,
 	});
 
-	useEffect(
-		() => console.log({ errors: form.formState.errors }),
-		[form.formState.errors],
-	);
+	const disabledKeys = () => {
+		if (registerData.mother && !disKeys.has("madre")) {
+			setDisKeys((disKeys) => disKeys.add("madre"));
+		}
+		if (registerData.father && !disKeys.has("padre")) {
+			setDisKeys((disKeys) => disKeys.add("padre"));
+		}
+		if (registerData.representative && !disKeys.has("representante")) {
+			setDisKeys((disKeys) => disKeys.add("representante"));
+		}
+	};
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+	useEffect(() => {
+		if (etapa === "representante" && registerData.representative) {
+			if (form.formState.isSubmitting)
+				return router.push(
+					`/registrar?etapa=${getStep("representante", {
+						data: registerData,
+					})}`,
+				);
+			form.reset(registerData.representative);
+		}
+		if (etapa === "madre" && registerData.mother) {
+			if (registerData.mother === "omitted")
+				return router.push("/registrar?etapa=padre");
+
+			if (form.formState.isSubmitting)
+				return router.push(
+					`/registrar?etapa=${getStep("madre", { data: registerData })}`,
+				);
+
+			form.reset(registerData.mother);
+		}
+		if (etapa === "padre" && registerData.father) {
+			if (registerData.father === "omitted")
+				return router.push("/registrar?etapa=resumen");
+
+			if (form.formState.isSubmitting)
+				return router.push(
+					`/registrar?etapa=${getStep("padre", { data: registerData })}`,
+				);
+
+			form.reset(registerData.father);
+		}
+
+		disabledKeys();
+	}, [registerData]);
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+	useEffect(() => {
+		const temporizador = setTimeout(() => {
+			setIsAvailable(undefined);
+		}, 3000); // 3000 milisegundos = 3 segundos
+
+		// Limpia el temporizador si el componente se desmonta o el estado cambia antes de que expire el temporizador
+		return () => clearTimeout(temporizador);
+	}, [isAvailable]);
+
+	const findEntity = async (id: string) => {
+		try {
+			const response = await getEntityData("representatives", id);
+			if (response) setIsAvailable(false);
+		} catch (error) {
+			if (error instanceof Error) {
+				if (error.message === "Representante no encontrado")
+					return setIsAvailable(true);
+
+				addToast({
+					title: "Error al buscar representante",
+					description: error.message,
+					color: "danger",
+				});
+			}
+		}
+	};
 
 	const onSubmit = (data: Representative) => {
-		console.log(data);
+		if (etapa === "representante")
+			setRegisterData({ representative: setUpper<Representative>(data) });
+		if (etapa === "madre")
+			setRegisterData({ mother: setUpper<Representative>(data) });
+		if (etapa === "padre")
+			setRegisterData({ father: setUpper<Representative>(data) });
+	};
+
+	const onOmit = (entity: string) => {
+		if (entity === "madre") setRegisterData({ mother: "omitted" });
+		if (entity === "padre") setRegisterData({ father: "omitted" });
 	};
 
 	return (
 		<form
 			className="grid grid-cols-2 gap-3 w-full"
-			onSubmit={form.handleSubmit(console.log)}
+			onSubmit={form.handleSubmit(onSubmit)}
 			onReset={() => form.reset()}
 			id="representante-form"
 		>
+			<h3 className="col-span-2 font-semibold text-lg">Datos personales:</h3>
 			{/* CI FIELD */}
 			<Controller
 				control={form.control}
@@ -52,44 +153,85 @@ export default function RepresentativeForm({
 						isRequired={!data}
 						color={error ? "danger" : "default"}
 						label="Cédula de identidad:"
-						description="Ingrese su Cédula de identidad"
+						description="V30... ó E23..."
 						isInvalid={!!error}
 						errorMessage={error?.message}
 						endContent={
-							!data && (
-								<Tooltip content="Buscar representante">
+							!data && typeof isAvailable !== "boolean" ? (
+								<Tooltip content="Buscar registro" color="primary">
 									<Button
-										isDisabled={!form.watch("user_id.ci_number")}
+										isDisabled={!field.value}
 										isIconOnly
 										variant="light"
 										aria-label="Buscar entidad"
 										className="text-foreground-700"
-										onPress={
-											() => {}
-											/* toast.promise(searchStudent(values.person_id?.ci_number), {
-											loading: "Procesando...",
-											success: (data) => {
-												router.push(`/search/student/${data?.ci_number}`);
-												return "Búsqueda exitosa.";
-											},
-											error: (error: Error) => {
-												if (error.message === "Failed to fetch") {
-													return "Error en conexión.";
-												}
-												return error.message;
-											},
-										}) */
+										onPress={() =>
+											addToast({
+												title: "Verificando si existe...",
+												description: "Será breve.",
+												promise: findEntity(field.value),
+											})
 										}
 									>
 										<Search className="px-1" />
 									</Button>
+								</Tooltip>
+							) : (
+								<Tooltip
+									content={isAvailable ? "Disponible" : "Registrado"}
+									color="default"
+								>
+									<div
+										className={`w-6 h-6 flex justify-center items-center rounded-full ${isAvailable ? "bg-success" : "bg-danger"}`}
+									>
+										{isAvailable ? (
+											<Check className="text-white py-2" />
+										) : (
+											<X className="text-white py-2" />
+										)}
+									</div>
 								</Tooltip>
 							)
 						}
 					/>
 				)}
 			/>
-			&nbsp;
+
+			<div className="flex flex-row gap-2">
+				<Select
+					items={relationSelect}
+					label="Relación:"
+					selectedKeys={relation ? [relation] : undefined}
+					disabledKeys={Array.from(disKeys)}
+					description={"Ingrese la relación con el estudiante."}
+					onSelectionChange={(value) => setRelation(value.currentKey ?? "")}
+					isRequired
+				>
+					{({ value, key }: { value: string; key: string }) => (
+						<SelectItem key={key}>{value}</SelectItem>
+					)}
+				</Select>
+				{!data && (
+					<Tooltip content="Omitir Relación">
+						<Button
+							isDisabled={
+								!!relation &&
+								disKeys.size <= 2 &&
+								!data &&
+								relation === "representante"
+							}
+							variant="light"
+							isIconOnly
+							aria-label="Omitir Relación"
+							className="text-foreground-700 mt-2"
+							onPress={() => onOmit(relation)}
+						>
+							<UserX className="px-1" />
+						</Button>
+					</Tooltip>
+				)}
+			</div>
+
 			{/* NAME FIELD */}
 			<Controller
 				name="user_id.name"
@@ -132,7 +274,7 @@ export default function RepresentativeForm({
 						color={error ? "danger" : "default"}
 						label="Correo electrónico:"
 						type="email"
-						description="Ingrese su correo electrónico"
+						description="Ej: pedro123@gmail.com"
 						isInvalid={!!error}
 						errorMessage={error?.message}
 					/>
@@ -145,10 +287,9 @@ export default function RepresentativeForm({
 				render={({ field, fieldState: { error } }) => (
 					<Input
 						{...field}
-						name="user_id.phone_number"
 						color={error ? "danger" : "default"}
 						label="Número telefónico:"
-						description="Ingrese su número de teléfono"
+						description="Ej: 0424..."
 						isInvalid={!!error}
 						errorMessage={error?.message}
 					/>
@@ -175,14 +316,12 @@ export default function RepresentativeForm({
 				render={({ field, fieldState: { error } }) => (
 					<NumberInput
 						{...field}
-						onChange={(value) => form.setValue("height", value as number)}
 						label="Estatura:"
 						isInvalid={!!error}
 						errorMessage={error?.message}
 					/>
 				)}
 			/>
-			<button type="submit">Enviar</button>
 		</form>
 	);
 }
