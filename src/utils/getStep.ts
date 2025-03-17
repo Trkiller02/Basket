@@ -30,5 +30,7 @@ export function getStep(
 		return stepsArray[indexCurrent - 1];
 	}
 
+	if (currentStep === "resumen") return "resumen";
+
 	return stepsArray[indexCurrent + 1];
 }

@@ -16,6 +16,21 @@ export const entitySelect = [
 	},
 ];
 
+export const relationSelect = [
+	{
+		key: "madre",
+		value: "MADRE",
+	},
+	{
+		key: "representante",
+		value: "REPRESENTANTE LEGAL",
+	},
+	{
+		key: "padre",
+		value: "PADRE",
+	},
+];
+
 export const sexSelect = [
 	{
 		value: "MASCULINO",
@@ -40,7 +55,7 @@ export const formEntities = new Set<string>([
 	"atleta",
 	"salud",
 	"representante",
-	"padre",
 	"madre",
+	"padre",
 	"resumen",
 ]);
