@@ -85,6 +85,10 @@ const AthleteResume = ({
 					<li className="font-semibold text-foreground-700">
 						Edad: <span className="font-normal">{restData.age} años</span>
 					</li>
+					<li className="font-semibold text-foreground-700">
+						Lugar de nacimiento:{" "}
+						<span className="font-normal">{restData.birth_place}</span>
+					</li>
 					&nbsp;
 				</ul>
 			</CardBody>

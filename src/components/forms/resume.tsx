@@ -62,6 +62,36 @@ export default function ResumeForm() {
 						color: "success",
 					});
 			}
+
+			if (registerData.mother && registerData.mother !== "omitted") {
+				const mother = await setEntityData<{ message: string }>(
+					"representatives",
+					{
+						...registerData.mother,
+					},
+				);
+
+				if (mother)
+					await setEntityData("repr-athletes", {
+						athlete_id: (athlete.value as { message: string }).message,
+						representative_id: mother.message,
+					});
+			}
+
+			if (registerData.father && registerData.father !== "omitted") {
+				const father = await setEntityData<{ message: string }>(
+					"representatives",
+					{
+						...registerData.father,
+					},
+				);
+
+				if (father)
+					await setEntityData("repr-athletes", {
+						athlete_id: (athlete.value as { message: string }).message,
+						representative_id: father.message,
+					});
+			}
 		} catch (error) {
 			addToast({
 				title: "Error al guardar datos",

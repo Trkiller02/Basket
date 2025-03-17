@@ -4,107 +4,36 @@ import { Input } from "@heroui/input";
 import { NumberInput } from "@heroui/number-input";
 import { Button } from "@heroui/button";
 import { Tooltip } from "@heroui/tooltip";
-import { Check, Search, Upload, X } from "lucide-react";
+import { Check, Search, Upload, UserCircle, X } from "lucide-react";
 import { DatePicker } from "@heroui/date-picker";
 import { getLocalTimeZone, parseDate } from "@internationalized/date";
 
 import { dateHandler } from "@/utils/dateHandler";
 
 import type { Athlete } from "@/utils/interfaces/athlete";
-import { athleteSchema, initValAthlete } from "@/utils/schemas/athlete";
-import { Controller, useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { useRouter } from "next/navigation";
-import { useRegisterStore } from "@/store/useRegisterStore";
-import { getStep } from "@/utils/getStep";
-import { useEffect, useRef, useState } from "react";
-import { getEntityData } from "@/lib/action-data";
-import { addToast } from "@heroui/toast";
-import Image from "next/image";
+
 import { setUpper } from "@/utils/setUpper";
-import { getCategories } from "@/utils/getCategories";
+import { useEffect, useState } from "react";
+import { athleteSchema, initValAthlete } from "@/utils/schemas/athlete";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { Controller, useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
 
-export default function AthleteForm() {
-	const fileInputRef = useRef<HTMLInputElement>(null);
+export function AthletesEditForm({ data }: { data?: Athlete }) {
 	const router = useRouter();
-	const registerData = useRegisterStore((state) => state.registerData);
-	const setRegisterData = useRegisterStore((state) => state.setRegisterData);
-	const [isAvailable, setIsAvailable] = useState<boolean | undefined>();
 
-	const handleIconClick = () => {
-		// Trigger the hidden file input when the icon is clicked
-		fileInputRef.current?.click();
-	};
-
-	const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		const file = event.target.files?.[0];
-
-		if (file) {
-			const lector = new FileReader();
-			lector.onload = (evento) => {
-				form.setValue("image", evento.target?.result?.toString());
-			};
-
-			lector.readAsDataURL(file);
-		}
-	};
-
-	const form = useForm<Athlete>({
+	const form = useForm<Partial<Athlete>>({
 		criteriaMode: "firstError",
 		mode: "all",
-		resolver: yupResolver(athleteSchema),
+		resolver: yupResolver(athleteSchema.partial()),
 		shouldUseNativeValidation: true,
 		progressive: true,
 	});
 
-	const onSubmit = (data: Athlete) => {
-		setRegisterData({
-			athlete: setUpper<Athlete>({
-				...data,
-				category: getCategories(data.age),
-			}),
-		});
+	const onSubmit = (data: Partial<Athlete>) => {
+		console.log(data);
 	};
-
-	const findEntity = async (id: string) => {
-		try {
-			const response = await getEntityData("representatives", id);
-			if (response) setIsAvailable(false);
-		} catch (error) {
-			if (error instanceof Error) {
-				if (error.message === "Atleta no encontrado")
-					return setIsAvailable(true);
-
-				addToast({
-					title: "Error al buscar atlete",
-					description: error.message,
-					color: "danger",
-				});
-			}
-		}
-	};
-
-	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
-	useEffect(() => {
-		const temporizador = setTimeout(() => {
-			setIsAvailable(undefined);
-		}, 3000); // 3000 milisegundos = 3 segundos
-
-		// Limpia el temporizador si el componente se desmonta o el estado cambia antes de que expire el temporizador
-		return () => clearTimeout(temporizador);
-	}, [isAvailable]);
-
-	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
-	useEffect(() => {
-		if (registerData.athlete) {
-			if (form.formState.isSubmitting)
-				return router.push(
-					`/registrar?etapa=${getStep("atleta", { data: registerData })}`,
-				);
-
-			form.reset(registerData.athlete);
-		}
-	}, [registerData]);
 
 	return (
 		<form
@@ -122,88 +51,29 @@ export default function AthleteForm() {
 				render={({ field, fieldState: { error } }) => (
 					<Input
 						{...field}
-						isRequired
+						isRequired={!data}
 						color={error ? "danger" : "default"}
 						label="Cédula de identidad:"
 						description="V30... ó E23..."
 						isInvalid={!!error}
 						errorMessage={error?.message}
-						endContent={
-							typeof isAvailable !== "boolean" ? (
-								<Tooltip content="Buscar registro" color="primary">
-									<Button
-										isDisabled={!field.value}
-										isIconOnly
-										variant="light"
-										aria-label="Buscar entidad"
-										className="text-foreground-700"
-										onPress={() =>
-											addToast({
-												title: "Verificando si existe...",
-												description: "Será breve.",
-												promise: findEntity(field.value),
-											})
-										}
-									>
-										<Search className="px-1" />
-									</Button>
-								</Tooltip>
-							) : (
-								<Tooltip
-									content={isAvailable ? "Disponible" : "Registrado"}
-									color="default"
-								>
-									<div
-										className={`w-6 h-6 flex justify-center items-center rounded-full ${isAvailable ? "bg-success" : "bg-danger"}`}
-									>
-										{isAvailable ? (
-											<Check className="text-white py-2" />
-										) : (
-											<X className="text-white py-2" />
-										)}
-									</div>
-								</Tooltip>
-							)
-						}
 					/>
 				)}
 			/>
 
-			<div className="inline-flex items-center gap-4">
-				{/* biome-ignore lint/a11y/useKeyWithClickEvents: <explanation> */}
-				<div
-					className="relative flex h-20 w-20 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-primary bg-gray-50 hover:bg-gray-100"
-					onClick={handleIconClick}
-				>
-					{form.watch("image") ? (
-						// Show the uploaded image
-						<Image
-							src={form.watch("image") ?? ""}
-							alt="Uploaded image"
-							fill
-							className="object-cover"
-						/>
-					) : (
-						// Show the upload icon
-						<Upload className="h-12 w-12 text-gray-400 py-2" />
-					)}
-					<input
-						{...form.register("image")}
-						ref={fileInputRef}
-						type="file"
-						onChange={handleFileChange}
-						hidden
-						accept="image/*"
+			<div className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100">
+				{form.watch("image") ? (
+					<Image
+						src={form.watch("image") ?? ""}
+						alt="Athlete image"
+						fill
+						className="object-cover"
 					/>
-				</div>
-
-				<div className="flex flex-col">
-					<h6>Fotografia del atleta</h6>
-					<p className="text-sm text-gray-500">
-						La fotografía debe ser tipo carnet.
-					</p>
-				</div>
+				) : (
+					<UserCircle className="w-full aspect-square h-auto text-foreground-700" />
+				)}
 			</div>
+
 			{/* NAME FIELD */}
 			<Controller
 				name="user_id.name"
@@ -212,7 +82,7 @@ export default function AthleteForm() {
 					<Input
 						{...field}
 						color={error ? "danger" : "default"}
-						isRequired
+						isRequired={!data}
 						label="Nombres:"
 						description="Ingrese sus Nombres"
 						isInvalid={!!error}
@@ -228,7 +98,7 @@ export default function AthleteForm() {
 					<Input
 						{...field}
 						color={error ? "danger" : "default"}
-						isRequired
+						isRequired={!data}
 						label="Apellidos:"
 						description="Ingrese sus Apellidos"
 						isInvalid={!!error}
@@ -290,7 +160,10 @@ export default function AthleteForm() {
 				showMonthAndYearPickers
 				value={
 					form.watch("birth_date")
-						? parseDate(form.watch("birth_date").split("T")[0])
+						? parseDate(
+								form.watch("birth_date")?.split("T")[0] ??
+									new Date().toISOString().split("T")[0],
+							)
 						: undefined
 				}
 				onChange={(date) => {
@@ -302,7 +175,7 @@ export default function AthleteForm() {
 					);
 					form.setValue("age", dateHandler(date?.toString()));
 				}}
-				isRequired
+				isRequired={!data}
 				label="Fecha de nacimiento"
 				minValue={parseDate(`${new Date().getFullYear()}-01-01`).subtract({
 					years: 20,
@@ -345,6 +218,18 @@ export default function AthleteForm() {
 					/>
 				)}
 			/>
+			<div className="flex justify-between items-center col-span-2 pt-2">
+				<Button onPress={() => router.back()} color="danger">
+					Cancelar
+				</Button>
+				<Button
+					type="submit"
+					color="primary"
+					isDisabled={!form.formState.isValid}
+				>
+					Enviar
+				</Button>
+			</div>
 		</form>
 	);
 }

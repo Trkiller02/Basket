@@ -145,14 +145,14 @@ export const athletes_health = pgTable(
 		// You can use { mode: "bigint" } if numbers are exceeding js number limitations
 		id: bigint({ mode: "number" }).primaryKey().generatedByDefaultAsIdentity(),
 		athlete_id: uuid().notNull(),
-		medical_authorization: boolean().notNull(),
+		medical_authorization: boolean().default(false),
 		blood_type: text().notNull(),
-		has_allergies: boolean().notNull(),
-		takes_medications: boolean().notNull(),
-		surgical_intervention: boolean().notNull(),
-		injuries: boolean().notNull(),
+		has_allergies: text(),
+		takes_medications: text(),
+		surgical_intervention: text(),
+		injuries: text(),
 		current_illnesses: text(),
-		has_asthma: boolean().notNull(),
+		has_asthma: boolean().default(false),
 	},
 	(table) => [
 		uniqueIndex("public_salud_atletas_pkey").using(
