@@ -19,12 +19,14 @@ export const athletes = pgTable(
 	"athletes",
 	{
 		id: uuid().primaryKey().defaultRandom(),
+		image: text(),
 		birth_date: date().notNull(),
 		age: integer().notNull(),
 		birth_place: text().notNull(),
 		address: text().notNull(),
 		solvent: integer().default(0).notNull(),
 		category: text(),
+		position: text(),
 		user_id: uuid(),
 	},
 	(table) => [
@@ -56,6 +58,8 @@ export const athletes_representatives = pgTable(
 		id: bigint({ mode: "number" }).primaryKey().generatedByDefaultAsIdentity(),
 		athlete_id: uuid().notNull(),
 		representative_id: uuid().notNull(),
+		relation: text().notNull().default("representante"),
+		tutor: boolean().notNull().default(true),
 	},
 	(table) => [
 		uniqueIndex("public_atletas_representantes_pkey").using(
@@ -107,7 +111,7 @@ export const invoices = pgTable(
 		// You can use { mode: "bigint" } if numbers are exceeding js number limitations
 		id: bigint({ mode: "number" }).primaryKey().generatedByDefaultAsIdentity(),
 		representative_id: uuid().notNull(),
-		payment_date: date().notNull(),
+		payment_date: date().defaultNow(),
 		amount: numeric({ precision: 10, scale: 2 }).notNull(),
 		description: text(),
 		athlete_id: uuid().notNull(),

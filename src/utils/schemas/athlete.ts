@@ -18,5 +18,6 @@ export const athleteSchema = Yup.object({
 	birth_place: Yup.string().required(Messages.required),
 	address: Yup.string().required(Messages.required),
 	solvent: Yup.number().min(0).max(3).optional(),
+	image: Yup.string().optional(),
 	user_id: personSchema,
 });
