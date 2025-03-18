@@ -26,6 +26,7 @@ import {
 	ShieldUser,
 	type LucideIcon,
 } from "lucide-react";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
@@ -35,10 +36,12 @@ interface NavItemProps {
 	isNested?: boolean;
 	isCollapsed?: boolean;
 	children?: React.ReactNode;
+	href?: string;
 }
 
 const NavItem = ({
 	Icon,
+	href,
 	label,
 	isNested,
 	isCollapsed,
@@ -55,6 +58,8 @@ const NavItem = ({
 				fullWidth
 				variant="light"
 				onPress={() => Boolean(children) && setIsOpen(!isOpen)}
+				href={href}
+				as={Link}
 			>
 				{!isCollapsed && (
 					<>
@@ -76,16 +81,16 @@ const NavItem = ({
 };
 
 export const routes = [
-	{ name: "Tablero", href: "/tablero", icon: LayoutDashboard },
+	{ name: "Tablero", href: "/", icon: LayoutDashboard },
 	{
 		name: "Registrar",
 		href: "/registrar",
 		icon: UserRoundPlus,
 		subRoutes: [
-			{ name: "Atleta", href: "/registrar/atleta", icon: Dumbbell },
+			{ name: "Atleta", href: "/registrar?etapa=atleta", icon: Dumbbell },
 			{
 				name: "Representante",
-				href: "/registrar/representante",
+				href: "/registrar?etapa=representante",
 				icon: ShieldUser,
 			},
 		],
@@ -134,7 +139,9 @@ export function Sidebar() {
 						isCollapsed ? (
 							<Menu className="size-7 min-w-7 min-h-7" />
 						) : (
-							<Box className="size-7 min-w-7 min-h-7" />
+							<div className="relative flex h-7 w-7 items-center justify-center overflow-hidden rounded-full">
+								<Image src="/trapiche.svg" fill alt="Trapichito" />
+							</div>
 						)
 					}
 					endContent={
@@ -143,7 +150,7 @@ export function Sidebar() {
 				>
 					{!isCollapsed && (
 						<span className="font-semibold text-lg flex-1 text-left">
-							Acme Inc
+							Trapichito
 						</span>
 					)}
 				</Button>
@@ -154,6 +161,7 @@ export function Sidebar() {
 						key={key.toString()}
 						Icon={item.icon}
 						label={item.name}
+						href={item.href ?? "#"}
 						isCollapsed={isCollapsed}
 					/>
 				))}
@@ -169,36 +177,13 @@ export function Sidebar() {
 								key={key.toString()}
 								Icon={subroute.icon}
 								label={subroute.name}
+								href={subroute.href}
 								isNested
 								isCollapsed={isCollapsed}
 							/>
 						))}
 					</NavItem>
 				))}
-
-				<div className="pt-4">
-					<div className={"text-small"}>
-						{!isCollapsed ? "Projects" : <Divider />}
-					</div>
-					<div className="mt-2">
-						<NavItem
-							Icon={PenTool}
-							label="Design Engineering"
-							isCollapsed={isCollapsed}
-						/>
-						<NavItem
-							Icon={TrendingUp}
-							label="Sales & Marketing"
-							isCollapsed={isCollapsed}
-						/>
-						<NavItem Icon={Plane} label="Travel" isCollapsed={isCollapsed} />
-						<NavItem
-							Icon={MoreHorizontal}
-							label="More"
-							isCollapsed={isCollapsed}
-						/>
-					</div>
-				</div>
 			</nav>
 
 			<User

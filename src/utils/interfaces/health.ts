@@ -1,4 +1,6 @@
 export type Health = {
+	id?: number;
+	athlete_id?: string;
 	medical_authorization?: boolean;
 	blood_type: string;
 	has_allergies?: string;

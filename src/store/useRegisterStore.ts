@@ -17,6 +17,7 @@ interface RegisterStore {
 	setRegisterData: (data: RegisterData) => void;
 	setSessionData: () => void;
 	getSessionData: () => void;
+	clearRegisterData: () => void;
 }
 
 export const useRegisterStore = create<RegisterStore>((set, get) => ({
@@ -36,4 +37,5 @@ export const useRegisterStore = create<RegisterStore>((set, get) => ({
 
 		set((state) => ({ registerData: JSON.parse(data) }));
 	},
+	clearRegisterData: () => set((state) => ({ registerData: {} })),
 }));
