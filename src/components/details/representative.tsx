@@ -3,13 +3,14 @@ import { Button } from "@heroui/button";
 import { Card, CardBody, CardHeader } from "@heroui/card";
 import { Edit2, UserCircle } from "lucide-react";
 import Image from "next/image";
-import { redirect } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 
 export function RepresentativeResume({
 	data,
 	formView,
 }: { data: Representative; formView?: boolean }) {
 	if (!data) return null;
+	const router = useRouter();
 	const { user_id, ...restData } = data;
 
 	return (
@@ -31,7 +32,9 @@ export function RepresentativeResume({
 					isIconOnly
 					className="mt-2 absolute right-3 top-2 col-end-4"
 					onPress={() =>
-						formView ? redirect("/registrar?etapa=atleta") : undefined
+						formView
+							? router.push("/registrar?etapa=atleta")
+							: router.push(`/editar/representante/${data.id}`)
 					}
 				>
 					<Edit2 className="py-1" />

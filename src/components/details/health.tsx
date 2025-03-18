@@ -1,6 +1,6 @@
 import { Card, CardBody, CardHeader } from "@heroui/card";
 import type { Athlete } from "@/utils/interfaces/athlete";
-import { redirect } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { Button } from "@heroui/button";
 import { Edit2 } from "lucide-react";
 import type { Health } from "@/utils/interfaces/health";
@@ -10,6 +10,8 @@ export const HealthResume = ({
 	formView,
 }: { data: Health; formView?: boolean }) => {
 	if (!data) return null;
+
+	const router = useRouter();
 
 	return (
 		<Card
@@ -25,7 +27,9 @@ export const HealthResume = ({
 					isIconOnly
 					className=""
 					onPress={() =>
-						formView ? redirect("/registrar?etapa=salud") : undefined
+						formView
+							? router.push("/registrar?etapa=salud")
+							: router.push(`/editar/atleta/${data.athlete_id}`)
 					}
 				>
 					<Edit2 className="py-1" />

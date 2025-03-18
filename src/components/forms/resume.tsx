@@ -7,9 +7,14 @@ import { RepresentativeResume } from "../details/representative";
 import { fetchData } from "@/utils/fetchHandler";
 import { setEntityData } from "@/lib/action-data";
 import { addToast } from "@heroui/toast";
+import { useRouter } from "next/navigation";
 
 export default function ResumeForm() {
 	const registerData = useRegisterStore((state) => state.registerData);
+	const clearRegisterData = useRegisterStore(
+		(state) => state.clearRegisterData,
+	);
+	const router = useRouter();
 
 	const onSubmit = async () => {
 		try {
@@ -52,6 +57,9 @@ export default function ResumeForm() {
 					}),
 				]);
 
+				if (health.status === "rejected" || reprAthletes.status === "rejected")
+					throw new Error(health.reason ?? reprAthletes.reason);
+
 				if (
 					health.status === "fulfilled" &&
 					reprAthletes.status === "fulfilled"
@@ -92,6 +100,9 @@ export default function ResumeForm() {
 						representative_id: father.message,
 					});
 			}
+
+			clearRegisterData();
+			router.push("/");
 		} catch (error) {
 			addToast({
 				title: "Error al guardar datos",
@@ -105,7 +116,12 @@ export default function ResumeForm() {
 		<form
 			onSubmit={(e) => {
 				e.preventDefault();
-				onSubmit();
+				addToast({
+					title: "Guardando...",
+					description: "Por favor espere.",
+					color: "warning",
+					promise: onSubmit(),
+				});
 			}}
 			id="resumen-form"
 		>

@@ -1,20 +1,20 @@
 "use client";
 
-import { useRef, useState } from "react";
 import Image from "next/image";
-import { Upload, UserCircle } from "lucide-react";
+import { UserCircle } from "lucide-react";
 import { Card, CardBody, CardHeader } from "@heroui/card";
 import type { Athlete } from "@/utils/interfaces/athlete";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Button } from "@heroui/button";
-import { CircleUserRound, Edit2 } from "lucide-react";
-import { User } from "@heroui/user";
+import { Edit2 } from "lucide-react";
 
 const AthleteResume = ({
 	data,
 	formView,
 }: { data: Athlete; formView?: boolean }) => {
 	if (!data) return null;
+
+	const router = useRouter();
 
 	const { user_id, ...restData } = data;
 
@@ -56,7 +56,9 @@ const AthleteResume = ({
 					isIconOnly
 					className="mt-2 absolute right-3 top-2 col-end-4"
 					onPress={() =>
-						formView ? redirect("/registrar?etapa=atleta") : undefined
+						formView
+							? router.push("/registrar?etapa=atleta")
+							: router.push(`/editar/atleta/${data.id}`)
 					}
 				>
 					<Edit2 className="py-1" />
