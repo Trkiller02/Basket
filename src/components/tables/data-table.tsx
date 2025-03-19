@@ -17,6 +17,7 @@ import { Delete, Edit, Eye } from "lucide-react";
 import { primaryColumns, athleteColumns } from "@/utils/table/tableList";
 import type { DataRequest } from "@/utils/interfaces/athlete";
 import { use, useCallback } from "react";
+import Link from "next/link";
 
 const statusColorMap: Record<string, ChipProps["color"]> = {
 	1: "success",
@@ -141,19 +142,28 @@ export default function DataTable(props: {
 					return (
 						<div className="relative flex items-center gap-2">
 							<Tooltip content="Detalles">
-								<span className="text-lg text-default-400 cursor-pointer active:opacity-50">
+								<Link
+									className="text-lg text-default-400 cursor-pointer active:opacity-50"
+									href={`/buscar/${user.solvent ? "atleta" : "representante"}/${user.id}`}
+								>
 									<Eye />
-								</span>
+								</Link>
 							</Tooltip>
 							<Tooltip content="Editar">
-								<span className="text-lg text-default-400 cursor-pointer active:opacity-50">
+								<Link
+									className="text-lg text-default-400 cursor-pointer active:opacity-50"
+									href={`/editar/${user.solvent ? "atleta" : "representante"}/${user.id}`}
+								>
 									<Edit />
-								</span>
+								</Link>
 							</Tooltip>
 							<Tooltip color="danger" content="Eliminar">
-								<span className="text-lg text-danger cursor-pointer active:opacity-50">
+								<Link
+									className="text-lg text-danger cursor-pointer active:opacity-50"
+									href={`/eliminar/atleta/${user.id}`}
+								>
 									<Delete />
-								</span>
+								</Link>
 							</Tooltip>
 						</div>
 					);

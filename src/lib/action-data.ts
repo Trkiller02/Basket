@@ -7,12 +7,36 @@ export const getEntityData = async (
 	return await fetchData(`/api/${entity}/${query}`);
 };
 
+export const getEntityDataById = async <T>(
+	entity: "health" | "repr-athletes",
+	id: string,
+	formAthlete = true,
+) => {
+	return await fetchData<T>(`/api/${entity}/${id}?formAthlete=${formAthlete}`);
+};
+
 export const setEntityData = async <T>(
-	entity: "representatives" | "athletes" | "health" | "repr-athletes",
+	entity:
+		| "representatives"
+		| "athletes"
+		| "health"
+		| "repr-athletes"
+		| "invoices",
 	data: Record<string, unknown>,
 ) => {
 	return await fetchData<T>(`/api/${entity}`, {
 		method: "POST",
+		body: data,
+	});
+};
+
+export const updateEntityData = async <T>(
+	entity: "representatives" | "athletes" | "health",
+	query: string,
+	data: Record<string, unknown>,
+) => {
+	return await fetchData<T>(`/api/${entity}/${query}`, {
+		method: "PATCH",
 		body: data,
 	});
 };
