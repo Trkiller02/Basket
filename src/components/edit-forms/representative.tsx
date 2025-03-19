@@ -4,41 +4,36 @@ import { Input } from "@heroui/input";
 import { NumberInput } from "@heroui/number-input";
 import { Button } from "@heroui/button";
 import { Tooltip } from "@heroui/tooltip";
-import { Check, Search, Upload, UserCircle, X } from "lucide-react";
-import { DatePicker } from "@heroui/date-picker";
-import { getLocalTimeZone, parseDate } from "@internationalized/date";
+import { Check, Search, UserX, X } from "lucide-react";
 
-import { dateHandler } from "@/utils/dateHandler";
-
-import type { Athlete } from "@/utils/interfaces/athlete";
-
-import { setUpper } from "@/utils/setUpper";
+import type { Representative } from "@/utils/interfaces/representative";
 import { useEffect } from "react";
-import { athleteSchema } from "@/utils/schemas/athlete";
+import { useRouter } from "next/navigation";
+import { addToast } from "@heroui/toast";
+import { Select, SelectItem } from "@heroui/select";
+import { setUpper } from "@/utils/setUpper";
+
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Controller, useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
-import Image from "next/image";
+import { representativeSchema } from "@/utils/schemas/representative";
 import { updateEntityData } from "@/lib/action-data";
-import { addToast } from "@heroui/toast";
 
-export function AthletesEditForm({ data }: { data: Athlete }) {
+export function RepresentativeEditForm({ data }: { data?: Representative }) {
 	const router = useRouter();
 
-	useEffect(() => form.reset(data), [data]);
-
-	const form = useForm<Partial<Athlete>>({
-		criteriaMode: "firstError",
+	const form = useForm<Partial<Representative>>({
 		mode: "all",
-		resolver: yupResolver(athleteSchema.partial()),
+		criteriaMode: "firstError",
+		defaultValues: data,
+		resolver: yupResolver(representativeSchema.partial()),
 		shouldUseNativeValidation: true,
 		progressive: true,
 	});
 
-	const onSubmit = async (updateData: Partial<Athlete>) => {
+	const onSubmit = async (updateData: Partial<Representative>) => {
 		const response = await updateEntityData<{ message: string }>(
-			"athletes",
-			data.id ?? "",
+			"representatives",
+			data?.id ?? "",
 			setUpper(updateData),
 		);
 
@@ -52,13 +47,12 @@ export function AthletesEditForm({ data }: { data: Athlete }) {
 
 	return (
 		<form
-			className="flex flex-col md:grid grid-cols-2 gap-3 w-full"
+			className="grid grid-cols-2 gap-3 w-full"
 			onSubmit={form.handleSubmit(onSubmit)}
 			onReset={() => form.reset()}
-			id="atleta-form"
+			id="representante-form"
 		>
-			<h1 className="col-span-2 font-semibold text-lg">Datos personales:</h1>
-
+			<h3 className="col-span-2 font-semibold text-lg">Datos personales:</h3>
 			{/* CI FIELD */}
 			<Controller
 				control={form.control}
@@ -75,20 +69,7 @@ export function AthletesEditForm({ data }: { data: Athlete }) {
 					/>
 				)}
 			/>
-
-			<div className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100">
-				{form.watch("image") ? (
-					<Image
-						src={form.watch("image") ?? ""}
-						alt="Athlete image"
-						fill
-						className="object-cover"
-					/>
-				) : (
-					<UserCircle className="w-full aspect-square h-auto text-foreground-700" />
-				)}
-			</div>
-
+			&nbsp;
 			{/* NAME FIELD */}
 			<Controller
 				name="user_id.name"
@@ -152,82 +133,28 @@ export function AthletesEditForm({ data }: { data: Athlete }) {
 					/>
 				)}
 			/>
-			{/* ADDRESS FIELD */}
+			{/* OCCUPATION FIELD */}
 			<Controller
-				name="address"
 				control={form.control}
+				name="occupation"
 				render={({ field, fieldState: { error } }) => (
 					<Input
 						{...field}
-						color={error ? "danger" : "default"}
-						label="Dirección:"
-						className="col-span-2"
-						description="Ingrese su dirección"
+						label="Ocupación:"
+						description="¿En qué ocupación trabaja?"
 						isInvalid={!!error}
 						errorMessage={error?.message}
 					/>
 				)}
 			/>
-			<h1 className="col-span-2 font-semibold text-lg">Datos de Nacimiento:</h1>
-			{/* BIRTH_DATE FIELD */}
-			<DatePicker
-				{...form.register("birth_date")}
-				showMonthAndYearPickers
-				value={
-					form.watch("birth_date")
-						? parseDate(
-								form.watch("birth_date")?.split("T")[0] ??
-									new Date().toISOString().split("T")[0],
-							)
-						: undefined
-				}
-				onChange={(date) => {
-					console.log(date?.toDate(getLocalTimeZone()).toISOString());
-
-					form.setValue(
-						"birth_date",
-						date?.toDate(getLocalTimeZone()).toISOString() ?? "",
-					);
-					form.setValue("age", dateHandler(date?.toString()));
-				}}
-				isRequired={!data}
-				label="Fecha de nacimiento"
-				minValue={parseDate(`${new Date().getFullYear()}-01-01`).subtract({
-					years: 20,
-				})}
-				maxValue={parseDate(`${new Date().getFullYear()}-12-31`).subtract({
-					years: 4,
-				})}
-				isInvalid={!!form.formState.errors.birth_date}
-				description="Ingrese la fecha de nacimiento"
-				errorMessage={form.formState.errors.birth_date?.message}
-			/>
-			{/* AGE FIELD */}
+			{/* HEIGHT FIELD */}
 			<Controller
-				name="age"
 				control={form.control}
+				name="height"
 				render={({ field, fieldState: { error } }) => (
 					<NumberInput
 						{...field}
-						color={error ? "danger" : "default"}
-						onChange={(value) => form.setValue("age", value as number)}
-						isReadOnly
-						label="Edad:"
-						isInvalid={!!error}
-						errorMessage={error?.message}
-					/>
-				)}
-			/>
-			<Controller
-				name="birth_place"
-				control={form.control}
-				render={({ field, fieldState: { error } }) => (
-					<Input
-						{...field}
-						color={error ? "danger" : "default"}
-						className="col-span-2"
-						name="birth_place"
-						label="Lugar de nacimiento:"
+						label="Estatura:"
 						isInvalid={!!error}
 						errorMessage={error?.message}
 					/>
