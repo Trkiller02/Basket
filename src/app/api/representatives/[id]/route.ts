@@ -4,6 +4,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { representatives, users } from "@drizzle/schema";
 import { db } from "@/lib/db";
 import { and, eq, isNotNull, isNull } from "drizzle-orm";
+import { MsgError } from "@/utils/messages";
 
 /*
 export const representativeController = new Elysia({
@@ -47,7 +48,7 @@ export const GET = async (
 ) => {
 	const querys = req.nextUrl.searchParams;
 	const { id } = await params;
-	const deleted = querys.get("sdeleted");
+	const deleted = querys.get("deleted");
 
 	const [result] = await db
 		.select({
@@ -80,7 +81,7 @@ export const GET = async (
 
 	if (!result)
 		return NextResponse.json(
-			{ message: "Representante no encontrado" },
+			{ message: MsgError.NOT_FOUND },
 			{
 				status: 404,
 			},
@@ -97,7 +98,7 @@ export const PATCH = async (
 	const { id } = await params;
 
 	if (!body || Object.keys(body).length === 0)
-		throw { message: "No se proporcionó información correcta", code: 400 };
+		throw { message: MsgError.BAD_REQUEST, code: 400 };
 
 	const [representative] = await db
 		.select({
@@ -125,7 +126,7 @@ export const PATCH = async (
 
 	if (!representative)
 		return NextResponse.json(
-			{ message: "Representante no encontrado" },
+			{ message: MsgError.NOT_FOUND },
 			{
 				status: 404,
 			},
@@ -182,7 +183,7 @@ export const DELETE = async (
 
 	if (!representative)
 		return NextResponse.json(
-			{ message: "Representante no encontrado" },
+			{ message: MsgError.NOT_FOUND },
 			{
 				status: 404,
 			},

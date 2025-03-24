@@ -4,6 +4,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { athletes, users } from "@drizzle/schema";
 import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import { db } from "@/lib/db";
+import { MsgError } from "@/utils/messages";
 
 /*
 export const athletesController = new Elysia({
@@ -80,10 +81,7 @@ export const GET = async (
 		);
 
 	if (!result)
-		return NextResponse.json(
-			{ message: "Atleta(s) no encontrado(s)." },
-			{ status: 404 },
-		);
+		return NextResponse.json({ message: MsgError.NOT_FOUND }, { status: 404 });
 
 	return NextResponse.json(result);
 };
@@ -96,7 +94,7 @@ export const PATCH = async (
 	const { id } = await params;
 
 	if (!body || Object.keys(body).length === 0)
-		throw { message: "No se proporcionó información correcta", code: 400 };
+		throw { message: MsgError.BAD_REQUEST, code: 400 };
 
 	const [athlete] = await db
 		.select({
@@ -123,10 +121,7 @@ export const PATCH = async (
 		);
 
 	if (!athlete)
-		return NextResponse.json(
-			{ message: "Atleta(s) no encontrado(s)." },
-			{ status: 404 },
-		);
+		return NextResponse.json({ message: MsgError.NOT_FOUND }, { status: 404 });
 
 	const { user_id, ...restBody } = body;
 
@@ -172,10 +167,7 @@ export const DELETE = async (
 		);
 
 	if (!athlete)
-		return NextResponse.json(
-			{ message: "Atleta(s) no encontrado(s)." },
-			{ status: 404 },
-		);
+		return NextResponse.json({ message: MsgError.NOT_FOUND }, { status: 404 });
 
 	await db
 		.update(users)

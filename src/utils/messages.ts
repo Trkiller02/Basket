@@ -1,13 +1,22 @@
 enum Messages {
-  match_err = "Esta suministrando caracteres no soportados",
-  email_err = "El correo que suministro no es valido",
-  required = "Este campo es requerido",
-  dni_match = "V8938... (V) Venezolano (E) Extranjero)",
-  min_pass = "Se requiere una contraseña mayor a 4 dígitos",
-  min_err = "Esta ingresando valores menores a los esperados",
-  max_err = "Esta ingresando valores mayores a los esperados",
-  phone_format = "Es necesario ingresar un número telefónico venezolano.",
-  phone_home_format = "Es necesario ingresar un número telefónico fijo venezolano.",
+	MATCH_ERR = "Esta suministrando caracteres no soportados",
+	EMAIL_ERR = "El correo que suministro no es valido",
+	REQUIRED = "Este campo es requerido",
+	DNI_MATCH = "V8938... (V) Venezolano (E) Extranjero)",
+	MIN_PASS = "Se requiere una contraseña mayor a 4 dígitos",
+	MIN_ERR = "Esta ingresando valores menores a los esperados",
+	MAX_ERR = "Esta ingresando valores mayores a los esperados",
+	PHONE_FORMAT = "Es necesario ingresar un número telefónico venezolano.",
+	PHONE_HOME_FORMAT = "Es necesario ingresar un número telefónico fijo venezolano.",
 }
 
-export { Messages };
+enum MsgError {
+	NOT_FOUND = "No se encontro el registro",
+	NOT_FOUND_MANY = "No se encontraron registros",
+	CONFLICT = "El registro ya existe",
+	BAD_REQUEST = "La solicitud no es válida",
+	UNAUTHORIZED = "No estás autorizado para realizar esta acción",
+	INTERNAL_SERVER = "Ha ocurrido un error interno",
+}
+
+export { Messages, MsgError };

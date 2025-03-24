@@ -4,6 +4,7 @@ import { athletes, users } from "@drizzle/schema";
 import { and, eq, ilike, isNotNull, isNull } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { type NextRequest, NextResponse } from "next/server";
+import { MsgError } from "@/utils/messages";
 
 /* export const athletesController = new Elysia({
 	prefix: "/athletes",
@@ -38,44 +39,67 @@ export const GET = async (req: NextRequest) => {
 	const limit = querys.get("limit");
 	const query = querys.get("query");
 	const deleted = querys.get("deleted");
+	const isFormView = querys.get("formView");
 
-	const result = await db
-		.select({
-			id: athletes.id,
-			user_id: {
-				id: users.id,
-				ci_number: users.ci_number,
-				name: users.name,
-				lastname: users.lastname,
-				email: users.email,
-				phone_number: users.phone_number,
-			},
-			age: athletes.age,
-			solvent: athletes.solvent,
-		})
-		.from(athletes)
-		.innerJoin(users, eq(athletes.user_id, users.id))
-		.where(
-			and(
-				query
-					? ilike(
-							query.includes("@") ? users.email : users.ci_number,
-							`%${query}%`,
-						)
-					: undefined,
-				deleted ? isNotNull(users.deleted_at) : isNull(users.deleted_at),
-			),
-		)
-		.limit(Number(limit ?? 10))
-		.offset(Number(page ?? 1) - 1);
+	try {
+		const result = await db
+			.select(
+				isFormView
+					? {
+							id: athletes.id,
+							user_id: {
+								id: users.id,
+								ci_number: users.ci_number,
+								name: users.name,
+								lastname: users.lastname,
+							},
+						}
+					: {
+							id: athletes.id,
+							user_id: {
+								id: users.id,
+								ci_number: users.ci_number,
+								name: users.name,
+								lastname: users.lastname,
+								email: users.email,
+								phone_number: users.phone_number,
+							},
+							age: athletes.age,
+							image: athletes.image,
+							category: athletes.category,
+							position: athletes.position,
+							solvent: athletes.solvent,
+						},
+			)
+			.from(athletes)
+			.innerJoin(users, eq(athletes.user_id, users.id))
+			.where(
+				and(
+					query
+						? ilike(
+								query.includes("@") ? users.email : users.ci_number,
+								`%${query}%`,
+							)
+						: undefined,
+					deleted ? isNotNull(users.deleted_at) : isNull(users.deleted_at),
+				),
+			)
+			.limit(Number(limit ?? 10))
+			.offset(Number(page ?? 1) - 1);
 
-	if (result.length === 0)
+		if (result.length === 0)
+			return NextResponse.json(
+				{ message: MsgError.NOT_FOUND_MANY },
+				{ status: 404 },
+			);
+
+		return NextResponse.json(result);
+	} catch (error) {
 		return NextResponse.json(
-			{ message: "Atletas no encontrados." },
-			{ status: 404 },
+			{ message: (error as Error).message },
+			{ status: 400 },
 		);
-
-	return NextResponse.json({ athletes: result });
+	}
 };
 
 export const POST = async (req: NextRequest) => {
