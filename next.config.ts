@@ -1,7 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+	experimental: {
+		ppr: "incremental",
+		optimizeCss: true,
+		optimizePackageImports: ["@heroui/*"],
+	},
 };
 
 export default nextConfig;
