@@ -1,9 +1,9 @@
 import { fetchData } from "@/utils/fetchHandler";
 
-export const getEntityData = async (
-	entity: "representatives" | "athletes",
+export const getEntityData = async <T>(
+	entity: "representatives" | "athletes" | "users",
 	query: string,
-) => {
+): Promise<T | undefined> => {
 	return await fetchData(`/api/${entity}/${query}`);
 };
 

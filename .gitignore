@@ -11,8 +11,8 @@
 !.yarn/versions
 
 # images
-/public/athletes
-/public/invoices
+/public/images/athletes/*
+/public/images/invoices/*
 
 # testing
 /coverage
