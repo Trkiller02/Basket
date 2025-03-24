@@ -6,21 +6,21 @@ import type { DataRequest } from "@/utils/interfaces/athlete";
 import { getDataTable } from "@/utils/table/getDataTable";
 import { Suspense } from "react";
 
-export default async function Home({
-	searchParams,
-}: {
+export default async function Home(props: {
 	searchParams: Promise<{ [key: string]: string | undefined }>;
 }) {
-	const data: Promise<DataRequest[]> = getDataTable(await searchParams);
+	const searchParams = await props.searchParams;
+
+	const data: Promise<DataRequest[] | undefined> = getDataTable(searchParams);
 
 	return (
 		<section>
 			<SearchForm />
 			<Suspense
-				key={`${(await searchParams).ent}${(await searchParams).q}`}
+				key={`${searchParams.ent}${searchParams.q}`}
 				fallback={<TableSkeleton />}
 			>
-				<DataTable data={data} params={searchParams} />
+				<DataTable dataPromise={data} params={searchParams} />
 			</Suspense>
 		</section>
 	);

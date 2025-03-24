@@ -8,7 +8,6 @@ import { entitySelect } from "@/utils/selectList";
 import { Checkbox } from "@heroui/checkbox";
 import { Input } from "@heroui/input";
 import { Select, SelectItem } from "@heroui/select";
-import { cn } from "@heroui/theme";
 import { Delete } from "lucide-react";
 
 export default function SearchForm() {
@@ -18,7 +17,7 @@ export default function SearchForm() {
 
 	const entity = params.get("ent");
 	const query = params.get("q");
-	const deleted = params.get("deleted") === "true";
+	const deleted = params.get("eliminados") === "true";
 
 	const handleChange = useDebouncedCallback(
 		({
@@ -32,8 +31,8 @@ export default function SearchForm() {
 				if (searchParams.has(name)) {
 					searchParams.set(name, value);
 
-					if (name === "deleted" && value === "false")
-						searchParams.delete("deleted");
+					if (name === "eliminados" && value === "false")
+						searchParams.delete("eliminados");
 				} else {
 					searchParams.append(name, value);
 				}
@@ -48,8 +47,8 @@ export default function SearchForm() {
 
 	/* const iconClasses =
 		"text-xl text-default-500 pointer-events-none flex-shrink-0";
- */
-	/* const exportData = async () => {
+		
+		const exportData = async () => {
 		const res = await fetch(
 			`${process.env.NEXT_PUBLIC_BACKEND_URL}/tools/excel${params}`,
 			{
@@ -73,7 +72,7 @@ export default function SearchForm() {
 	}; */
 
 	return (
-		<section className="w-full flex justify-center items-center max-lg:w-full max-lg:p-0 my-4">
+		<section className="w-full flex justify-center items-center max-lg:p-0 my-4">
 			<div className="grid grid-cols-4 gap-3 w-full">
 				{/* ENTITY SELECT */}
 				<Select
@@ -103,7 +102,6 @@ export default function SearchForm() {
 					label="C.I o Correo Electronico:"
 					onChange={handleChange}
 					defaultValue={query ?? undefined}
-					isRequired={entity === "represent"}
 				/>
 				<Checkbox
 					icon={(props) => {
@@ -121,7 +119,7 @@ export default function SearchForm() {
 						icon: "h-3/4 w-auto aspect-square",
 						wrapper: "w-8 h-auto aspect-square",
 					}}
-					name="deleted"
+					name="eliminados"
 					title="Incluir registros eliminados."
 					size="lg"
 					onValueChange={(isValue) =>
@@ -133,7 +131,7 @@ export default function SearchForm() {
 					<div className="flex flex-col gap-0">
 						<p className="font-semibold text-base">Eliminados</p>
 						<span className="text-sm text-default-500 text-pretty">
-							Incluir registros eliminados.
+							Registros eliminados.
 						</span>
 					</div>
 				</Checkbox>

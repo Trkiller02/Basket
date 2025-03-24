@@ -9,6 +9,7 @@ export const extractPropsAthlete = (obj: Athlete): DataRequest => {
 		name: user_id?.name,
 		lastname: user_id?.lastname,
 		email: user_id?.email,
+		image: obj.image,
 		phone_number: user_id?.phone_number,
 		ci_number: user_id?.ci_number,
 		category: obj.category,

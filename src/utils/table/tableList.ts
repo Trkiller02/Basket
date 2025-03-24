@@ -9,7 +9,6 @@ const userColumns = [...primaryColumns, { name: "Rol", uid: "role_id" }];
 const athleteColumns = [
 	...primaryColumns,
 	{ name: "Categoria", uid: "category" },
-	{ name: "Posición", uid: "position" },
 	{ name: "Estado solvente", uid: "solvent" },
 ];
 

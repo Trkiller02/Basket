@@ -25,10 +25,16 @@ const statusColorMap: Record<string, ChipProps["color"]> = {
 	0: "danger",
 };
 
-export default function DataTable(props: {
-	data: Promise<DataRequest[]>;
-	params: Promise<{ [key: string]: string | undefined }>;
+export default function DataTable({
+	dataPromise,
+	params,
+}: {
+	dataPromise: Promise<DataRequest[] | undefined>;
+	params: { [key: string]: string | undefined };
 }) {
+	const data = use(dataPromise) ?? [];
+	const ent = params.ent;
+
 	const renderUserCell = useCallback(
 		(user: DataRequest, columnKey: React.Key) => {
 			const cellValue = user[columnKey as keyof DataRequest];
@@ -90,28 +96,32 @@ export default function DataTable(props: {
 			const cellValue = user[columnKey as keyof DataRequest];
 
 			switch (columnKey) {
+				case "ci_number":
+					return <p className="font-semibold text-sm">{cellValue}</p>;
 				case "name":
 					return (
 						<UserHeroUI
+							classNames={{
+								name: "font-semibold text-lg",
+								description: "text-base",
+							}}
 							avatarProps={{
-								radius: "lg",
+								size: "lg",
 								src: user.image,
 								fallback: `${cellValue?.toString().charAt(0)}${user.lastname.charAt(0)}`,
 							}}
-							description={user.email}
-							name={`${cellValue} ${user.lastname}`}
-						>
-							{user.ci_number}
-						</UserHeroUI>
+							description={cellValue}
+							name={user.lastname}
+						/>
 					);
 
 				case "email":
 					return (
 						<div className="flex flex-col">
-							<p className="text-bold text-sm capitalize">{cellValue}</p>
-							<p className="text-bold text-sm capitalize text-default-400">
-								{user.phone_number}
+							<p className="text-bold text-base text-default-600">
+								{cellValue}
 							</p>
+							<p className="text-bold text-base">{user.phone_number}</p>
 						</div>
 					);
 				case "category":
@@ -174,14 +184,9 @@ export default function DataTable(props: {
 		[],
 	);
 
-	const ent = use(props.params).ent;
-	const data = use(props.data);
-
 	return (
 		<Table aria-label="Data table">
-			<TableHeader
-				columns={ent === "estudiante" ? athleteColumns : primaryColumns}
-			>
+			<TableHeader columns={ent === "atleta" ? athleteColumns : primaryColumns}>
 				{(column) => (
 					<TableColumn
 						key={column.uid}
@@ -191,12 +196,12 @@ export default function DataTable(props: {
 					</TableColumn>
 				)}
 			</TableHeader>
-			<TableBody items={data ?? []} emptyContent="Sin datos...">
+			<TableBody items={data} emptyContent="Sin datos...">
 				{(item) => (
 					<TableRow key={item.id}>
 						{(columnKey) => (
 							<TableCell>
-								{ent === "estudiante"
+								{ent === "atleta"
 									? renderAthleteCell(item, columnKey)
 									: renderUserCell(item, columnKey)}
 							</TableCell>

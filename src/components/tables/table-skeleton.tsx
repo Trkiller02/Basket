@@ -1,3 +1,5 @@
+"use client";
+
 import {
 	Table,
 	TableBody,
@@ -16,18 +18,14 @@ export const TableSkeleton = () => (
 		}}
 	>
 		<TableHeader>
-			<TableColumn>
-				<Skeleton className="w-full h-6" />
-			</TableColumn>
-			<TableColumn>
-				<Skeleton className="w-full h-6" />
-			</TableColumn>
-			<TableColumn>
-				<Skeleton className="w-full h-6" />
-			</TableColumn>
+			{Array.from({ length: 3 }).map((_, index) => (
+				<TableColumn key={index.toString()}>
+					<Skeleton className="w-full h-6" />
+				</TableColumn>
+			))}
 		</TableHeader>
 		<TableBody>
-			{Array.from({ length: 5 }).map((_, index) => (
+			{Array.from({ length: 4 }).map((_, index) => (
 				<TableRow key={index.toString()}>
 					<TableCell>
 						<Skeleton className="w-full h-4" />
