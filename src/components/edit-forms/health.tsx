@@ -10,7 +10,7 @@ import { useEffect } from "react";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Controller, useForm } from "react-hook-form";
 import { addToast } from "@heroui/toast";
-import { healthSchema } from "@/utils/schemas/health";
+import { healthSchema } from "@/utils/interfaces/schemas";
 import { Select, SelectItem } from "@heroui/select";
 import { bloodList } from "@/utils/selectList";
 import { Checkbox } from "@heroui/checkbox";

@@ -3,20 +3,45 @@
 import { Input } from "@heroui/input";
 import { Button } from "@heroui/button";
 import { Tooltip } from "@heroui/tooltip";
-import { Search } from "lucide-react";
+import { Check, Search, X } from "lucide-react";
 
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import type { User } from "@/utils/interfaces/user";
-import { initValUser, userSchema } from "@/utils/schemas/user";
+import { userSchema } from "@/utils/interfaces/schemas";
+import { addToast } from "@heroui/toast";
+import { getEntityData } from "@/lib/action-data";
+import { useState } from "react";
+import { MsgError } from "@/utils/messages";
 
 export default function UserForm({ data }: { data?: User }) {
+	const [isAvailable, setIsAvailable] = useState<boolean | undefined>();
+
+	const findEntity = async (id: string) => {
+		try {
+			const response = await getEntityData("users", id);
+			if (response) setIsAvailable(false);
+		} catch (error) {
+			if (error instanceof Error) {
+				if (error.message === MsgError.NOT_FOUND) return setIsAvailable(true);
+
+				addToast({
+					title: "Error al buscar registro",
+					description: error.message,
+					color: "danger",
+				});
+			}
+		}
+	};
+
 	const form = useForm<User & { password: string; repeat_password: string }>({
-		reValidateMode: "onChange",
+		criteriaMode: "firstError",
 		mode: "all",
-		defaultValues: data ?? initValUser,
+		defaultValues: data,
 		resolver: yupResolver(userSchema),
 	});
+
+	const onSubmit = async (data: User) => {};
 
 	return (
 		<form
@@ -26,99 +51,128 @@ export default function UserForm({ data }: { data?: User }) {
 		>
 			<div className="flex items-center justify-center mb-7 w-full">
 				<h1 className="text-2xl font-medium">
-					Estudiante <p className="text-primary-500 inline-flex">|</p> Registro
+					Usuario <p className="text-primary-500 inline-flex">|</p> Registro
 				</h1>
 			</div>
 			<div className="grid grid-cols-8 gap-3">
 				{/* CI FIELD */}
-				<Input
-					{...form.register("ci_number")}
-					isRequired={!data}
-					label="Cédula de identidad:"
-					description="Ingrese su Cédula de identidad"
-					variant="bordered"
-					errorMessage={form.formState.errors.ci_number?.message}
-					className="col-span-2"
-				/>
-
-				{/* SEARCH BUTTON */}
-				{!data && (
-					<Tooltip
-						content="Buscar Estudiante"
-						className="border border-primary-500"
-					>
-						<Button
-							isDisabled={!form.watch("ci_number")}
-							isIconOnly
-							color="primary"
-							variant="ghost"
-							aria-label="Buscar entidad"
-							className="w-3/4 h-3/4"
-							onPress={
-								() => {}
-								/* toast.promise(searchStudent(values.person_id?.ci_number), {
-									loading: "Procesando...",
-									success: (data) => {
-										router.push(`/search/student/${data?.ci_number}`);
-										return "Búsqueda exitosa.";
-									},
-									error: (error: Error) => {
-										if (error.message === "Failed to fetch") {
-											return "Error en conexión.";
-										}
-										return error.message;
-									},
-								}) */
+				<Controller
+					control={form.control}
+					name="ci_number"
+					render={({ field, fieldState: { error } }) => (
+						<Input
+							{...field}
+							isRequired
+							color={error ? "danger" : "default"}
+							label="Cédula de identidad:"
+							description="V30... ó E23..."
+							isInvalid={!!error}
+							errorMessage={error?.message}
+							endContent={
+								typeof isAvailable !== "boolean" ? (
+									<Tooltip content="Buscar registro" color="primary">
+										<Button
+											isDisabled={!field.value}
+											isIconOnly
+											variant="light"
+											aria-label="Buscar entidad"
+											className="text-foreground-700"
+											onPress={() =>
+												addToast({
+													title: "Verificando si existe...",
+													description: "Será breve.",
+													promise: findEntity(field.value),
+												})
+											}
+										>
+											<Search className="px-1" />
+										</Button>
+									</Tooltip>
+								) : (
+									<Tooltip
+										content={isAvailable ? "Disponible" : "Registrado"}
+										color="default"
+									>
+										<div
+											className={`w-6 h-6 flex justify-center items-center rounded-full ${isAvailable ? "bg-success" : "bg-danger"}`}
+										>
+											{isAvailable ? (
+												<Check className="text-white py-2" />
+											) : (
+												<X className="text-white py-2" />
+											)}
+										</div>
+									</Tooltip>
+								)
 							}
-						>
-							<Search className="text-2xl" />
-						</Button>
-					</Tooltip>
-				)}
+						/>
+					)}
+				/>
 
 				<span className="col-span-2">&nbsp;</span>
 
 				{/* NAME FIELD */}
-				<Input
-					{...form.register("name")}
-					isRequired={!data}
-					label="Nombres:"
-					description="Ingrese sus Nombres"
-					variant="bordered"
-					errorMessage={form.formState.errors.name?.message}
-					className="col-span-4"
+				<Controller
+					name="name"
+					control={form.control}
+					render={({ field, fieldState: { error } }) => (
+						<Input
+							{...field}
+							color={error ? "danger" : "default"}
+							isRequired
+							label="Nombres:"
+							description="Ingrese sus Nombres"
+							isInvalid={!!error}
+							errorMessage={error?.message}
+						/>
+					)}
 				/>
-
 				{/* LASTNAME FIELD */}
-				<Input
-					{...form.register("lastname")}
-					isRequired={!data}
-					label="Apellidos:"
-					description="Ingrese sus Apellidos"
-					variant="bordered"
-					errorMessage={form.formState.errors.lastname?.message}
-					className="col-span-4"
+				<Controller
+					name="lastname"
+					control={form.control}
+					render={({ field, fieldState: { error } }) => (
+						<Input
+							{...field}
+							color={error ? "danger" : "default"}
+							isRequired
+							label="Apellidos:"
+							description="Ingrese sus Apellidos"
+							isInvalid={!!error}
+							errorMessage={error?.message}
+						/>
+					)}
 				/>
-
 				{/* EMAIL FIELD */}
-				<Input
-					{...form.register("email")}
-					label="Correo electrónico:"
-					type="email"
-					description="Ingrese su correo electrónico"
-					variant="bordered"
-					errorMessage={form.formState.errors.email?.message}
-					className="col-span-3"
+				<Controller
+					name="email"
+					control={form.control}
+					render={({ field, fieldState: { error } }) => (
+						<Input
+							{...field}
+							color={error ? "danger" : "default"}
+							label="Correo electrónico:"
+							type="email"
+							description="Ej: pedro123@gmail.com"
+							isInvalid={!!error}
+							errorMessage={error?.message}
+						/>
+					)}
 				/>
-
 				{/* PHONE_NUMBER FIELD */}
-				<Input
-					{...form.register("phone_number")}
-					label="Número telefónico:"
-					description="Ingrese su número de teléfono"
-					variant="bordered"
-					errorMessage={form.formState.errors.phone_number?.message}
-					className="col-span-3"
+				<Controller
+					name="phone_number"
+					control={form.control}
+					render={({ field, fieldState: { error } }) => (
+						<Input
+							{...field}
+							color={error ? "danger" : "default"}
+							label="Número telefónico:"
+							description="Ej: 0424..."
+							isInvalid={!!error}
+							errorMessage={error?.message}
+						/>
+					)}
 				/>
 
 				<Input

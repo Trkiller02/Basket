@@ -14,7 +14,7 @@ import type { Athlete } from "@/utils/interfaces/athlete";
 
 import { setUpper } from "@/utils/setUpper";
 import { useEffect } from "react";
-import { athleteSchema } from "@/utils/schemas/athlete";
+import { athleteSchema } from "@/utils/interfaces/schemas";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Controller, useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";

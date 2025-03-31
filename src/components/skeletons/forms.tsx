@@ -19,6 +19,10 @@ export const FormSkeleton = () => {
 				<Skeleton className="w-full h-14 rounded-2xl" />
 			</div>
 			<Skeleton className="w-full h-14 rounded-2xl col-span-2" />
+			<div className="col-span-2 pt-2 flex justify-between">
+				<Skeleton className="w-16 h-10 rounded-2xl" />
+				<Skeleton className="w-16 h-10 rounded-2xl" />
+			</div>
 		</section>
 	);
 };

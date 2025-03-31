@@ -9,7 +9,7 @@ import { fetchData } from "@/utils/fetchHandler";
 import type { Athlete } from "@/utils/interfaces/athlete";
 import type { Invoices } from "@/utils/interfaces/invoice";
 import type { Representative } from "@/utils/interfaces/representative";
-import { invoiceSchema } from "@/utils/schemas/invoice";
+import { invoiceSchema } from "@/utils/interfaces/schemas";
 import { Input } from "@heroui/input";
 import { NumberInput } from "@heroui/number-input";
 import { addToast } from "@heroui/toast";

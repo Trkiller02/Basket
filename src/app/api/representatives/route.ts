@@ -94,7 +94,13 @@ export const GET = async (req: NextRequest) => {
 				},
 			);
 
-		return NextResponse.json({ representatives: result });
+		return NextResponse.json({
+			result,
+			pagination: {
+				page,
+				total_pages: Math.round(result.length / Number(limit ?? 10)),
+			},
+		});
 	} catch (error) {
 		return NextResponse.json(
 			{ message: (error as Error).message },

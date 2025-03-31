@@ -3,6 +3,7 @@ import { betterAuth } from "better-auth";
 import { admin, openAPI, twoFactor } from "better-auth/plugins";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import * as schema from "@drizzle/schema";
+import { fetchData } from "@/utils/fetchHandler";
 
 export const auth = betterAuth({
 	session: {
@@ -38,6 +39,24 @@ export const auth = betterAuth({
 	}),
 	emailAndPassword: {
 		enabled: true, // If you want to use email and password auth
+		minPasswordLength: 4, // Minimum password length
+		maxPasswordLength: 32, // Maximum password length
+		autoSignIn: false,
+		sendResetPassword: async ({ user, url, token }, request) => {
+			try {
+				const data = await fetchData("/api/emails", {
+					method: "POST",
+					body: {
+						username: user.email,
+						url: url,
+					},
+				});
+
+				console.log(data);
+			} catch (error) {
+				console.error(error);
+			}
+		},
 	},
-	plugins: [twoFactor(), openAPI(), admin()],
+	plugins: [twoFactor(), admin()],
 });

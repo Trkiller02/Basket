@@ -15,7 +15,7 @@ import { setUpper } from "@/utils/setUpper";
 
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Controller, useForm } from "react-hook-form";
-import { representativeSchema } from "@/utils/schemas/representative";
+import { representativeSchema } from "@/utils/interfaces/schemas";
 import { updateEntityData } from "@/lib/action-data";
 
 export function RepresentativeEditForm({ data }: { data?: Representative }) {

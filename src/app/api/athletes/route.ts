@@ -1,7 +1,7 @@
 import type { SearchQuery } from "@/utils/interfaces/search";
 import type { CreateAthletesDto } from "./dto/create-athletes.dto";
 import { athletes, users } from "@drizzle/schema";
-import { and, eq, ilike, isNotNull, isNull } from "drizzle-orm";
+import { and, eq, ilike, isNotNull, isNull, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { type NextRequest, NextResponse } from "next/server";
 import { MsgError } from "@/utils/messages";
@@ -35,13 +35,26 @@ import { MsgError } from "@/utils/messages";
 export const GET = async (req: NextRequest) => {
 	const querys = req.nextUrl.searchParams;
 
-	const page = querys.get("page");
-	const limit = querys.get("limit");
+	const page = querys.get("page") ?? 1;
+	const limit = querys.get("limit") ?? 10;
 	const query = querys.get("query");
-	const deleted = querys.get("deleted");
+	const deleted = querys.get("deleted") === "true";
 	const isFormView = querys.get("formView");
+	const isChartView = querys.get("chartView");
 
 	try {
+		if (isChartView) {
+			const result = await db
+				.select({
+					category: athletes.category,
+					count: sql<number>`count(*)`.as("count"),
+				})
+				.from(athletes)
+				.groupBy(athletes.category);
+
+			return NextResponse.json(result);
+		}
+
 		const result = await db
 			.select(
 				isFormView
@@ -84,8 +97,8 @@ export const GET = async (req: NextRequest) => {
 					deleted ? isNotNull(users.deleted_at) : isNull(users.deleted_at),
 				),
 			)
-			.limit(Number(limit ?? 10))
-			.offset(Number(page ?? 1) - 1);
+			.limit(Number(limit))
+			.offset(Number(page) - 1);
 
 		if (result.length === 0)
 			return NextResponse.json(
@@ -93,7 +106,13 @@ export const GET = async (req: NextRequest) => {
 				{ status: 404 },
 			);
 
-		return NextResponse.json(result);
+		return NextResponse.json({
+			result,
+			pagination: {
+				page,
+				total_pages: Math.round(result.length % Number(limit)),
+			},
+		});
 	} catch (error) {
 		return NextResponse.json(
 			{ message: (error as Error).message },
