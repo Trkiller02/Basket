@@ -27,13 +27,12 @@ const statusColorMap: Record<string, ChipProps["color"]> = {
 
 export default function DataTable({
 	dataPromise,
-	params,
+	entity,
 }: {
 	dataPromise: Promise<DataRequest[] | undefined>;
-	params: { [key: string]: string | undefined };
+	entity: string;
 }) {
 	const data = use(dataPromise) ?? [];
-	const ent = params.ent;
 
 	const renderUserCell = useCallback(
 		(user: DataRequest, columnKey: React.Key) => {
@@ -186,7 +185,9 @@ export default function DataTable({
 
 	return (
 		<Table aria-label="Data table">
-			<TableHeader columns={ent === "atleta" ? athleteColumns : primaryColumns}>
+			<TableHeader
+				columns={entity === "atleta" ? athleteColumns : primaryColumns}
+			>
 				{(column) => (
 					<TableColumn
 						key={column.uid}
@@ -201,7 +202,7 @@ export default function DataTable({
 					<TableRow key={item.id}>
 						{(columnKey) => (
 							<TableCell>
-								{ent === "atleta"
+								{entity === "atleta"
 									? renderAthleteCell(item, columnKey)
 									: renderUserCell(item, columnKey)}
 							</TableCell>

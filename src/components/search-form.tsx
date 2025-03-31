@@ -10,7 +10,7 @@ import { Input } from "@heroui/input";
 import { Select, SelectItem } from "@heroui/select";
 import { Delete } from "lucide-react";
 
-export default function SearchForm() {
+function SearchForm() {
 	const params = useSearchParams();
 	const pathname = usePathname();
 	const { replace } = useRouter();
@@ -42,7 +42,7 @@ export default function SearchForm() {
 
 			replace(`${pathname}?${searchParams.toString()}`);
 		},
-		300,
+		350,
 	);
 
 	/* const iconClasses =
@@ -124,7 +124,7 @@ export default function SearchForm() {
 					size="lg"
 					onValueChange={(isValue) =>
 						handleChange({
-							target: { name: "deleted", value: String(isValue) },
+							target: { name: "eliminados", value: String(isValue) },
 						})
 					}
 				>
@@ -139,3 +139,5 @@ export default function SearchForm() {
 		</section>
 	);
 }
+
+export default SearchForm;

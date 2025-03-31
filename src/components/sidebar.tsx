@@ -14,6 +14,7 @@ import {
 	ChevronRight,
 	ChevronDown,
 	Menu,
+	Dribbble,
 } from "lucide-react";
 
 import {
@@ -96,20 +97,6 @@ export const routes = [
 		],
 	},
 	{
-		name: "Buscar",
-		href: "/buscar",
-		icon: UserRoundSearch,
-		subRoutes: [
-			{
-				name: "Representante",
-				href: "/buscar?ent=representante",
-				icon: ShieldUser,
-			},
-			{ name: "Atleta", href: "/buscar?ent=atleta", icon: Dumbbell },
-			{ name: "Usuario", href: "/buscar?ent=usuario", icon: UserRound },
-		],
-	},
-	{
 		name: "Pagos",
 		href: "/pagos",
 		icon: HandCoins,
@@ -126,9 +113,12 @@ export function Sidebar() {
 		<aside
 			className={`${
 				isCollapsed ? "w-[3%]" : "w-[12%]"
-			} h-full flex flex-col flex-0 shrink-0 justify-between bg-content2 items-center rounded-2xl m-2 py-2 transition-all duration-150 ease-in-out overflow-x-hidden border-2 border-content3 `}
+			} h-full flex flex-col flex-0 shrink-0 justify-between items-center  py-2 transition-all duration-150 ease-in-out overflow-x-hidden`}
 		>
 			<nav className="space-y-2">
+				{/* <div className="relative flex h-7 w-7 items-center justify-center overflow-hidden rounded-full">
+				<Image src="/trapiche.svg" fill alt="Trapichito" />
+				</div> */}
 				<Button
 					fullWidth
 					isIconOnly={isCollapsed}
@@ -139,9 +129,7 @@ export function Sidebar() {
 						isCollapsed ? (
 							<Menu className="size-7 min-w-7 min-h-7" />
 						) : (
-							<div className="relative flex h-7 w-7 items-center justify-center overflow-hidden rounded-full">
-								<Image src="/trapiche.svg" fill alt="Trapichito" />
-							</div>
+							<Dribbble className="size-7 min-w-7 min-h-7" />
 						)
 					}
 					endContent={
