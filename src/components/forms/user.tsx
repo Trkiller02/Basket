@@ -54,7 +54,7 @@ export default function UserForm({ data }: { data?: User }) {
 			phone_number: data.phone_number,
 			ci_number: data.ci_number,
 		});
-		console.log({ data, error: error?.message });
+		console.log({ data, error });
 
 		if (error) return toast.error(error.message);
 	};

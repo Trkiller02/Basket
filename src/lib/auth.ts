@@ -3,6 +3,7 @@ import { betterAuth } from "better-auth";
 import { admin, openAPI, twoFactor } from "better-auth/plugins";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import * as schema from "@drizzle/schema";
+import * as relation from "@drizzle/relations";
 import { fetchData } from "@/utils/fetchHandler";
 
 export const auth = betterAuth({
@@ -35,7 +36,7 @@ export const auth = betterAuth({
 		// We're using Drizzle as our database
 		provider: "pg",
 		usePlural: true,
-		schema,
+		schema: { ...schema, ...relation },
 	}),
 	emailAndPassword: {
 		enabled: true, // If you want to use email and password auth
