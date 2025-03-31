@@ -3,7 +3,7 @@
 import { Input } from "@heroui/input";
 import { Button } from "@heroui/button";
 import { Tooltip } from "@heroui/tooltip";
-import { Check, Search, X } from "lucide-react";
+import { Check, Eye, EyeOff, Search, X } from "lucide-react";
 
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Controller, useForm } from "react-hook-form";
@@ -14,9 +14,12 @@ import { getEntityData } from "@/lib/action-data";
 import { useState } from "react";
 import { MsgError } from "@/utils/messages";
 import { authClient } from "@/lib/auth-client";
+import Link from "next/link";
+import { toast } from "sonner";
 
 export default function UserForm({ data }: { data?: User }) {
 	const [isAvailable, setIsAvailable] = useState<boolean | undefined>();
+	const [isVisible, setIsVisible] = useState(false);
 
 	const findEntity = async (id: string) => {
 		try {
@@ -43,20 +46,17 @@ export default function UserForm({ data }: { data?: User }) {
 	});
 
 	const onSubmit = async (data: User) => {
-		try {
-			const { data: info, error } = await authClient.signUp.email({
-				callbackURL: "/",
-				email: data.email,
-				password: data.password ?? "",
-				name: data.name,
-				lastname: data.lastname,
-				phone_number: data.phone_number,
-				ci_number: data.ci_number,
-			});
-			console.log(data);
-		} catch (error) {
-			console.log(error);
-		}
+		const { data: info, error } = await authClient.signUp.email({
+			email: data.email,
+			password: data.password ?? "",
+			name: data.name,
+			lastname: data.lastname,
+			phone_number: data.phone_number,
+			ci_number: data.ci_number,
+		});
+		console.log({ data, error: error?.message });
+
+		if (error) return toast.error(error.message);
 	};
 
 	return (
@@ -91,10 +91,16 @@ export default function UserForm({ data }: { data?: User }) {
 										aria-label="Buscar entidad"
 										className="text-foreground-700"
 										onPress={() =>
-											addToast({
-												title: "Verificando si existe...",
+											toast.promise(findEntity(field.value), {
+												loading: "Verificando si existe...",
 												description: "Será breve.",
-												promise: findEntity(field.value),
+												success: (data) => {
+													return {
+														message: "Registro encontrado",
+														description: "No, puede registrar un nuevo ",
+													};
+												},
+												error: (error) => error,
 											})
 										}
 									>
@@ -184,21 +190,67 @@ export default function UserForm({ data }: { data?: User }) {
 					/>
 				)}
 			/>
-			<Input
-				{...form.register("password")}
-				label="Contraseña:"
-				description="Ingrese su contraseña"
-				variant="bordered"
-				errorMessage={form.formState.errors.password?.message}
-				className="col-span-2"
+			<Controller
+				name="password"
+				control={form.control}
+				render={({ field, fieldState: { error } }) => (
+					<Input
+						{...field}
+						type={isVisible ? "text" : "password"}
+						label="Contraseña:"
+						description="Ingrese su contraseña"
+						variant="bordered"
+						errorMessage={error?.message}
+						isInvalid={!!error}
+						className="col-span-2"
+						endContent={
+							<Button
+								onPress={() => setIsVisible(!isVisible)}
+								color="default"
+								variant="light"
+								className="text-default-500"
+								isIconOnly
+							>
+								{isVisible ? <EyeOff /> : <Eye />}
+							</Button>
+						}
+					/>
+				)}
 			/>
-			<Input
-				{...form.register("repeat_password")}
-				label="Repita contraseña:"
-				variant="bordered"
-				errorMessage={form.formState.errors.repeat_password?.message}
-				className="col-span-2"
+			<Controller
+				name="repeat_password"
+				control={form.control}
+				render={({ field, fieldState: { error } }) => (
+					<Input
+						{...field}
+						type={isVisible ? "text" : "password"}
+						label="Repita contraseña:"
+						variant="bordered"
+						isInvalid={!!error}
+						errorMessage={error?.message}
+						className="col-span-2"
+						endContent={
+							<Button
+								onPress={() => setIsVisible(!isVisible)}
+								color="default"
+								variant="light"
+								className="text-default-500"
+								isIconOnly
+							>
+								{isVisible ? <EyeOff /> : <Eye />}
+							</Button>
+						}
+					/>
+				)}
 			/>
+
+			<Link href="/sesion/iniciar" className="text-end">
+				¿Desea iniciar sesión?
+			</Link>
+
+			<Button type="submit" className="col-span-2" fullWidth color="primary">
+				{form.formState.isSubmitting ? "Enviando..." : "Registrarse"}
+			</Button>
 		</form>
 	);
 }

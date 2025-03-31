@@ -20,26 +20,26 @@ export const getDataTable = async (searchParams: {
 
 		try {
 			if (ent === "atleta") {
-				const res = await fetchData<Athlete[]>(
+				const res = await fetchData<{ result: Athlete[] }>(
 					`/api/athletes?${params.toString()}`,
 				);
 
 				if (res) {
-					return Array.isArray(res)
-						? res.map(extractPropsAthlete)
-						: [extractPropsAthlete(res)];
+					return Array.isArray(res.result)
+						? res.result.map(extractPropsAthlete)
+						: [extractPropsAthlete(res.result)];
 				}
 			}
 
 			if (ent === "representante") {
-				const res = await fetchData<Representative | Representative[]>(
+				const res = await fetchData<{ result: Representative[] }>(
 					`/api/representatives?${params.toString()}`,
 				);
 
 				if (res)
-					return Array.isArray(res)
-						? res.map(extractPropsRepresentative)
-						: [extractPropsRepresentative(res)];
+					return Array.isArray(res.result)
+						? res.result.map(extractPropsRepresentative)
+						: [extractPropsRepresentative(res.result)];
 			}
 
 			const res = await fetchData(`/api/users?${params.toString()}`);
