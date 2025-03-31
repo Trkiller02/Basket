@@ -5,7 +5,7 @@ import { formEntities } from "@/utils/selectList";
 import { Progress } from "@heroui/progress";
 import { cn } from "@heroui/theme";
 import { Check, Minus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 
 export const steps = [
 	{
@@ -40,7 +40,7 @@ export const steps = [
 	},
 ];
 
-export function RowSteps({ etapa }: { etapa: string }) {
+function RowSteps({ etapa }: { etapa: string }) {
 	const [successStep, setSuccessStep] = useState<Set<string>>(new Set());
 	const [omittedStep, setOmittedStep] = useState<Set<string>>(new Set());
 	const registerData = useRegisterStore((state) => state.registerData);
@@ -63,7 +63,7 @@ export function RowSteps({ etapa }: { etapa: string }) {
 	}, [registerData]);
 
 	return (
-		<div className="flex flex-col gap-2 w-1/4 mr-4">
+		<div className="flex flex-col gap-2 m-2">
 			<h4 className="text-2xl text-primary font-semibold">
 				Registro
 				<span className="text-base text-default-400 block font-normal">
@@ -116,3 +116,5 @@ export function RowSteps({ etapa }: { etapa: string }) {
 		</div>
 	);
 }
+
+export default memo(RowSteps);

@@ -8,11 +8,11 @@ export default function DashboardLayout({
 	children,
 }: { children: React.ReactNode }) {
 	return (
-		<div className="flex flex-row gap-2 h-[98vh]">
+		<div className="flex flex-row h-screen w-full">
 			<Sidebar />
-			<div className="flex flex-col mt-4 gap-2 w-full">
+			<div className="flex flex-col m-4 gap-2 w-full">
 				<BreadcrumbsList />
-				<main className="flex justify-center items-center">{children}</main>
+				<main className="">{children}</main>
 			</div>
 		</div>
 	);
