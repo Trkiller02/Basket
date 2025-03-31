@@ -1,13 +1,13 @@
 "use client";
 
-import { type RegisterData, useRegisterStore } from "@/store/useRegisterStore";
+import { useRegisterStore } from "@/store/useRegisterStore";
 import AthleteResume from "../details/athlete";
 import { HealthResume } from "../details/health";
 import { RepresentativeResume } from "../details/representative";
 import { fetchData } from "@/utils/fetchHandler";
 import { setEntityData } from "@/lib/action-data";
-import { addToast } from "@heroui/toast";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function ResumeForm() {
 	const registerData = useRegisterStore((state) => state.registerData);
@@ -30,85 +30,112 @@ export default function ResumeForm() {
 				},
 			);
 
-			const [athlete, representative] = await Promise.allSettled([
-				setEntityData("athletes", {
+			const [athlete, representative, mother, father] = await Promise.all<
+				{ message: string } | undefined
+			>([
+				setEntityData<{ message: string }>("athletes", {
 					...registerData.athlete,
 					image: fileUpload?.message,
 				}),
-				setEntityData("representatives", { ...registerData.representative }),
+				typeof registerData.representative === "object"
+					? setEntityData<{ message: string }>("representatives", {
+							...registerData.representative,
+						})
+					: undefined,
+				typeof registerData.mother === "object"
+					? setEntityData<{ message: string }>("representatives", {
+							...registerData.mother,
+						})
+					: undefined,
+				typeof registerData.father === "object"
+					? setEntityData<{ message: string }>("representatives", {
+							...registerData.father,
+						})
+					: undefined,
 			]);
 
-			if (athlete.status === "rejected" || representative.status === "rejected")
-				throw new Error(athlete.reason ?? representative.reason);
+			await Promise.all([
+				setEntityData("health", {
+					...registerData.health,
+					athlete_id: athlete?.message,
+				}),
+				setEntityData("repr-athletes", {
+					athlete_id: athlete?.message,
+					representative_id: representative?.message,
+				}),
 
-			if (
-				athlete.status === "fulfilled" &&
-				representative.status === "fulfilled"
-			) {
-				const [health, reprAthletes] = await Promise.allSettled([
-					setEntityData("health", {
-						...registerData.health,
-						athlete_id: (athlete.value as { message: string }).message,
-					}),
-					setEntityData("repr-athletes", {
-						athlete_id: (athlete.value as { message: string }).message,
-						representative_id: (representative.value as { message: string })
-							.message,
-					}),
-				]);
+				registerData.mother !== "omitted"
+					? setEntityData("repr-athletes", {
+							athlete_id: athlete?.message,
+							representative_id: mother?.message ?? registerData.mother,
+							relation: "madre",
+						})
+					: undefined,
 
-				if (health.status === "rejected" || reprAthletes.status === "rejected")
-					throw new Error(health.reason ?? reprAthletes.reason);
+				registerData.father !== "omitted"
+					? setEntityData("repr-athletes", {
+							athlete_id: athlete?.message,
+							representative_id: father?.message ?? registerData.father,
+							relation: "padre",
+						})
+					: undefined,
+			]);
 
-				if (
-					health.status === "fulfilled" &&
-					reprAthletes.status === "fulfilled"
-				)
-					addToast({
-						title: "Registro guardado",
-						description: "¡Gracias por completar el formulario!",
-						color: "success",
-					});
-			}
+			/* if (registerData.mother && registerData.mother !== "omitted") {
+				if (typeof registerData.mother === "object") {
+					const mother = await setEntityData<{ message: string }>(
+						"representatives",
+						{
+							...registerData.mother,
+						},
+					);
 
-			if (registerData.mother && registerData.mother !== "omitted") {
-				const mother = await setEntityData<{ message: string }>(
-					"representatives",
-					{
-						...registerData.mother,
-					},
-				);
+					if (mother)
+						await setEntityData("repr-athletes", {
+							athlete_id: (athlete?.message,
+							representative_id: mother.message,
+						});
+				}
 
-				if (mother)
+				if (typeof registerData.mother === "string")
 					await setEntityData("repr-athletes", {
-						athlete_id: (athlete.value as { message: string }).message,
-						representative_id: mother.message,
+						athlete_id: (athlete?.message,
+						representative_id: registerData.mother,
 					});
 			}
 
 			if (registerData.father && registerData.father !== "omitted") {
-				const father = await setEntityData<{ message: string }>(
-					"representatives",
-					{
-						...registerData.father,
-					},
-				);
+				if (typeof registerData.father === "object") {
+					const father = await setEntityData<{ message: string }>(
+						"representatives",
+						{
+							...registerData.father,
+						},
+					);
 
-				if (father)
+					if (father)
+						await setEntityData("repr-athletes", {
+							athlete_id: (athlete?.message,
+							representative_id: father.message,
+						});
+				}
+
+				if (typeof registerData.father === "string")
 					await setEntityData("repr-athletes", {
-						athlete_id: (athlete.value as { message: string }).message,
-						representative_id: father.message,
+						athlete_id: (athlete?.message,
+						representative_id: registerData.father,
 					});
-			}
+			} */
 
-			clearRegisterData();
-			router.push("/");
+			return {
+				message: "Registro guardado",
+				description: "¡Gracias por completar el formulario!",
+			};
 		} catch (error) {
-			addToast({
-				title: "Error al guardar datos",
-				description: error.message,
-				color: "danger",
-			});
+			throw {
+				message: "Error al guardar datos",
+				description: (error as Error).message,
+			};
 		}
 	};
 
@@ -116,11 +143,14 @@ export default function ResumeForm() {
 		<form
 			onSubmit={(e) => {
 				e.preventDefault();
-				addToast({
-					title: "Guardando...",
+
+				toast.promise(onSubmit, {
+					loading: "Guardando...",
 					description: "Por favor espere.",
-					color: "warning",
-					promise: onSubmit(),
+					success: (data) => {
+						return data;
+					},
+					error: (error) => error,
 				});
 			}}
 			id="resumen-form"
@@ -149,10 +179,10 @@ export default function ResumeForm() {
 							/>
 						</>
 					)}
-					{registerData.mother && registerData.mother !== "omitted" && (
+					{registerData.mother && typeof registerData.mother !== "string" && (
 						<RepresentativeResume data={registerData.mother} formView />
 					)}
-					{registerData.father && registerData.father !== "omitted" && (
+					{registerData.father && typeof registerData.father !== "string" && (
 						<RepresentativeResume data={registerData.father} formView />
 					)}
 				</>

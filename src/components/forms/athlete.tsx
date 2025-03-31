@@ -11,25 +11,27 @@ import { getLocalTimeZone, parseDate } from "@internationalized/date";
 import { dateHandler } from "@/utils/dateHandler";
 
 import type { Athlete } from "@/utils/interfaces/athlete";
-import { athleteSchema, initValAthlete } from "@/utils/schemas/athlete";
+import { athleteSchema } from "@/utils/interfaces/schemas";
 import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useRouter } from "next/navigation";
 import { useRegisterStore } from "@/store/useRegisterStore";
-import { getStep } from "@/utils/getStep";
-import { useEffect, useRef, useState } from "react";
+import { useGetStep } from "@/utils/getStep";
+import { useEffect, useRef, useState, memo } from "react";
 import { getEntityData } from "@/lib/action-data";
-import { addToast } from "@heroui/toast";
 import Image from "next/image";
 import { setUpper } from "@/utils/setUpper";
 import { getCategories } from "@/utils/getCategories";
+import { toast } from "sonner";
+import { MsgError } from "@/utils/messages";
 
-export default function AthleteForm() {
+function AthleteForm() {
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const router = useRouter();
 	const registerData = useRegisterStore((state) => state.registerData);
 	const setRegisterData = useRegisterStore((state) => state.setRegisterData);
 	const [isAvailable, setIsAvailable] = useState<boolean | undefined>();
+	const getStep = useGetStep("atleta", { data: registerData });
 
 	const handleIconClick = () => {
 		// Trigger the hidden file input when the icon is clicked
@@ -68,19 +70,21 @@ export default function AthleteForm() {
 
 	const findEntity = async (id: string) => {
 		try {
-			const response = await getEntityData("representatives", id);
+			const response = await getEntityData<Athlete>("athletes", id);
 			if (response) setIsAvailable(false);
+			return response;
 		} catch (error) {
-			if (error instanceof Error) {
-				if (error.message === "Atleta no encontrado")
-					return setIsAvailable(true);
-
-				addToast({
-					title: "Error al buscar atlete",
-					description: error.message,
-					color: "danger",
-				});
+			if ((error as Error).message === MsgError.NOT_FOUND) {
+				setIsAvailable(true);
+				return {
+					message: "Registro no encontrado",
+					description: "Puede registrar un nuevo atleta",
+				};
 			}
+			throw {
+				message: "Error al buscar atlete",
+				description: (error as Error).message,
+			};
 		}
 	};
 
@@ -98,9 +102,7 @@ export default function AthleteForm() {
 	useEffect(() => {
 		if (registerData.athlete) {
 			if (form.formState.isSubmitting)
-				return router.push(
-					`/registrar?etapa=${getStep("atleta", { data: registerData })}`,
-				);
+				return router.replace(`/registrar?etapa=${getStep()}`);
 
 			form.reset(registerData.athlete);
 		}
@@ -138,10 +140,21 @@ export default function AthleteForm() {
 										aria-label="Buscar entidad"
 										className="text-foreground-700"
 										onPress={() =>
-											addToast({
-												title: "Verificando si existe...",
+											toast.promise(findEntity(field.value), {
+												loading: "Verificando si existe...",
 												description: "Será breve.",
-												promise: findEntity(field.value),
+												success: (data) => {
+													return {
+														message: "Registro encontrado",
+														description: "¿Desea editarlo?",
+														action: {
+															label: "Editar",
+															onClick: () =>
+																router.replace(`/editar/atleta/${field.value}`),
+														},
+													};
+												},
+												error: (error) => error,
 											})
 										}
 									>
@@ -348,3 +361,5 @@ export default function AthleteForm() {
 		</form>
 	);
 }
+
+export default memo(AthleteForm);

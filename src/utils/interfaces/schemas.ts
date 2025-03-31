@@ -69,3 +69,15 @@ export const invoiceSchema = Yup.object({
 	description: Yup.string().optional(),
 	image_path: Yup.string().optional(),
 });
+
+export const authLoginSchema = Yup.object({
+	email: Yup.string().email(Messages.EMAIL_ERR).required(Messages.REQUIRED),
+	password: Yup.string().required(Messages.REQUIRED),
+});
+
+export const relationSchema = Yup.object({
+	relation: Yup.string().oneOf(["madre", "padre", "representante"]).required(),
+	value: Yup.string()
+		.matches(regexList.forDNI, { message: Messages.DNI_MATCH })
+		.required(),
+});

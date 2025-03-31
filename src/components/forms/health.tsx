@@ -1,7 +1,7 @@
 "use client";
 
 import type { Health } from "@/utils/interfaces/health";
-import { healthSchema, initValHealth } from "@/utils/schemas/health";
+import { healthSchema } from "@/utils/interfaces/schemas";
 import { Input } from "@heroui/input";
 import { Checkbox } from "@heroui/checkbox";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -12,15 +12,14 @@ import { bloodList } from "@/utils/selectList";
 import { useRegisterStore } from "@/store/useRegisterStore";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { getStep } from "@/utils/getStep";
+import { useGetStep } from "@/utils/getStep";
 import { setUpper } from "@/utils/setUpper";
 
 export default function HealthForm({ data }: { data?: Health }) {
 	const router = useRouter();
 	const registerData = useRegisterStore((state) => state.registerData);
 	const setRegisterData = useRegisterStore((state) => state.setRegisterData);
-	const getSessionData = useRegisterStore((state) => state.getSessionData);
-	const setSessionData = useRegisterStore((state) => state.setSessionData);
+	const getStep = useGetStep("salud", { data: registerData });
 
 	const form = useForm<Health>({
 		criteriaMode: "firstError",
@@ -42,9 +41,7 @@ export default function HealthForm({ data }: { data?: Health }) {
 		}
 
 		if (form.formState.isSubmitting && registerData.health) {
-			router.push(
-				`/registrar?etapa=${getStep("salud", { data: registerData })}`,
-			);
+			router.replace(`/registrar?etapa=${getStep()}`);
 		}
 	}, [registerData]);
 

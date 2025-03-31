@@ -8,20 +8,25 @@ export interface RegisterData {
 	athlete?: Athlete;
 	health?: Health;
 	representative?: Representative;
-	mother?: Representative | "omitted";
-	father?: Representative | "omitted";
+	mother?: Representative | "omitted" | string;
+	father?: Representative | "omitted" | string;
 }
 
 interface RegisterStore {
 	registerData: RegisterData;
+	relationSearch?: string;
 	setRegisterData: (data: RegisterData) => void;
 	setSessionData: () => void;
 	getSessionData: () => void;
 	clearRegisterData: () => void;
+	setRelationSearch?: (data: string) => void;
+	clearRelationSearch?: () => void;
 }
 
 export const useRegisterStore = create<RegisterStore>((set, get) => ({
 	registerData: {},
+	setRelationSearch: (data: string) =>
+		set((state) => ({ relationSearch: data })),
 	setRegisterData: (data: RegisterData) =>
 		set((state) => ({ registerData: { ...state.registerData, ...data } })),
 	setSessionData: () => {
@@ -38,4 +43,5 @@ export const useRegisterStore = create<RegisterStore>((set, get) => ({
 		set((state) => ({ registerData: JSON.parse(data) }));
 	},
 	clearRegisterData: () => set((state) => ({ registerData: {} })),
+	clearRelationSearch: () => set((state) => ({ relationSearch: undefined })),
 }));

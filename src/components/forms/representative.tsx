@@ -9,19 +9,17 @@ import { Check, Search, UserX, X } from "lucide-react";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Controller, useForm } from "react-hook-form";
 import type { Representative } from "@/utils/interfaces/representative";
-import {
-	initValRepresentative,
-	representativeSchema,
-} from "@/utils/schemas/representative";
-import { useEffect, useState } from "react";
+import { representativeSchema } from "@/utils/interfaces/schemas";
+import { useCallback, useEffect, useState } from "react";
 import { useRegisterStore } from "@/store/useRegisterStore";
 import { useRouter } from "next/navigation";
 import { getEntityData } from "@/lib/action-data";
-import { addToast } from "@heroui/toast";
-import { getStep } from "@/utils/getStep";
+import { useGetStep } from "@/utils/getStep";
 import { Select, SelectItem } from "@heroui/select";
 import { relationSelect } from "@/utils/selectList";
 import { setUpper } from "@/utils/setUpper";
+import { MsgError } from "@/utils/messages";
+import { toast } from "sonner";
 
 export default function RepresentativeForm({
 	data,
@@ -33,6 +31,9 @@ export default function RepresentativeForm({
 
 	const registerData = useRegisterStore((state) => state.registerData);
 	const setRegisterData = useRegisterStore((state) => state.setRegisterData);
+	const setRelationSearch = useRegisterStore(
+		(state) => state.setRelationSearch,
+	);
 	const router = useRouter();
 
 	const form = useForm<Representative>({
@@ -44,7 +45,9 @@ export default function RepresentativeForm({
 		progressive: true,
 	});
 
-	const disabledKeys = () => {
+	const getStep = useGetStep(etapa, { data: registerData });
+
+	const disabledKeys = useCallback(() => {
 		if (registerData.mother && !disKeys.has("madre")) {
 			setDisKeys((disKeys) => disKeys.add("madre"));
 		}
@@ -54,40 +57,40 @@ export default function RepresentativeForm({
 		if (registerData.representative && !disKeys.has("representante")) {
 			setDisKeys((disKeys) => disKeys.add("representante"));
 		}
-	};
+	}, [disKeys, registerData]);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
 		if (etapa === "representante" && registerData.representative) {
 			if (form.formState.isSubmitting)
-				return router.push(
-					`/registrar?etapa=${getStep("representante", {
-						data: registerData,
-					})}`,
-				);
+				return router.replace(`/registrar?etapa=${getStep()}`);
 			form.reset(registerData.representative);
 		}
 		if (etapa === "madre" && registerData.mother) {
 			if (registerData.mother === "omitted")
-				return router.push("/registrar?etapa=padre");
+				return router.replace("/registrar?etapa=padre");
 
 			if (form.formState.isSubmitting)
-				return router.push(
-					`/registrar?etapa=${getStep("madre", { data: registerData })}`,
-				);
+				return router.replace(`/registrar?etapa=${getStep()}`);
 
-			form.reset(registerData.mother);
+			form.reset(
+				typeof registerData.mother === "object"
+					? registerData.mother
+					: undefined,
+			);
 		}
 		if (etapa === "padre" && registerData.father) {
 			if (registerData.father === "omitted")
-				return router.push("/registrar?etapa=resumen");
+				return router.replace("/registrar?etapa=resumen");
 
 			if (form.formState.isSubmitting)
-				return router.push(
-					`/registrar?etapa=${getStep("padre", { data: registerData })}`,
-				);
+				return router.replace(`/registrar?etapa=${getStep()}`);
 
-			form.reset(registerData.father);
+			form.reset(
+				typeof registerData.father === "object"
+					? registerData.father
+					: undefined,
+			);
 		}
 
 		disabledKeys();
@@ -105,19 +108,20 @@ export default function RepresentativeForm({
 
 	const findEntity = async (id: string) => {
 		try {
-			const response = await getEntityData("representatives", id);
+			const response = await getEntityData<Representative>(
+				"representatives",
+				id,
+			);
 			if (response) setIsAvailable(false);
+			return response;
 		} catch (error) {
-			if (error instanceof Error) {
-				if (error.message === "Representante no encontrado")
-					return setIsAvailable(true);
+			if ((error as Error).message === MsgError.NOT_FOUND_MANY)
+				return setIsAvailable(true);
 
-				addToast({
-					title: "Error al buscar representante",
-					description: error.message,
-					color: "danger",
-				});
-			}
+			throw {
+				message: "Error al buscar atlete",
+				description: (error as Error).message,
+			};
 		}
 	};
 
@@ -166,10 +170,25 @@ export default function RepresentativeForm({
 										aria-label="Buscar entidad"
 										className="text-foreground-700"
 										onPress={() =>
-											addToast({
-												title: "Verificando si existe...",
+											toast.promise(findEntity(field.value), {
+												loading: "Verificando si existe...",
 												description: "Será breve.",
-												promise: findEntity(field.value),
+												success: (data) => {
+													return {
+														message: "Registro encontrado",
+														description: "¿Relacionarlo con el atleta?",
+														action: {
+															label: "Si",
+															onClick: () => {
+																setRelationSearch?.(field.value);
+																router.replace(
+																	`/registrar?etapa=${etapa}&modal=true`,
+																);
+															},
+														},
+													};
+												},
+												error: (error) => error,
 											})
 										}
 									>
