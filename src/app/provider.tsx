@@ -1,11 +1,11 @@
 "use client";
 
 import { HeroUIProvider } from "@heroui/system";
-import { ToastProvider } from "@heroui/toast";
+import { Toaster as ToastProvider } from "sonner";
 
 export const Provider = ({ children }: { children: React.ReactNode }) => (
 	<HeroUIProvider locale="es-VE">
-		<ToastProvider maxVisibleToasts={4} placement="top-right" />
+		<ToastProvider visibleToasts={4} position="top-center" />
 		{children}
 	</HeroUIProvider>
 );
