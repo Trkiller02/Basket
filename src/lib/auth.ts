@@ -41,7 +41,6 @@ export const auth = betterAuth({
 		enabled: true, // If you want to use email and password auth
 		minPasswordLength: 4, // Minimum password length
 		maxPasswordLength: 32, // Maximum password length
-		autoSignIn: false,
 		sendResetPassword: async ({ user, url, token }, request) => {
 			try {
 				const data = await fetchData("/api/emails", {

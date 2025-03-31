@@ -4,4 +4,7 @@ export type User = {
 	lastname: string;
 	email: string;
 	phone_number?: string;
+	password?: string;
+	repeat_password?: string;
+	role?: string;
 };
