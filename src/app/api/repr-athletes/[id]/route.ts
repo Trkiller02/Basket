@@ -33,11 +33,7 @@ export async function GET(
 		.from(athletes_representatives)
 		.where(eq(athletes_representatives.representative_id, user.id));
 
-	if (reprAtheletes.length === 0)
-		return NextResponse.json(
-			{ message: MsgError.NOT_FOUND_MANY },
-			{ status: 404 },
-		);
+	if (reprAtheletes.length === 0) return NextResponse.json({ result: [] });
 
 	const athletesResult: AthleteResultRepr[] = [];
 

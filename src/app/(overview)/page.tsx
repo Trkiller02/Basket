@@ -1,8 +1,8 @@
 import AthletesPreview from "@/components/athletes-preview";
 import SearchForm from "@/components/search-form";
 import { auth } from "@/lib/auth";
-import { signOut } from "@/lib/auth-client";
-import { Button } from "@heroui/button";
+import { redirect } from "next/navigation";
+
 import { headers } from "next/headers";
 import { Suspense } from "react";
 
@@ -10,6 +10,8 @@ export default async function Page() {
 	const session = await auth.api.getSession({
 		headers: await headers(),
 	});
+
+	if (!session) redirect("/sesion/iniciar");
 
 	return session?.user?.role === "representante" ? (
 		<Suspense fallback={<div>Loading...</div>}>
