@@ -3,13 +3,7 @@
 import { Button } from "@heroui/button";
 import { Divider } from "@heroui/divider";
 import { Link } from "@heroui/link";
-import { User } from "@heroui/user";
 import {
-	Box,
-	PenTool,
-	TrendingUp,
-	Plane,
-	MoreHorizontal,
 	ChevronLeft,
 	ChevronRight,
 	ChevronDown,
@@ -22,14 +16,12 @@ import {
 	HandCoins,
 	LayoutDashboard,
 	UserRoundPlus,
-	UserRoundSearch,
-	UserRound,
 	ShieldUser,
 	type LucideIcon,
 } from "lucide-react";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import UserSidebar from "./user-sidebar";
 
 interface NavItemProps {
 	Icon: LucideIcon;
@@ -113,7 +105,7 @@ export function Sidebar() {
 		<aside
 			className={`${
 				isCollapsed ? "w-[3%]" : "w-[12%]"
-			} h-full flex flex-col flex-0 shrink-0 justify-between items-center  py-2 transition-all duration-150 ease-in-out overflow-x-hidden`}
+			} h-full flex flex-col flex-0 shrink-0 justify-between items-center  py-2 transition-all duration-150 ease-in-out overflow-x-hidden border-r-1 border-default-200`}
 		>
 			<nav className="space-y-2">
 				{/* <div className="relative flex h-7 w-7 items-center justify-center overflow-hidden rounded-full">
@@ -174,15 +166,7 @@ export function Sidebar() {
 				))}
 			</nav>
 
-			<User
-				avatarProps={{
-					fallback: "SC",
-					className: "min-w-8 min-h-8 size-8",
-				}}
-				name={isCollapsed ? "" : "shadcn"}
-				description={isCollapsed ? "" : "m@example.com"}
-				className={`w-full justify-start ml-4${!isCollapsed ? "" : ""}`}
-			/>
+			<UserSidebar isCollapsed={isCollapsed} />
 		</aside>
 	);
 }
