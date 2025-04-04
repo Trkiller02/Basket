@@ -115,9 +115,18 @@ export const POST = async (req: NextRequest) => {
 
 		const { user_id, ...rest } = body;
 
+		if (typeof user_id !== "object") {
+			const [{ id }] = await db
+				.insert(representatives)
+				.values({ ...rest, user_id: user_id })
+				.returning({ id: representatives.id });
+
+			return NextResponse.json({ message: id }, { status: 201 });
+		}
+
 		const [{ userId }] = await db
 			.insert(users)
-			.values(user_id)
+			.values({ ...user_id, id: crypto.randomUUID() })
 			.returning({ userId: users.id });
 
 		const [{ id }] = await db
@@ -127,6 +136,8 @@ export const POST = async (req: NextRequest) => {
 
 		return NextResponse.json({ message: id }, { status: 201 });
 	} catch (error) {
+		console.error(error);
+
 		return NextResponse.json(
 			{ message: (error as Error).message },
 			{ status: 400 },

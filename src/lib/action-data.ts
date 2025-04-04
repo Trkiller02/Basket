@@ -3,16 +3,21 @@ import { fetchData } from "@/utils/fetchHandler";
 export const getEntityData = async <T>(
 	entity: "representatives" | "athletes" | "users",
 	query: string,
+	forFormView = false,
 ): Promise<T | undefined> => {
-	return await fetchData(`/api/${entity}/${query}`);
+	return await fetchData(
+		`/api/${entity}/${query}${forFormView ? "?formView=true" : ""}`,
+	);
 };
 
 export const getEntityDataById = async <T>(
 	entity: "health" | "repr-athletes",
 	id: string,
-	formAthlete = true,
+	formAthlete = false,
 ) => {
-	return await fetchData<T>(`/api/${entity}/${id}?formAthlete=${formAthlete}`);
+	return await fetchData<T>(
+		`/api/${entity}/${id}${formAthlete ? "?formAthlete=true" : ""}`,
+	);
 };
 
 export const setEntityData = async <T>(

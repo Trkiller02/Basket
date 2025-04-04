@@ -129,7 +129,7 @@ export const POST = async (req: NextRequest) => {
 
 		const [{ userId }] = await db
 			.insert(users)
-			.values(user_id)
+			.values({ ...user_id, id: crypto.randomUUID() })
 			.returning({ userId: users.id });
 
 		const [{ id }] = await db

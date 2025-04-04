@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
 		ppr: "incremental",
 		optimizeCss: true,
 		optimizePackageImports: ["@heroui/*"],
+		nodeMiddleware: true,
 	},
 };
 

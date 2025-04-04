@@ -21,3 +21,16 @@ export interface DataRequest
 	id: string;
 	role_id?: string;
 }
+
+export interface AthleteResultRepr {
+	id: string;
+	user_id: {
+		id: string;
+		ci_number: string;
+		name: string;
+		lastname: string;
+	};
+	solvent: number;
+	category?: string | null;
+	position?: string | null;
+}

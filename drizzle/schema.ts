@@ -27,7 +27,7 @@ export const athletes = pgTable(
 		solvent: integer().default(0).notNull(),
 		category: text(),
 		position: text(),
-		user_id: uuid(),
+		user_id: text().notNull(),
 	},
 	(table) => [
 		uniqueIndex("public_atletas_pkey").using(
@@ -36,7 +36,7 @@ export const athletes = pgTable(
 		),
 		uniqueIndex("public_atletas_usuario_id_key").using(
 			"btree",
-			table.user_id.asc().nullsLast().op("uuid_ops"),
+			table.user_id.asc().nullsLast().op("text_ops"),
 		),
 		index("public_idx_solvente").using(
 			"btree",
@@ -55,15 +55,13 @@ export const athletes_health = pgTable(
 	"athletes_health",
 	{
 		// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-		id: bigint({ mode: "number" })
-			.primaryKey()
-			.generatedByDefaultAsIdentity({
-				name: "athletes_health_id_seq",
-				startWith: 1,
-				increment: 1,
-				minValue: 1,
-				cache: 1,
-			}),
+		id: bigint({ mode: "number" }).primaryKey().generatedByDefaultAsIdentity({
+			name: "athletes_health_id_seq",
+			startWith: 1,
+			increment: 1,
+			minValue: 1,
+			cache: 1,
+		}),
 		athlete_id: uuid().notNull(),
 		medical_authorization: boolean().default(false),
 		blood_type: text().notNull(),
@@ -96,15 +94,13 @@ export const athletes_representatives = pgTable(
 	"athletes_representatives",
 	{
 		// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-		id: bigint({ mode: "number" })
-			.primaryKey()
-			.generatedByDefaultAsIdentity({
-				name: "athletes_representatives_id_seq",
-				startWith: 1,
-				increment: 1,
-				minValue: 1,
-				cache: 1,
-			}),
+		id: bigint({ mode: "number" }).primaryKey().generatedByDefaultAsIdentity({
+			name: "athletes_representatives_id_seq",
+			startWith: 1,
+			increment: 1,
+			minValue: 1,
+			cache: 1,
+		}),
 		athlete_id: uuid().notNull(),
 		representative_id: uuid().notNull(),
 		relation: text().default("representante").notNull(),
@@ -134,7 +130,7 @@ export const representatives = pgTable(
 		id: uuid().defaultRandom().primaryKey().notNull(),
 		occupation: text().notNull(),
 		height: numeric({ precision: 4, scale: 2 }),
-		user_id: uuid(),
+		user_id: text().notNull(),
 	},
 	(table) => [
 		uniqueIndex("public_representantes_pkey").using(
@@ -143,7 +139,7 @@ export const representatives = pgTable(
 		),
 		uniqueIndex("public_representantes_usuario_id_key").using(
 			"btree",
-			table.user_id.asc().nullsLast().op("uuid_ops"),
+			table.user_id.asc().nullsLast().op("text_ops"),
 		),
 		foreignKey({
 			columns: [table.user_id],
@@ -154,42 +150,17 @@ export const representatives = pgTable(
 	],
 );
 
-export const sessions = pgTable(
-	"sessions",
-	{
-		id: text().primaryKey().notNull(),
-		expiresAt: timestamp({ mode: "string" }).notNull(),
-		token: text().notNull(),
-		createdAt: timestamp({ mode: "string" }).notNull(),
-		updatedAt: timestamp({ mode: "string" }).notNull(),
-		ipAddress: text(),
-		userAgent: text(),
-		userId: uuid().notNull(),
-		impersonatedBy: text(),
-	},
-	(table) => [
-		foreignKey({
-			columns: [table.userId],
-			foreignColumns: [users.id],
-			name: "sessions_user_id_users_id_fk",
-		}).onDelete("cascade"),
-		unique("sessions_token_unique").on(table.token),
-	],
-);
-
 export const invoices = pgTable(
 	"invoices",
 	{
 		// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-		id: bigint({ mode: "number" })
-			.primaryKey()
-			.generatedByDefaultAsIdentity({
-				name: "invoices_id_seq",
-				startWith: 1,
-				increment: 1,
-				minValue: 1,
-				cache: 1,
-			}),
+		id: bigint({ mode: "number" }).primaryKey().generatedByDefaultAsIdentity({
+			name: "invoices_id_seq",
+			startWith: 1,
+			increment: 1,
+			minValue: 1,
+			cache: 1,
+		}),
 		representative_id: uuid().notNull(),
 		payment_date: date().defaultNow(),
 		amount: numeric({ precision: 10, scale: 2 }).notNull(),
@@ -219,87 +190,80 @@ export const invoices = pgTable(
 	],
 );
 
-export const two_factors = pgTable(
-	"two_factors",
-	{
-		id: text().primaryKey().notNull(),
-		secret: text().notNull(),
-		backupCodes: text().notNull(),
-		userId: uuid().notNull(),
-	},
-	(table) => [
-		foreignKey({
-			columns: [table.userId],
-			foreignColumns: [users.id],
-			name: "two_factors_user_id_users_id_fk",
-		}).onDelete("cascade"),
-	],
-);
-
-export const accounts = pgTable(
-	"accounts",
-	{
-		id: text().primaryKey().notNull(),
-		accountId: text().notNull(),
-		providerId: text().notNull(),
-		userId: uuid().notNull(),
-		accessToken: text(),
-		refreshToken: text(),
-		idToken: text(),
-		accessTokenExpiresAt: timestamp({ mode: "string" }),
-		refreshTokenExpiresAt: timestamp({ mode: "string" }),
-		scope: text(),
-		password: text(),
-		createdAt: timestamp({ mode: "string" }).notNull(),
-		updatedAt: timestamp({ mode: "string" }).notNull(),
-	},
-	(table) => [
-		foreignKey({
-			columns: [table.userId],
-			foreignColumns: [users.id],
-			name: "accounts_user_id_users_id_fk",
-		}).onDelete("cascade"),
-	],
-);
-
-export const verifications = pgTable("verifications", {
-	id: text().primaryKey().notNull(),
-	identifier: text().notNull(),
-	value: text().notNull(),
-	expiresAt: timestamp({ mode: "string" }).notNull(),
-	createdAt: timestamp({ mode: "string" }),
-	updatedAt: timestamp({ mode: "string" }),
-});
-
 export const users = pgTable(
 	"users",
 	{
-		id: uuid().defaultRandom().primaryKey().notNull(),
-		name: text().notNull(),
-		lastname: text().notNull(),
-		ci_number: text().notNull(),
-		phone_number: text(),
-		email: text(),
-		role: text(),
-		emailVerified: boolean().default(false).notNull(),
-		createdAt: timestamp({ mode: "string" }).defaultNow().notNull(),
-		updatedAt: timestamp({ mode: "string" }).defaultNow().notNull(),
-		deleted_at: timestamp({ mode: "string" }),
-		twoFactorEnabled: boolean(),
-		banned: boolean(),
-		banReason: text(),
-		banExpires: timestamp({ mode: "string" }),
+		id: text("id").primaryKey(),
+		name: text("name").notNull(),
+		email: text("email").notNull().unique(),
+		emailVerified: boolean("email_verified").notNull().default(false),
+		image: text("image"),
+		createdAt: timestamp("created_at").notNull().defaultNow(),
+		updatedAt: timestamp("updated_at").notNull().defaultNow(),
+		deleted_at: timestamp("deleted_at"),
+		twoFactorEnabled: boolean("two_factor_enabled").default(false),
+		role: text("role"),
+		banned: boolean("banned"),
+		banReason: text("ban_reason"),
+		banExpires: timestamp("ban_expires"),
+		lastname: text("lastname").notNull(),
+		ci_number: text("ci_number").notNull(),
+		phone_number: text("phone_number"),
 	},
 	(table) => [
-		uniqueIndex("public_usuarios_ci_number_key").using(
+		uniqueIndex("ci_number_pkey").using(
 			"btree",
-			table.ci_number.asc().nullsLast().op("text_ops"),
+			table.id.asc().nullsLast().op("text_ops"),
 		),
-		uniqueIndex("public_usuarios_pkey").using(
-			"btree",
-			table.id.asc().nullsLast().op("uuid_ops"),
-		),
-		unique("users_ci_number_key").on(table.ci_number),
-		unique("users_email_unique").on(table.email),
 	],
 );
+
+export const sessions = pgTable("sessions", {
+	id: text("id").primaryKey(),
+	expiresAt: timestamp("expires_at").notNull(),
+	token: text("token").notNull().unique(),
+	createdAt: timestamp("created_at").notNull(),
+	updatedAt: timestamp("updated_at").notNull(),
+	ipAddress: text("ip_address"),
+	userAgent: text("user_agent"),
+	userId: text("user_id")
+		.notNull()
+		.references(() => users.id, { onDelete: "cascade" }),
+	impersonatedBy: text("impersonated_by"),
+});
+
+export const accounts = pgTable("accounts", {
+	id: text("id").primaryKey(),
+	accountId: text("account_id").notNull(),
+	providerId: text("provider_id").notNull(),
+	userId: text("user_id")
+		.notNull()
+		.references(() => users.id, { onDelete: "cascade" }),
+	accessToken: text("access_token"),
+	refreshToken: text("refresh_token"),
+	idToken: text("id_token"),
+	accessTokenExpiresAt: timestamp("access_token_expires_at"),
+	refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
+	scope: text("scope"),
+	password: text("password"),
+	createdAt: timestamp("created_at").notNull(),
+	updatedAt: timestamp("updated_at").notNull(),
+});
+
+export const verifications = pgTable("verifications", {
+	id: text("id").primaryKey(),
+	identifier: text("identifier").notNull(),
+	value: text("value").notNull(),
+	expiresAt: timestamp("expires_at").notNull(),
+	createdAt: timestamp("created_at"),
+	updatedAt: timestamp("updated_at"),
+});
+
+export const twoFactors = pgTable("two_factors", {
+	id: text("id").primaryKey(),
+	secret: text("secret").notNull(),
+	backupCodes: text("backup_codes").notNull(),
+	userId: text("user_id")
+		.notNull()
+		.references(() => users.id, { onDelete: "cascade" }),
+});

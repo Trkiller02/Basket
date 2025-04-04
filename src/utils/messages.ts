@@ -17,6 +17,8 @@ enum MsgError {
 	BAD_REQUEST = "La solicitud no es válida",
 	UNAUTHORIZED = "No estás autorizado para realizar esta acción",
 	INTERNAL_SERVER = "Ha ocurrido un error interno",
+	DB_CONNECTION = "No se pudo conectar a la base de datos",
+	DB_ERROR = "Ha ocurrido un error en la base de datos",
 }
 
 export { Messages, MsgError };

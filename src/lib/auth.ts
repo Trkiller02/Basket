@@ -1,9 +1,8 @@
 import { db } from "@/lib/db";
 import { betterAuth } from "better-auth";
-import { admin, openAPI, twoFactor } from "better-auth/plugins";
+import { admin, twoFactor } from "better-auth/plugins";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import * as schema from "@drizzle/schema";
-import * as relation from "@drizzle/relations";
+
 import { fetchData } from "@/utils/fetchHandler";
 
 export const auth = betterAuth({
@@ -12,9 +11,6 @@ export const auth = betterAuth({
 			enabled: true,
 			maxAge: 5 * 60, // Cache duration in seconds
 		},
-	},
-	advanced: {
-		generateId: false,
 	},
 	user: {
 		additionalFields: {
@@ -36,9 +32,9 @@ export const auth = betterAuth({
 		// We're using Drizzle as our database
 		provider: "pg",
 		usePlural: true,
-		schema: { ...schema, ...relation },
 	}),
 	emailAndPassword: {
+		autoSignIn: true,
 		enabled: true, // If you want to use email and password auth
 		minPasswordLength: 4, // Minimum password length
 		maxPasswordLength: 32, // Maximum password length
@@ -59,5 +55,11 @@ export const auth = betterAuth({
 			}
 		}, */
 	},
-	plugins: [twoFactor(), admin()],
+	plugins: [
+		twoFactor(),
+		admin({
+			adminRole: "admin",
+			defaultRole: "representante",
+		}),
+	],
 });

@@ -2,9 +2,10 @@ import type { UpdateAthletesDto } from "../dto/update-athletes.dto";
 
 import { type NextRequest, NextResponse } from "next/server";
 import { athletes, users } from "@drizzle/schema";
-import { and, eq, isNotNull, isNull } from "drizzle-orm";
+import { and, eq, ilike, isNotNull, isNull } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { MsgError } from "@/utils/messages";
+import { regexList } from "@/utils/regexPatterns";
 
 /*
 export const athletesController = new Elysia({
@@ -71,9 +72,9 @@ export const GET = async (
 				eq(
 					id?.includes("@")
 						? users.email
-						: id.includes("-")
-							? athletes.id
-							: users.ci_number,
+						: id.match(regexList.forDNI)
+							? users.ci_number
+							: athletes.id,
 					id ?? "",
 				),
 				deleted ? isNotNull(users.deleted_at) : isNull(users.deleted_at),
@@ -171,7 +172,7 @@ export const DELETE = async (
 
 	await db
 		.update(users)
-		.set({ deleted_at: new Date().toISOString() })
+		.set({ deleted_at: new Date() })
 		.where(eq(users.id, athlete.user_id.id));
 
 	return { message: `DELETED ${id}` };
