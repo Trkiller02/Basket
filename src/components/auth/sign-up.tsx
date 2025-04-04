@@ -97,7 +97,7 @@ export default function UserForm({ data }: { data?: User }) {
 							loading: "Registrando...",
 							description: "Por favor espere.",
 							success: (data) => {
-								router.push("/sesion/iniciar");
+								router.push("/sesion/completar");
 								return data;
 							},
 							error: (error) => error,
