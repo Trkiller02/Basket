@@ -9,7 +9,6 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { Controller, useForm } from "react-hook-form";
 import type { User } from "@/utils/interfaces/user";
 import { userSchema } from "@/utils/interfaces/schemas";
-import { addToast } from "@heroui/toast";
 import { getEntityData } from "@/lib/action-data";
 import { useEffect, useState } from "react";
 import { MsgError } from "@/utils/messages";
@@ -18,8 +17,10 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { Card, CardBody, CardFooter, CardHeader } from "@heroui/card";
 import { setUpper } from "@/utils/setUpper";
+import { useRouter } from "next/navigation";
 
 export default function UserForm({ data }: { data?: User }) {
+	const router = useRouter();
 	const [isAvailable, setIsAvailable] = useState<boolean | undefined>();
 	const [isVisible, setIsVisible] = useState(false);
 
@@ -53,7 +54,6 @@ export default function UserForm({ data }: { data?: User }) {
 
 	const onSubmit = async (data: User) => {
 		const { data: info, error } = await authClient.signUp.email({
-			callbackURL: "/",
 			...setUpper({
 				email: data.email,
 				password: data.password ?? "",
@@ -64,7 +64,9 @@ export default function UserForm({ data }: { data?: User }) {
 			}),
 		});
 
-		if (error) return toast.error(error.message);
+		if (error) throw error;
+
+		if (info) return "Registro exitoso";
 	};
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
@@ -90,7 +92,17 @@ export default function UserForm({ data }: { data?: User }) {
 					id="register-form"
 					className="grid grid-cols-2 p-2 gap-2"
 					onReset={() => form.reset()}
-					onSubmit={form.handleSubmit(onSubmit)}
+					onSubmit={form.handleSubmit((values) =>
+						toast.promise(onSubmit(values), {
+							loading: "Registrando...",
+							description: "Por favor espere.",
+							success: (data) => {
+								router.push("/sesion/iniciar");
+								return data;
+							},
+							error: (error) => error,
+						}),
+					)}
 				>
 					{/* CI FIELD */}
 					<Controller

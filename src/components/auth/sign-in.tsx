@@ -14,6 +14,7 @@ import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 export default function LoginComponent() {
+	const router = useRouter();
 	const [isVisible, setIsVisible] = useState(false);
 
 	const form = useForm<{ email: string; password: string }>({
@@ -33,6 +34,10 @@ export default function LoginComponent() {
 		});
 
 		if (error) return toast.error(error.message ?? "Error al iniciar sesión");
+
+		if (info) return toast.success("Inicio de sesión exitoso");
+
+		router.push("/");
 	};
 
 	return (
