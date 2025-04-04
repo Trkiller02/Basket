@@ -1,5 +1,5 @@
-import LoginComponent from "@/components/auth/login";
-import UserForm from "@/components/forms/user";
+import LoginComponent from "@/components/auth/sign-in";
+import UserForm from "@/components/auth/sign-up";
 
 async function AuthPage({ params }: { params: { step: string } }) {
 	const { step } = await params;
