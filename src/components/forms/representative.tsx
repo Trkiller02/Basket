@@ -110,16 +110,22 @@ export default function RepresentativeForm({
 		try {
 			const response = await getEntityData<Representative>(
 				"representatives",
-				id,
+				id.toUpperCase(),
 			);
 			if (response) setIsAvailable(false);
 			return response;
 		} catch (error) {
-			if ((error as Error).message === MsgError.NOT_FOUND_MANY)
-				return setIsAvailable(true);
+			if ((error as Error).message === MsgError.NOT_FOUND) {
+				setIsAvailable(true);
+
+				throw {
+					message: "Registro no encontrado",
+					description: "Puede continuar con el registro.",
+				};
+			}
 
 			throw {
-				message: "Error al buscar atlete",
+				message: "Error al buscar registro",
 				description: (error as Error).message,
 			};
 		}

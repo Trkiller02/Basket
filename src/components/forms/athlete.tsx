@@ -70,19 +70,24 @@ function AthleteForm() {
 
 	const findEntity = async (id: string) => {
 		try {
-			const response = await getEntityData<Athlete>("athletes", id);
+			const response = await getEntityData<Athlete>(
+				"athletes",
+				id.toUpperCase(),
+			);
 			if (response) setIsAvailable(false);
 			return response;
 		} catch (error) {
 			if ((error as Error).message === MsgError.NOT_FOUND) {
 				setIsAvailable(true);
-				return {
+
+				throw {
 					message: "Registro no encontrado",
-					description: "Puede registrar un nuevo atleta",
+					description: "Puede continuar con el registro.",
 				};
 			}
+
 			throw {
-				message: "Error al buscar atlete",
+				message: "Error al buscar registro",
 				description: (error as Error).message,
 			};
 		}

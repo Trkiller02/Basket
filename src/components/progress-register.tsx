@@ -1,6 +1,6 @@
 "use client";
 
-import { useRegisterStore } from "@/store/useRegisterStore";
+import type { RegisterData } from "@/store/useRegisterStore";
 import { formEntities } from "@/utils/selectList";
 import { Progress } from "@heroui/progress";
 import { cn } from "@heroui/theme";
@@ -40,10 +40,12 @@ export const steps = [
 	},
 ];
 
-function RowSteps({ etapa }: { etapa: string }) {
+function RowSteps({
+	etapa,
+	registerData,
+}: { etapa: string; registerData: RegisterData }) {
 	const [successStep, setSuccessStep] = useState<Set<string>>(new Set());
 	const [omittedStep, setOmittedStep] = useState<Set<string>>(new Set());
-	const registerData = useRegisterStore((state) => state.registerData);
 
 	useEffect(() => {
 		if (registerData.athlete) setSuccessStep((state) => state.add("atleta"));

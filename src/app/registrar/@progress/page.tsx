@@ -2,6 +2,7 @@
 
 import React from "react";
 import RowSteps from "@/components/progress-register";
+import { useRegisterStore } from "@/store/useRegisterStore";
 
 export default function PageProgress({
 	searchParams,
@@ -9,5 +10,7 @@ export default function PageProgress({
 	searchParams: Promise<{ [key: string]: string | undefined }>;
 }) {
 	const { etapa } = React.use(searchParams);
-	return <RowSteps etapa={etapa ?? "atleta"} />;
+	const registerData = useRegisterStore((state) => state.registerData);
+
+	return <RowSteps etapa={etapa ?? "atleta"} registerData={registerData} />;
 }

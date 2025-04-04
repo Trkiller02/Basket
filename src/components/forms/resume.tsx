@@ -8,6 +8,8 @@ import { fetchData } from "@/utils/fetchHandler";
 import { setEntityData } from "@/lib/action-data";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { authClient } from "@/lib/auth-client";
+import type { Representative } from "@/utils/interfaces/representative";
 
 export default function ResumeForm() {
 	const registerData = useRegisterStore((state) => state.registerData);
@@ -15,6 +17,33 @@ export default function ResumeForm() {
 		(state) => state.clearRegisterData,
 	);
 	const router = useRouter();
+
+	const registerRepresentative = async (dataRepresentative: Representative) => {
+		try {
+			const { data, error } = await authClient.admin.createUser({
+				email: dataRepresentative.user_id.email,
+				name: dataRepresentative.user_id.name,
+				password: "123456",
+				role: "representante",
+				data: {
+					lastname: dataRepresentative.user_id.lastname,
+					phone_number: dataRepresentative.user_id.phone_number,
+					ci_number: dataRepresentative.user_id.ci_number,
+				},
+			});
+
+			if (Object.keys({}).length !== 0) throw error;
+
+			const response = setEntityData<{ message: string }>("representatives", {
+				...dataRepresentative,
+				user_id: data?.user.id,
+			});
+
+			return response;
+		} catch (error) {
+			throw error;
+		}
+	};
 
 	const onSubmit = async () => {
 		try {
@@ -36,21 +65,19 @@ export default function ResumeForm() {
 				setEntityData<{ message: string }>("athletes", {
 					...registerData.athlete,
 					image: fileUpload?.message,
+					user_id: {
+						...registerData.athlete?.user_id,
+						role: "atleta",
+					},
 				}),
 				typeof registerData.representative === "object"
-					? setEntityData<{ message: string }>("representatives", {
-							...registerData.representative,
-						})
+					? registerRepresentative(registerData.representative)
 					: undefined,
 				typeof registerData.mother === "object"
-					? setEntityData<{ message: string }>("representatives", {
-							...registerData.mother,
-						})
+					? registerRepresentative(registerData.mother)
 					: undefined,
 				typeof registerData.father === "object"
-					? setEntityData<{ message: string }>("representatives", {
-							...registerData.father,
-						})
+					? registerRepresentative(registerData.father)
 					: undefined,
 			]);
 
@@ -127,6 +154,8 @@ export default function ResumeForm() {
 					});
 			} */
 
+			clearRegisterData();
+			router.push("/");
 			return {
 				message: "Registro guardado",
 				description: "¡Gracias por completar el formulario!",

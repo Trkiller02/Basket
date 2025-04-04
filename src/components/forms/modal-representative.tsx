@@ -85,6 +85,7 @@ const ModalRepresentative = ({
 									items={relationSelect}
 									label="Relación:"
 									name="relation"
+									defaultSelectedKeys={[etapa]}
 									disabledKeys={Array.from(disKeys)}
 									description={"Ingrese la relación con el atleta."}
 									isRequired

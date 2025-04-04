@@ -48,7 +48,7 @@ export default function InvoicesForm() {
 	});
 
 	const onSubmit = async (data: Invoices) => {
-		const [representative, athlete, image] = await Promise.allSettled([
+		const [representative, athlete, image] = await Promise.all([
 			getEntityData("representatives", data.representative_id),
 			getEntityData("athletes", data.athlete_id),
 			fetchData<{ message: string }>("/api/upload-image", {
@@ -61,46 +61,28 @@ export default function InvoicesForm() {
 			}),
 		]);
 
-		if (
-			representative.status === "rejected" ||
-			athlete.status === "rejected" ||
-			image.status === "rejected"
-		) {
-			addToast({
-				title: "Error al guardar pago",
-				description: representative.reason ?? athlete.reason ?? image.reason,
-				color: "danger",
-			});
-		}
+		const response = await setEntityData("invoices", {
+			...data,
+			athlete_id: (athlete as Athlete).id,
+			representative_id: (representative as Representative).id,
+			image_path: (image as { message: string }).message,
+		});
 
-		if (
-			image.status === "fulfilled" &&
-			representative.status === "fulfilled" &&
-			athlete.status === "fulfilled"
-		) {
-			const response = await setEntityData("invoices", {
-				...data,
-				athlete_id: (athlete.value as Athlete).id,
-				representative_id: (representative.value as Representative).id,
-				image_path: (image.value as { message: string }).message,
-			});
+		if (response) {
+			const sendInfo = await updateEntityData(
+				"athletes",
+				(athlete as Athlete).id,
+				{
+					solvent: 1,
+				},
+			);
 
-			if (response) {
-				const sendInfo = await updateEntityData(
-					"athletes",
-					(athlete.value as Athlete).id!,
-					{
-						solvent: 1,
-					},
-				);
-
-				if (sendInfo) {
-					addToast({
-						title: "Pago enviado",
-						description: "¡Gracias por completar el formulario!",
-						color: "success",
-					});
-				}
+			if (sendInfo) {
+				addToast({
+					title: "Pago enviado",
+					description: "¡Gracias por completar el formulario!",
+					color: "success",
+				});
 			}
 		}
 	};
