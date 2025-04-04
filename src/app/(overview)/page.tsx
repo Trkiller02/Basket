@@ -1,7 +1,23 @@
+import AthletesPreview from "@/components/athletes-preview";
 import SearchForm from "@/components/search-form";
+import { auth } from "@/lib/auth";
+import { signOut } from "@/lib/auth-client";
+import { Button } from "@heroui/button";
+import { headers } from "next/headers";
+import { Suspense } from "react";
 
-export default function Page() {
-	return <SearchForm />;
+export default async function Page() {
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	});
+
+	return session?.user?.role === "representante" ? (
+		<Suspense fallback={<div>Loading...</div>}>
+			<AthletesPreview userId={session?.user?.id} />
+		</Suspense>
+	) : (
+		<SearchForm role={session?.user?.role} />
+	);
 }
 
 /* 

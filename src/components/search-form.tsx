@@ -10,7 +10,7 @@ import { Input } from "@heroui/input";
 import { Select, SelectItem } from "@heroui/select";
 import { Delete } from "lucide-react";
 
-function SearchForm() {
+function SearchForm({ role }: { role?: string | null }) {
 	const params = useSearchParams();
 	const pathname = usePathname();
 	const { replace } = useRouter();
@@ -78,7 +78,7 @@ function SearchForm() {
 				<Select
 					name="ent"
 					defaultSelectedKeys={entity ? [entity] : undefined}
-					items={entitySelect}
+					items={role === "admin" ? entitySelect : entitySelect.slice(0, 2)}
 					label="Entidad:"
 					description="Seleccione una entidad."
 					onChange={handleChange}
