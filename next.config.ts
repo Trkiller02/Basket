@@ -6,6 +6,8 @@ const nextConfig: NextConfig = {
 		optimizeCss: true,
 		optimizePackageImports: ["@heroui/*"],
 		nodeMiddleware: true,
+		parallelServerCompiles: true,
+		webpackBuildWorker: true,
 	},
 };
 
