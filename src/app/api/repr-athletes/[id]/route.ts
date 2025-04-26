@@ -52,7 +52,7 @@ export async function GET(
 				image: athletes.image,
 				solvent: athletes.solvent,
 				category: athletes.category,
-				position: athletes.position,
+				age: athletes.age,
 			})
 			.from(athletes)
 			.innerJoin(users, eq(athletes.user_id, users.id))

@@ -1,10 +1,12 @@
-import AthletesPreview from "@/components/athletes-preview";
+import AthletesPreview from "@/components/previews/athletes/athletes-wrapper";
 import SearchForm from "@/components/search-form";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-
 import { headers } from "next/headers";
 import { Suspense } from "react";
+import LoadingAthletesPreview from "@/components/previews/athletes/loading-preview";
+
+export const experimental_ppr = true;
 
 export default async function Page() {
 	const session = await auth.api.getSession({
@@ -14,7 +16,7 @@ export default async function Page() {
 	if (!session) redirect("/sesion/iniciar");
 
 	return session?.user?.role === "representante" ? (
-		<Suspense fallback={<div>Loading...</div>}>
+		<Suspense fallback={<LoadingAthletesPreview />}>
 			<AthletesPreview userId={session?.user?.id} />
 		</Suspense>
 	) : (

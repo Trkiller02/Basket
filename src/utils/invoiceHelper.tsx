@@ -1,12 +1,14 @@
+const invoiceStatus = ["Sin cancelar", "Solvente", "Becado"];
+
 export function getInvoiceStatus(status = 0): string {
-	switch (status) {
-		case 0:
-			return "Sin pagar";
-		case 1:
-			return "Pagado";
-		case 2:
-			return "Becado";
-		default:
-			return "NO IDENTIFICADO";
-	}
+	if (status >= invoiceStatus.length || status < 0) return "NO IDENTIFICADO";
+
+	return invoiceStatus[status];
 }
+
+export const getInvoiceStatusColor = (
+	status = 0,
+): "danger" | "success" | "warning" | "default" | "primary" | "secondary" => {
+	if (status <= 0 || status > 2) return "danger";
+	return status === 1 ? "success" : "warning";
+};

@@ -7,7 +7,7 @@ interface FetchData {
 export const fetchData = async <T>(
 	url: string,
 	options: FetchData = { method: "GET" },
-): Promise<T> => {
+): Promise<T | undefined> => {
 	const { method } = options;
 
 	const response = await fetch(
