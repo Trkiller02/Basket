@@ -5,11 +5,13 @@ import AthleteResume from "../details/athlete";
 import { HealthResume } from "../details/health";
 import { RepresentativeResume } from "../details/representative";
 import { fetchData } from "@/utils/fetchHandler";
-import { setEntityData } from "@/lib/action-data";
+import { getEntityData, setEntityData } from "@/lib/action-data";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import type { Representative } from "@/utils/interfaces/representative";
+import { use } from "react";
+import { regexList } from "@/utils/regexPatterns";
 
 export default function ResumeForm() {
 	const registerData = useRegisterStore((state) => state.registerData);
@@ -45,6 +47,17 @@ export default function ResumeForm() {
 		}
 	};
 
+	const representData = async (
+		entity: "mother" | "father" | "representative",
+	) => {
+		const data = await getEntityData<Representative>(
+			"representatives",
+			registerData[entity] as string,
+		);
+
+		if (data) return { message: data.id as string };
+	};
+
 	const onSubmit = async () => {
 		try {
 			const fileUpload = await fetchData<{ message: string }>(
@@ -72,13 +85,19 @@ export default function ResumeForm() {
 				}),
 				typeof registerData.representative === "object"
 					? registerRepresentative(registerData.representative)
-					: undefined,
+					: registerData.representative?.match(regexList.forDNI)
+						? representData("representative")
+						: undefined,
 				typeof registerData.mother === "object"
 					? registerRepresentative(registerData.mother)
-					: undefined,
+					: registerData.mother?.match(regexList.forDNI)
+						? representData("mother")
+						: undefined,
 				typeof registerData.father === "object"
 					? registerRepresentative(registerData.father)
-					: undefined,
+					: registerData.father?.match(regexList.forDNI)
+						? representData("father")
+						: undefined,
 			]);
 
 			await Promise.all([
@@ -89,6 +108,8 @@ export default function ResumeForm() {
 				setEntityData("repr-athletes", {
 					athlete_id: athlete?.message,
 					representative_id: representative?.message,
+					relation: "representante",
+					tutor: registerData.tutor === "representative",
 				}),
 
 				registerData.mother !== "omitted"
@@ -96,6 +117,7 @@ export default function ResumeForm() {
 							athlete_id: athlete?.message,
 							representative_id: mother?.message ?? registerData.mother,
 							relation: "madre",
+							tutor: registerData.tutor === "mother",
 						})
 					: undefined,
 
@@ -104,6 +126,7 @@ export default function ResumeForm() {
 							athlete_id: athlete?.message,
 							representative_id: father?.message ?? registerData.father,
 							relation: "padre",
+							tutor: registerData.tutor === "father",
 						})
 					: undefined,
 			]);
@@ -197,19 +220,31 @@ export default function ResumeForm() {
 					{registerData.health && (
 						<HealthResume data={registerData.health} formView />
 					)}
-					{registerData.representative && (
-						<>
-							<h4 className="text-2xl text-default-800 font-semibold py-2">
-								Representantes:
-							</h4>
+					<h4 className="text-2xl text-default-800 font-semibold py-2">
+						Representantes:
+					</h4>
+					{typeof registerData.representative === "string" && (
+						<h2 className="text-xl font-bold">
+							Representante: {registerData.representative}
+						</h2>
+					)}
+					{registerData.representative &&
+						typeof registerData.representative !== "string" && (
 							<RepresentativeResume
 								data={registerData.representative}
 								formView
 							/>
-						</>
+						)}
+					{typeof registerData.mother === "string" && (
+						<h3 className="text-xl font-bold">Madre: {registerData.mother}</h3>
 					)}
+
 					{registerData.mother && typeof registerData.mother !== "string" && (
 						<RepresentativeResume data={registerData.mother} formView />
+					)}
+
+					{typeof registerData.father === "string" && (
+						<h3 className="text-xl font-bold">Padre: {registerData.father}</h3>
 					)}
 					{registerData.father && typeof registerData.father !== "string" && (
 						<RepresentativeResume data={registerData.father} formView />

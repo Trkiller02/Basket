@@ -46,6 +46,7 @@ export const athleteSchema = Yup.object({
 });
 
 export const representativeSchema = Yup.object({
+	tutor: Yup.boolean().optional(),
 	occupation: Yup.string().required(Messages.REQUIRED),
 	height: Yup.number().optional(),
 	user_id: personSchema,
@@ -63,8 +64,7 @@ export const healthSchema = Yup.object({
 });
 
 export const invoiceSchema = Yup.object({
-	representative_id: Yup.string().required(Messages.REQUIRED),
-	amount: Yup.number().min(0).required(Messages.REQUIRED),
+	representative_id: Yup.string().optional(),
 	athlete_id: Yup.string().required(Messages.REQUIRED),
 	description: Yup.string().optional(),
 	image_path: Yup.string().optional(),
@@ -80,4 +80,15 @@ export const relationSchema = Yup.object({
 	value: Yup.string()
 		.matches(regexList.forDNI, { message: Messages.DNI_MATCH })
 		.required(),
+	tutor: Yup.boolean().optional(),
+});
+
+export const changePasswordSchema = Yup.object({
+	password: Yup.string().required(Messages.REQUIRED),
+	repeat_password: Yup.string()
+		.required(Messages.REQUIRED)
+		.min(4, Messages.MIN_ERR)
+		.max(32, Messages.MAX_ERR)
+		.oneOf([Yup.ref("new_password")], Messages.MATCH_ERR),
+	new_password: Yup.string().required(Messages.REQUIRED),
 });

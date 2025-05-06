@@ -5,4 +5,5 @@ export type Representative = {
 	occupation: string;
 	height?: number;
 	user_id: User;
+	tutor?: boolean;
 };

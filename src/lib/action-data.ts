@@ -1,4 +1,7 @@
+"use server";
+
 import { fetchData } from "@/utils/fetchHandler";
+import { auth } from "./auth";
 
 export const getEntityData = async <T>(
 	entity: "representatives" | "athletes" | "users",
@@ -53,4 +56,15 @@ export const deleteEntityData = async (
 	return await fetchData(`/api/${entity}/${query}`, {
 		method: "DELETE",
 	});
+};
+
+export const changePassword = async (password: string, userId: string) => {
+	try {
+		const ctx = await auth.$context;
+		const hash = await ctx.password.hash(password);
+
+		await ctx.internalAdapter.updatePassword(userId, hash); //(you can also use your orm directly)
+	} catch (error) {
+		console.error(error);
+	}
 };

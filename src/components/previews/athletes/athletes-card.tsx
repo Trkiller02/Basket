@@ -1,3 +1,5 @@
+"use client";
+
 import type { Athlete } from "@/utils/interfaces/athlete";
 import { getInvoiceStatus, getInvoiceStatusColor } from "@/utils/invoiceHelper";
 import { Button } from "@heroui/button";
@@ -5,12 +7,11 @@ import { Card, CardBody, CardHeader } from "@heroui/card";
 import { Tooltip } from "@heroui/tooltip";
 import { User } from "@heroui/user";
 import { CircleCheck, CircleX } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 
 export const AthletesCard = ({ athlete }: { athlete: Athlete }) => (
 	<Card as="article">
-		<CardHeader className="inline-flex gap-2 items-center">
+		<CardHeader className="inline-flex gap-4 items-center">
 			<User
 				classNames={{
 					name: "ml-2 text-lg font-bold",
@@ -64,7 +65,7 @@ export const AthletesCard = ({ athlete }: { athlete: Athlete }) => (
 					size="lg"
 					color={[1, 2].includes(athlete.solvent ?? 0) ? "success" : "danger"}
 					isIconOnly
-					href={`/pagos?q=${athlete.id}`}
+					href={`/pagos?q=${athlete.user_id.ci_number}`}
 					variant="flat"
 				>
 					{[1, 2].includes(athlete.solvent ?? 0) ? (
@@ -78,19 +79,29 @@ export const AthletesCard = ({ athlete }: { athlete: Athlete }) => (
 		<CardBody>
 			<ul aria-labelledby="personal-data" className="grid grid-cols-2">
 				<Tooltip content="Cedula de identidad" placement="right">
-					<li className="font-semibold text-foreground-700" aria-label="CI">
-						<span className="font-normal">{athlete.user_id.ci_number}</span>
-					</li>
-				</Tooltip>
-				&nbsp;
-				<Tooltip content="Edad" placement="right">
 					<li
-						className="font-semibold text-foreground-700 justify-self-start"
-						aria-label="Edad"
+						className="font-semibold text-foreground-500 hover:text-foreground-900"
+						aria-label="CI"
 					>
-						{athlete.age}&nbsp;años
+						{athlete.user_id.ci_number}
 					</li>
 				</Tooltip>
+				{athlete.position ? (
+					<li
+						className="font-semibold text-foreground-700 justify-self-end"
+						aria-label="Posición"
+					>
+						{athlete.position}
+					</li>
+				) : (
+					<>&nbsp;</>
+				)}
+				<li
+					className="font-semibold text-foreground-700 justify-self-start"
+					aria-label="Edad"
+				>
+					{athlete.age}&nbsp;años
+				</li>
 				<Tooltip content="Categoría" placement="right">
 					<li
 						className="font-semibold text-foreground-700 justify-self-end"

@@ -97,10 +97,6 @@ export default function LoginComponent() {
 							/>
 						)}
 					/>
-
-					<Link href="/sesion/registrar" className="text-end">
-						¿Desea registrarse?
-					</Link>
 				</form>
 			</CardBody>
 			<CardFooter>

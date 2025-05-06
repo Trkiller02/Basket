@@ -1,5 +1,5 @@
+import ChangePasswod from "@/components/auth/change-passwod";
 import LoginComponent from "@/components/auth/sign-in";
-import UserForm from "@/components/auth/sign-up";
 import RepresentSignin from "@/components/forms/represent-signin";
 
 async function AuthPage({ params }: { params: { step: string } }) {
@@ -7,10 +7,9 @@ async function AuthPage({ params }: { params: { step: string } }) {
 
 	if (step === "iniciar") return <LoginComponent />;
 
-	if (step === "registrar") return <UserForm />;
-
 	if (step === "completar") return <RepresentSignin />;
 
+	if (step === "cambiar-contraseña") return <ChangePasswod />;
 	return null;
 }
 

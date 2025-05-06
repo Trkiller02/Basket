@@ -7,9 +7,10 @@ import { create } from "zustand";
 export interface RegisterData {
 	athlete?: Athlete;
 	health?: Health;
-	representative?: Representative;
+	representative?: Representative | "omitted" | string;
 	mother?: Representative | "omitted" | string;
 	father?: Representative | "omitted" | string;
+	tutor?: "representative" | "mother" | "father";
 }
 
 interface RegisterStore {

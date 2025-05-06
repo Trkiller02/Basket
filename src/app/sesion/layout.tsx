@@ -5,11 +5,14 @@ export default async function SesionLayout({
 	children,
 }: { children: React.ReactNode }) {
 	return (
-		<section className="flex h-screen justify-around items-center">
+		<section
+			className="flex h-screen justify-around items-center"
+			id="auth-layout"
+		>
 			<Image
-				src="/trapiche.svg"
-				alt="logo"
-				className="object-contain h-4/5 w-auto"
+				src="/bg-login.jpeg"
+				alt="players background"
+				className="object-contain h-[90%] w-auto mask-radial-at-center mask-radial-from-100% mask-radial-to-0%"
 				width={200}
 				height={200}
 				priority

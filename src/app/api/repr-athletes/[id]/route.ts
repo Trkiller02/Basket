@@ -16,6 +16,9 @@ export async function GET(
 	{ params }: { params: Promise<{ id: string }> },
 ) {
 	const { id } = await params;
+	const querys = await req.nextUrl.searchParams;
+
+	const forInvoice = !!querys.get("invoice");
 
 	const [user] = await db
 		.select({
@@ -35,25 +38,38 @@ export async function GET(
 
 	if (reprAtheletes.length === 0) return NextResponse.json({ result: [] });
 
-	const athletesResult: AthleteResultRepr[] = [];
+	const athletesResult = [];
 
 	for (const athlete of reprAtheletes) {
 		const { athlete_id } = athlete;
 
 		const [result] = await db
-			.select({
-				id: athletes.id,
-				user_id: {
-					id: users.id,
-					ci_number: users.ci_number,
-					name: users.name,
-					lastname: users.lastname,
-				},
-				image: athletes.image,
-				solvent: athletes.solvent,
-				category: athletes.category,
-				age: athletes.age,
-			})
+			.select(
+				forInvoice
+					? {
+							id: athletes.id,
+							user_id: {
+								id: users.id,
+								name: users.name,
+								lastname: users.lastname,
+								ci_number: users.ci_number,
+							},
+							solvent: athletes.solvent,
+						}
+					: {
+							id: athletes.id,
+							user_id: {
+								id: users.id,
+								ci_number: users.ci_number,
+								name: users.name,
+								lastname: users.lastname,
+							},
+							image: athletes.image,
+							solvent: athletes.solvent,
+							category: athletes.category,
+							age: athletes.age,
+						},
+			)
 			.from(athletes)
 			.innerJoin(users, eq(athletes.user_id, users.id))
 			.where(and(eq(athletes.id, athlete_id), isNull(users.deleted_at)));

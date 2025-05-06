@@ -22,8 +22,6 @@ export default function HealthForm({ data }: { data?: Health }) {
 	const getStep = useGetStep("salud", { data: registerData });
 
 	const form = useForm<Health>({
-		criteriaMode: "firstError",
-		mode: "all",
 		defaultValues: data,
 		resolver: yupResolver(healthSchema),
 		shouldUseNativeValidation: true,
@@ -96,7 +94,7 @@ export default function HealthForm({ data }: { data?: Health }) {
 								<div className="flex flex-col items-start">
 									<p>Autorización médica</p>
 									<span
-										className={`text-tiny ${error ? "text-danger" : "text-default-500"}`}
+										className={`text-tiny ${error ? "text-danger" : "text-default-800"}`}
 									>
 										{error
 											? error.message
@@ -132,7 +130,7 @@ export default function HealthForm({ data }: { data?: Health }) {
 								<div className="flex flex-col items-start">
 									<p>Asma</p>
 									<span
-										className={`text-tiny ${error ? "text-danger" : "text-default-500"}`}
+										className={`text-tiny ${error ? "text-danger" : "text-default-800"}`}
 									>
 										{error ? error.message : "Padece dificultad para respirar."}
 									</span>

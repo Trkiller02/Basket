@@ -19,9 +19,9 @@ import {
 	ShieldUser,
 	type LucideIcon,
 } from "lucide-react";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import UserSidebar from "./user-sidebar";
+import Image from "next/image";
 
 interface NavItemProps {
 	Icon: LucideIcon;
@@ -97,19 +97,24 @@ export const routes = [
 
 export function Sidebar() {
 	const [isCollapsed, setIsCollapsed] = useState(false);
-	const pathname = usePathname();
-	const singleItems = routes.filter((item) => !item.subRoutes);
-	const itemsWithSubroutes = routes.filter((item) => item.subRoutes);
+	const singleItems = useMemo(
+		() => routes.filter((item) => !item.subRoutes),
+		[],
+	);
+	const itemsWithSubroutes = useMemo(
+		() => routes.filter((item) => item.subRoutes),
+		[],
+	);
 
 	return (
 		<aside
 			className={`${
-				isCollapsed ? "w-[3%]" : "w-[12%]"
-			} h-full flex flex-col flex-0 shrink-0 justify-between items-center  py-2 transition-all duration-150 ease-in-out overflow-x-hidden border-r-1 border-default-200`}
+				isCollapsed ? "w-[3%]" : "w-[10%]"
+			} h-full flex flex-col shrink-0 justify-between items-center py-2 transition-all duration-150 ease-in-out overflow-x-hidden border-r-1 border-default-200 `}
 		>
-			<nav className="space-y-2">
+			<nav className="flex flex-col gap-2">
 				{/* <div className="relative flex h-7 w-7 items-center justify-center overflow-hidden rounded-full">
-				<Image src="/trapiche.svg" fill alt="Trapichito" />
+					<Image src="/trapiche.svg" fill alt="Trapichito" />
 				</div> */}
 				<Button
 					fullWidth

@@ -5,6 +5,7 @@ import { representatives, users } from "@drizzle/schema";
 import { db } from "@/lib/db";
 import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import { MsgError } from "@/utils/messages";
+import { regexList } from "@/utils/regexPatterns";
 
 /*
 export const representativeController = new Elysia({
@@ -70,9 +71,9 @@ export const GET = async (
 				eq(
 					id?.includes("@")
 						? users.email
-						: id.includes("-")
-							? representatives.id
-							: users.ci_number,
+						: id.match(regexList.forDNI)
+							? users.ci_number
+							: representatives.id,
 					id ?? "",
 				),
 				deleted ? isNotNull(users.deleted_at) : isNull(users.deleted_at),
@@ -191,7 +192,7 @@ export const DELETE = async (
 
 	await db
 		.update(users)
-		.set({ deleted_at: new Date().toISOString() })
+		.set({ deleted_at: new Date(Date.now()) })
 		.where(eq(users.id, representative.user_id.id));
 
 	return { message: `DELETED ${id}` };

@@ -20,6 +20,8 @@ import { relationSelect } from "@/utils/selectList";
 import { setUpper } from "@/utils/setUpper";
 import { MsgError } from "@/utils/messages";
 import { toast } from "sonner";
+import { Checkbox } from "@heroui/checkbox";
+import { cn } from "@heroui/theme";
 
 export default function RepresentativeForm({
 	data,
@@ -37,8 +39,6 @@ export default function RepresentativeForm({
 	const router = useRouter();
 
 	const form = useForm<Representative>({
-		mode: "all",
-		criteriaMode: "firstError",
 		defaultValues: data,
 		resolver: yupResolver(representativeSchema),
 		shouldUseNativeValidation: true,
@@ -54,7 +54,10 @@ export default function RepresentativeForm({
 		if (registerData.father && !disKeys.has("padre")) {
 			setDisKeys((disKeys) => disKeys.add("padre"));
 		}
-		if (registerData.representative && !disKeys.has("representante")) {
+		if (
+			(registerData.representative || registerData.tutor) &&
+			!disKeys.has("representante")
+		) {
 			setDisKeys((disKeys) => disKeys.add("representante"));
 		}
 	}, [disKeys, registerData]);
@@ -62,13 +65,20 @@ export default function RepresentativeForm({
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
 		if (etapa === "representante" && registerData.representative) {
+			if (typeof registerData.representative === "string")
+				return router.replace(`/registrar?etapa=${getStep()}`);
+
 			if (form.formState.isSubmitting)
 				return router.replace(`/registrar?etapa=${getStep()}`);
-			form.reset(registerData.representative);
+			form.reset(
+				typeof registerData.representative === "object"
+					? registerData.representative
+					: undefined,
+			);
 		}
 		if (etapa === "madre" && registerData.mother) {
 			if (registerData.mother === "omitted")
-				return router.replace("/registrar?etapa=padre");
+				return router.replace(`/registrar?etapa=${getStep()}`);
 
 			if (form.formState.isSubmitting)
 				return router.replace(`/registrar?etapa=${getStep()}`);
@@ -241,7 +251,7 @@ export default function RepresentativeForm({
 						<Button
 							isDisabled={
 								!!relation &&
-								disKeys.size <= 2 &&
+								disKeys.size < 3 &&
 								!data &&
 								relation === "representante"
 							}
@@ -295,6 +305,7 @@ export default function RepresentativeForm({
 				control={form.control}
 				render={({ field, fieldState: { error } }) => (
 					<Input
+						isRequired
 						{...field}
 						color={error ? "danger" : "default"}
 						label="Correo electrónico:"
@@ -320,33 +331,67 @@ export default function RepresentativeForm({
 					/>
 				)}
 			/>
-			{/* OCCUPATION FIELD */}
-			<Controller
-				control={form.control}
-				name="occupation"
-				render={({ field, fieldState: { error } }) => (
-					<Input
-						{...field}
-						label="Ocupación:"
-						description="¿En qué ocupación trabaja?"
-						isInvalid={!!error}
-						errorMessage={error?.message}
-					/>
-				)}
-			/>
-			{/* HEIGHT FIELD */}
-			<Controller
-				control={form.control}
-				name="height"
-				render={({ field, fieldState: { error } }) => (
-					<NumberInput
-						{...field}
-						label="Estatura:"
-						isInvalid={!!error}
-						errorMessage={error?.message}
-					/>
-				)}
-			/>
+			<div className="flex flex-col md:grid grid-cols-3 gap-3 col-span-2">
+				{/* OCCUPATION FIELD */}
+				<Controller
+					control={form.control}
+					name="occupation"
+					render={({ field, fieldState: { error } }) => (
+						<Input
+							{...field}
+							label="Ocupación:"
+							description="¿En qué ocupación trabaja?"
+							isInvalid={!!error}
+							errorMessage={error?.message}
+						/>
+					)}
+				/>
+				{/* HEIGHT FIELD */}
+				<Controller
+					control={form.control}
+					name="height"
+					render={({ field, fieldState: { error } }) => (
+						<NumberInput
+							{...field}
+							label="Estatura:"
+							isInvalid={!!error}
+							errorMessage={error?.message}
+						/>
+					)}
+				/>
+				<Controller
+					control={form.control}
+					name="tutor"
+					render={({ field, fieldState: { error } }) => {
+						const { value, ...restField } = field;
+						return (
+							<Checkbox
+								{...restField}
+								isSelected={relation === "representante" ? true : value}
+								isInvalid={!!error}
+								classNames={{
+									base: cn(
+										"bg-default-100",
+										"hover:bg-default-200",
+										"r rounded-xl m-1 border-2 border-transparent",
+										"data-[selected=true]:border-primary",
+									),
+									label: "w-full",
+								}}
+							>
+								<div className="flex flex-col items-start">
+									<p>Tutor legal</p>
+									<span
+										className={`text-tiny ${error ? "text-danger" : "text-default-800"}`}
+									>
+										{error ? error.message : "Responsable del atleta."}
+									</span>
+								</div>
+							</Checkbox>
+						);
+					}}
+				/>
+			</div>
 		</form>
 	);
 }

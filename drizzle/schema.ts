@@ -13,7 +13,6 @@ import {
 	numeric,
 	timestamp,
 } from "drizzle-orm/pg-core";
-import { sql } from "drizzle-orm";
 
 export const athletes = pgTable(
 	"athletes",
@@ -163,7 +162,6 @@ export const invoices = pgTable(
 		}),
 		representative_id: uuid().notNull(),
 		payment_date: date().defaultNow(),
-		amount: numeric({ precision: 10, scale: 2 }).notNull(),
 		description: text(),
 		athlete_id: uuid().notNull(),
 		image_path: text(),
@@ -266,4 +264,9 @@ export const twoFactors = pgTable("two_factors", {
 	userId: text("user_id")
 		.notNull()
 		.references(() => users.id, { onDelete: "cascade" }),
+});
+
+export const configurations = pgTable("configurations", {
+	id: text("id").primaryKey(),
+	value: text("value").notNull(),
 });
