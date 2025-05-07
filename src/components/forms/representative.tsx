@@ -11,7 +11,7 @@ import { Controller, useForm } from "react-hook-form";
 import type { Representative } from "@/utils/interfaces/representative";
 import { representativeSchema } from "@/utils/interfaces/schemas";
 import { useCallback, useEffect, useState } from "react";
-import { useRegisterStore } from "@/store/useRegisterStore";
+import { type RegisterData, useRegisterStore } from "@/store/useRegisterStore";
 import { useRouter } from "next/navigation";
 import { getEntityData } from "@/lib/action-data";
 import { useGetStep } from "@/utils/getStep";
@@ -64,47 +64,30 @@ export default function RepresentativeForm({
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
-		if (etapa === "representante" && registerData.representative) {
-			if (typeof registerData.representative === "string")
-				return router.replace(`/registrar?etapa=${getStep()}`);
+		const key: keyof RegisterData =
+			etapa === "madre"
+				? "mother"
+				: etapa === "padre"
+					? "father"
+					: "representative";
 
-			if (form.formState.isSubmitting)
-				return router.replace(`/registrar?etapa=${getStep()}`);
-			form.reset(
-				typeof registerData.representative === "object"
-					? registerData.representative
-					: undefined,
-			);
-		}
-		if (etapa === "madre" && registerData.mother) {
-			if (registerData.mother === "omitted")
-				return router.replace(`/registrar?etapa=${getStep()}`);
-
-			if (form.formState.isSubmitting)
+		if (registerData[key]) {
+			if (form.formState.isSubmitting || registerData[key] === "omitted")
 				return router.replace(`/registrar?etapa=${getStep()}`);
 
 			form.reset(
-				typeof registerData.mother === "object"
-					? registerData.mother
-					: undefined,
-			);
-		}
-		if (etapa === "padre" && registerData.father) {
-			if (registerData.father === "omitted")
-				return router.replace("/registrar?etapa=resumen");
-
-			if (form.formState.isSubmitting)
-				return router.replace(`/registrar?etapa=${getStep()}`);
-
-			form.reset(
-				typeof registerData.father === "object"
-					? registerData.father
-					: undefined,
+				typeof registerData[key] === "object"
+					? registerData[key]
+					: {
+							user_id: {
+								ci_number: registerData.representative as string,
+							},
+						},
 			);
 		}
 
 		disabledKeys();
-	}, [registerData]);
+	}, [registerData, disabledKeys, etapa]);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
@@ -142,17 +125,30 @@ export default function RepresentativeForm({
 	};
 
 	const onSubmit = (data: Representative) => {
-		if (etapa === "representante")
-			setRegisterData({ representative: setUpper<Representative>(data) });
-		if (etapa === "madre")
-			setRegisterData({ mother: setUpper<Representative>(data) });
-		if (etapa === "padre")
-			setRegisterData({ father: setUpper<Representative>(data) });
+		const key: keyof RegisterData =
+			etapa === "madre"
+				? "mother"
+				: etapa === "padre"
+					? "father"
+					: "representative";
+
+		if (typeof registerData[key] === "string")
+			return router.replace(`/registrar?etapa=${getStep()}`);
+
+		setRegisterData({ [key]: setUpper<Representative>(data) });
 	};
 
 	const onOmit = (entity: string) => {
-		if (entity === "madre") setRegisterData({ mother: "omitted" });
-		if (entity === "padre") setRegisterData({ father: "omitted" });
+		if (!["madre", "padre", "representante"].includes(entity)) return;
+
+		const key: keyof RegisterData =
+			etapa === "madre"
+				? "mother"
+				: etapa === "padre"
+					? "father"
+					: "representative";
+
+		setRegisterData({ [key]: "omitted" });
 	};
 
 	return (
@@ -369,6 +365,7 @@ export default function RepresentativeForm({
 								{...restField}
 								isSelected={relation === "representante" ? true : value}
 								isInvalid={!!error}
+								isIndeterminate={!!registerData.tutor}
 								classNames={{
 									base: cn(
 										"bg-default-100",
