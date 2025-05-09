@@ -270,3 +270,14 @@ export const configurations = pgTable("configurations", {
 	id: text("id").primaryKey(),
 	value: text("value").notNull(),
 });
+
+export const notifications = pgTable("notifications", {
+	id: text("id").primaryKey(),
+	user_id: text("user_id")
+		.notNull()
+		.references(() => users.id),
+	description: text("description"),
+	type: text("type").notNull(),
+	reference_id: text("reference_id"),
+	created_at: timestamp("created_at").notNull(),
+});
