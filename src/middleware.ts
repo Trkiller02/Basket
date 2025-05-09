@@ -7,8 +7,16 @@ export async function middleware(request: NextRequest) {
 		headers: await headers(),
 	});
 
+	if (request.nextUrl.pathname === "/sesion/iniciar" && !session) {
+		return NextResponse.next();
+	}
+
 	if (!session) {
 		return NextResponse.redirect(new URL("/sesion/iniciar", request.url));
+	}
+
+	if (request.nextUrl.pathname === "/sesion/iniciar" && session) {
+		return NextResponse.redirect(new URL("/", request.url));
 	}
 
 	/* if (!!session && request.nextUrl.pathname.startsWith("/sesion"))
@@ -19,5 +27,5 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
 	runtime: "nodejs",
-	matcher: ["/"], // Apply middleware to specific routes
+	matcher: ["/", "/sesion/:path*", "/configuracion", "/perfil"], // Apply middleware to specific routes
 };
