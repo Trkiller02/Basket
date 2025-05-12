@@ -149,7 +149,7 @@ export const PATCH = async (
 			.where(eq(users.id, representative.user_id.id));
 	}
 
-	return { message: "Representante actualizado con exito" };
+	return NextResponse.json({ message: "Representante actualizado con exito" });
 };
 
 export const DELETE = async (
@@ -195,5 +195,5 @@ export const DELETE = async (
 		.set({ deleted_at: new Date(Date.now()) })
 		.where(eq(users.id, representative.user_id.id));
 
-	return { message: `DELETED ${id}` };
+	return NextResponse.json({ message: `DELETED ${id}` });
 };

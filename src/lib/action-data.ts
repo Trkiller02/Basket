@@ -2,6 +2,9 @@
 
 import { fetchData } from "@/utils/fetchHandler";
 import { auth } from "./auth";
+import type { ChangePasswod, User } from "@/utils/interfaces/user";
+import bcrypt from "bcryptjs";
+import { NOTIFICATION_MSG, NOTIFICATION_TYPE } from "@/utils/typeNotifications";
 
 export const getEntityData = async <T>(
 	entity: "representatives" | "athletes" | "users",
@@ -29,7 +32,9 @@ export const setEntityData = async <T>(
 		| "athletes"
 		| "health"
 		| "repr-athletes"
-		| "invoices",
+		| "invoices"
+		| "notifications"
+		| "configurations",
 	data: Record<string, unknown>,
 ) => {
 	return await fetchData<T>(`/api/${entity}`, {
@@ -58,13 +63,29 @@ export const deleteEntityData = async (
 	});
 };
 
-export const changePassword = async (password: string, userId: string) => {
-	try {
-		const ctx = await auth.$context;
-		const hash = await ctx.password.hash(password);
+export const changePassword = async (data: ChangePasswod) => {
+	if (!data.ci_number) throw { message: "ID no especificado" };
 
-		await ctx.internalAdapter.updatePassword(userId, hash); //(you can also use your orm directly)
-	} catch (error) {
-		console.error(error);
-	}
+	if (data.new_password !== data.repeat_password)
+		throw { message: "Contraseña no especificada" };
+
+	const user = await getEntityData<User>("users", data.ci_number);
+
+	if (!user) throw { message: "Usuario no encontrado" };
+
+	if (!(await bcrypt.compare(data.restore_code, user.restore_code)))
+		throw { message: "Código de restauración no válido" };
+
+	const ctx = await auth.$context;
+	const hash = await ctx.password.hash(data.new_password);
+
+	await ctx.internalAdapter.updatePassword(user.id, hash); //(you can also use your orm directly)
+
+	await setEntityData("notifications", {
+		user_id: user.id,
+		description: NOTIFICATION_MSG.CHANGES,
+		type: NOTIFICATION_TYPE.CHANGE,
+	});
+
+	return { message: "Contraseña cambiada con éxito" };
 };

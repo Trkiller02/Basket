@@ -1,11 +1,14 @@
 import type { UpdateAthletesDto } from "../dto/update-athletes.dto";
 
 import { type NextRequest, NextResponse } from "next/server";
-import { athletes, users } from "@drizzle/schema";
+import { athletes, notifications, users } from "@drizzle/schema";
 import { and, eq, ilike, isNotNull, isNull } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { MsgError } from "@/utils/messages";
 import { regexList } from "@/utils/regexPatterns";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { NOTIFICATION_MSG, NOTIFICATION_TYPE } from "@/utils/typeNotifications";
 
 /*
 export const athletesController = new Elysia({
@@ -102,13 +105,15 @@ export const PATCH = async (
 	if (!body || Object.keys(body).length === 0)
 		throw { message: MsgError.BAD_REQUEST, code: 400 };
 
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	});
+
 	const [athlete] = await db
 		.select({
 			id: athletes.id,
 			user_id: {
 				id: users.id,
-				email: users.email,
-				ci_number: users.ci_number,
 			},
 		})
 		.from(athletes)
@@ -139,7 +144,7 @@ export const PATCH = async (
 		await db.update(users).set(user_id).where(eq(users.id, athlete.user_id.id));
 	}
 
-	return { message: "Atleta actualizado con exito" };
+	return NextResponse.json({ message: "Atleta actualizado con exito" });
 };
 
 export const DELETE = async (
@@ -147,6 +152,10 @@ export const DELETE = async (
 	{ params }: { params: Promise<{ id: string }> },
 ) => {
 	const { id } = await params;
+
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	});
 
 	const [athlete] = await db
 		.select({
@@ -180,5 +189,5 @@ export const DELETE = async (
 		.set({ deleted_at: new Date() })
 		.where(eq(users.id, athlete.user_id.id));
 
-	return { message: `DELETED ${id}` };
+	return NextResponse.json({ message: `DELETED ${id}` });
 };

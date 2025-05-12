@@ -200,6 +200,7 @@ export const users = pgTable(
 		updatedAt: timestamp("updated_at").notNull().defaultNow(),
 		deleted_at: timestamp("deleted_at"),
 		twoFactorEnabled: boolean("two_factor_enabled").default(false),
+		restore_code: text("restore_code"),
 		role: text("role"),
 		banned: boolean("banned"),
 		banReason: text("ban_reason"),
@@ -272,12 +273,18 @@ export const configurations = pgTable("configurations", {
 });
 
 export const notifications = pgTable("notifications", {
-	id: text("id").primaryKey(),
+	id: bigint({ mode: "number" }).primaryKey().generatedByDefaultAsIdentity({
+		name: "notifications_id_seq",
+		startWith: 1,
+		increment: 1,
+		minValue: 1,
+		cache: 1,
+	}),
 	user_id: text("user_id")
 		.notNull()
 		.references(() => users.id),
 	description: text("description"),
 	type: text("type").notNull(),
 	reference_id: text("reference_id"),
-	created_at: timestamp("created_at").notNull(),
+	created_at: timestamp("created_at").defaultNow(),
 });

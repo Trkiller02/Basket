@@ -1,10 +1,12 @@
-import type { SearchQuery } from "@/utils/interfaces/search";
 import type { CreateAthletesDto } from "./dto/create-athletes.dto";
-import { athletes, users } from "@drizzle/schema";
+import { athletes, notifications, users } from "@drizzle/schema";
 import { and, eq, ilike, isNotNull, isNull, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { type NextRequest, NextResponse } from "next/server";
 import { MsgError } from "@/utils/messages";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
+import { NOTIFICATION_MSG, NOTIFICATION_TYPE } from "@/utils/typeNotifications";
 
 /* export const athletesController = new Elysia({
 	prefix: "/athletes",
@@ -122,6 +124,10 @@ export const GET = async (req: NextRequest) => {
 };
 
 export const POST = async (req: NextRequest) => {
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	});
+
 	try {
 		const body = (await req.json()) as CreateAthletesDto;
 

@@ -1,16 +1,20 @@
+"use client";
+
 import type { Representative } from "@/utils/interfaces/representative";
 import { Button } from "@heroui/button";
 import { Card, CardBody, CardHeader } from "@heroui/card";
-import { Edit2, UserCircle } from "lucide-react";
-import Image from "next/image";
-import { redirect, useRouter } from "next/navigation";
+import { Edit2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { memo } from "react";
 
-export function RepresentativeResume({
+function RepresentativeResume({
 	data,
 	formView,
 }: { data: Representative; formView?: boolean }) {
 	if (!data) return null;
+
 	const router = useRouter();
+
 	const { user_id, ...restData } = data;
 
 	return (
@@ -62,3 +66,5 @@ export function RepresentativeResume({
 		</Card>
 	);
 }
+
+export default memo(RepresentativeResume);

@@ -18,11 +18,18 @@ import { toast } from "sonner";
 import { Card, CardBody, CardFooter, CardHeader } from "@heroui/card";
 import { setUpper } from "@/utils/setUpper";
 import { useRouter } from "next/navigation";
+import bcrypt from "bcryptjs";
+import ModalSecurity from "./modal-security";
 
-export default function UserForm({ data }: { data?: User }) {
-	const router = useRouter();
+export default function UserForm() {
 	const [isAvailable, setIsAvailable] = useState<boolean | undefined>();
 	const [isVisible, setIsVisible] = useState(false);
+	const [data, setData] = useState<{
+		password: string;
+		restore_code: string;
+		name: string;
+	}>();
+	const [isOpen, setIsOpen] = useState(false);
 
 	const findEntity = async (id: string) => {
 		try {
@@ -45,28 +52,47 @@ export default function UserForm({ data }: { data?: User }) {
 		}
 	};
 
-	const form = useForm<User & { password: string; repeat_password: string }>({
+	const form = useForm<
+		Omit<User, "password" | "repeat_password" | "restore_code" | "id"> & {
+			password: string;
+			repeat_password: string;
+		}
+	>({
 		criteriaMode: "firstError",
 		mode: "all",
-		defaultValues: data,
 		resolver: yupResolver(userSchema),
 	});
 
-	const onSubmit = async (data: User) => {
-		const { data: info, error } = await authClient.signUp.email({
+	const onSubmit = async (
+		data: Omit<User, "password" | "repeat_password" | "restore_code" | "id"> & {
+			password: string;
+			repeat_password: string;
+		},
+	) => {
+		const key = crypto.randomUUID().slice(0, 6);
+
+		const { data: info, error } = await authClient.admin.createUser({
 			...setUpper({
 				email: data.email,
 				password: data.password ?? "",
 				name: data.name,
-				lastname: data.lastname,
-				phone_number: data.phone_number,
-				ci_number: data.ci_number,
+				role: data.role ?? "user",
+				data: {
+					lastname: data.lastname,
+					phone_number: data.phone_number,
+					ci_number: data.ci_number,
+					restore_code: await bcrypt.hash(key, 10),
+				},
 			}),
 		});
 
 		if (error) throw error;
 
-		if (info) return "Registro exitoso";
+		if (info) {
+			setData({ name: data.name, password: data.password, restore_code: key });
+			setIsOpen(true);
+			return "Registro exitoso";
+		}
 	};
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
@@ -83,8 +109,8 @@ export default function UserForm({ data }: { data?: User }) {
 		<Card className="w-1/3 p-2 border-2 border-primary">
 			<CardHeader>
 				<h1 className="text-2xl font-medium text-center">
-					¡Bienvenido! 👋🏻 <p className="text-primary inline-flex">|</p>{" "}
 					Registro
+					<p className="text-primary inline-flex">|</p> Usuario
 				</h1>
 			</CardHeader>
 			<CardBody>
@@ -97,10 +123,9 @@ export default function UserForm({ data }: { data?: User }) {
 							loading: "Registrando...",
 							description: "Por favor espere.",
 							success: (data) => {
-								router.push("/sesion/completar");
 								return data;
 							},
-							error: (error) => error,
+							error: (error) => error.message,
 						}),
 					)}
 				>
@@ -280,9 +305,11 @@ export default function UserForm({ data }: { data?: User }) {
 							/>
 						)}
 					/>
-					<Link href="/sesion/iniciar" className="text-end col-span-2">
-						¿Desea iniciar sesión?
-					</Link>
+					<ModalSecurity
+						isOpenProp={isOpen}
+						setIsOpenAction={setIsOpen}
+						data={data}
+					/>
 				</form>
 			</CardBody>
 			<CardFooter>

@@ -1,9 +1,12 @@
 import type { CreateRepresentativeDto } from "./dto/create-representative.dto";
 import { type NextRequest, NextResponse } from "next/server";
-import { representatives, users } from "@drizzle/schema";
+import { notifications, representatives, users } from "@drizzle/schema";
 import { db } from "@/lib/db";
 import { and, eq, ilike, isNotNull, isNull } from "drizzle-orm";
 import { MsgError } from "@/utils/messages";
+import { headers } from "next/headers";
+import { NOTIFICATION_MSG, NOTIFICATION_TYPE } from "@/utils/typeNotifications";
+import { auth } from "@/lib/auth";
 
 /*
 export const representativeController = new Elysia({
@@ -114,6 +117,10 @@ export const POST = async (req: NextRequest) => {
 		const body = (await req.json()) as CreateRepresentativeDto;
 
 		const { user_id, ...rest } = body;
+
+		const session = await auth.api.getSession({
+			headers: await headers(),
+		});
 
 		if (typeof user_id !== "object") {
 			const [{ id }] = await db

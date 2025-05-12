@@ -51,6 +51,8 @@ export const bloodList = [
 	{ key: "O-" },
 ];
 
+export const REPRESENT_LIST = ["representative", "mother", "father"];
+
 export const formEntities = new Set<string>([
 	"atleta",
 	"salud",

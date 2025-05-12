@@ -2,16 +2,19 @@
 
 import type { Athlete } from "@/utils/interfaces/athlete";
 import { getInvoiceStatus, getInvoiceStatusColor } from "@/utils/invoiceHelper";
-import { Button } from "@heroui/button";
-import { Card, CardBody, CardHeader } from "@heroui/card";
+import { Card, CardBody, CardFooter } from "@heroui/card";
+import { Badge } from "@heroui/badge";
+import { Chip } from "@heroui/chip";
 import { Tooltip } from "@heroui/tooltip";
-import { User } from "@heroui/user";
-import { CircleCheck, CircleX } from "lucide-react";
+
+import { User2, UserRoundCheck, UserRoundX } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 export const AthletesCard = ({ athlete }: { athlete: Athlete }) => (
-	<Card as="article">
-		<CardHeader className="inline-flex gap-4 items-center">
+	<Badge content="" color={getInvoiceStatusColor(athlete.solvent)} size="lg">
+		<Card as={Link} isPressable href={`/pagos?q=${athlete.user_id.ci_number}`}>
+			{/* <CardHeader className="inline-flex gap-4 items-center">
 			<User
 				classNames={{
 					name: "ml-2 text-lg font-bold",
@@ -45,7 +48,7 @@ export const AthletesCard = ({ athlete }: { athlete: Athlete }) => (
 					{athlete.user_id.name}
 				</span>
 			</h1>
-			*/}
+		
 			<Tooltip
 				content={
 					<div className="px-1 py-2">
@@ -75,42 +78,74 @@ export const AthletesCard = ({ athlete }: { athlete: Athlete }) => (
 					)}
 				</Button>
 			</Tooltip>
-		</CardHeader>
-		<CardBody>
-			<ul aria-labelledby="personal-data" className="grid grid-cols-2">
-				<Tooltip content="Cedula de identidad" placement="right">
-					<li
-						className="font-semibold text-foreground-500 hover:text-foreground-900"
-						aria-label="CI"
-					>
-						{athlete.user_id.ci_number}
+		</CardHeader> */}
+			<CardBody className="relative overflow-hidden bg-gray-50 hover:bg-gray-100 h-52">
+				{athlete.image ? (
+					<Image
+						src={athlete.image ?? ""}
+						alt="Athlete image"
+						fill
+						className="object-cover"
+					/>
+				) : (
+					<User2 className="w-full aspect-square h-auto text-foreground-700" />
+				)}
+			</CardBody>
+			<CardFooter>
+				<ul aria-labelledby="personal-data" className="grid grid-cols-2 w-full">
+					<li>
+						<h4 className="font-semibold text-lg">
+							{athlete.user_id.lastname}
+							<span className="text-default-700 text-sm block">
+								{athlete.user_id.name}
+							</span>
+						</h4>
 					</li>
-				</Tooltip>
-				{athlete.position ? (
+					<Tooltip content="Estado de cancelación" placement="right">
+						<Chip
+							color={getInvoiceStatusColor(athlete.solvent)}
+							className="justify-self-end"
+							endContent={
+								(athlete.solvent ?? 0) > 0 ? (
+									<UserRoundCheck className="py-[6px]" />
+								) : (
+									<UserRoundX className="py-[6px]" />
+								)
+							}
+							variant="flat"
+						>
+							{getInvoiceStatus(athlete.solvent)}
+						</Chip>
+					</Tooltip>
+
+					<Tooltip content="Cedula de identidad" placement="bottom">
+						<li
+							className="font-semibold text-foreground-500 hover:text-foreground-900"
+							aria-label="CI"
+						>
+							{athlete.user_id.ci_number}
+						</li>
+					</Tooltip>
+
+					{/* {athlete.position && (
 					<li
-						className="font-semibold text-foreground-700 justify-self-end"
+					className="font-semibold text-foreground-700 justify-self-end"
 						aria-label="Posición"
 					>
 						{athlete.position}
 					</li>
-				) : (
-					<>&nbsp;</>
-				)}
-				<li
-					className="font-semibold text-foreground-700 justify-self-start"
-					aria-label="Edad"
-				>
-					{athlete.age}&nbsp;años
-				</li>
-				<Tooltip content="Categoría" placement="right">
-					<li
-						className="font-semibold text-foreground-700 justify-self-end"
-						aria-label="Categoría"
-					>
-						{athlete.category}
-					</li>
-				</Tooltip>
-			</ul>
-		</CardBody>
-	</Card>
+				)} */}
+
+					<Tooltip content="Categoría en la que participa" placement="bottom">
+						<li
+							className="font-semibold text-foreground-700 justify-self-end"
+							aria-label="Categoría"
+						>
+							{athlete.category}
+						</li>
+					</Tooltip>
+				</ul>
+			</CardFooter>
+		</Card>
+	</Badge>
 );

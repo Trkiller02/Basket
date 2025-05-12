@@ -10,7 +10,7 @@ export type Athlete = {
 	solvent?: number;
 	category?: string;
 	position?: string;
-	user_id: User;
+	user_id: Omit<User, "password" | "repeat_password" | "restore_code" | "id">;
 };
 
 export interface DataRequest

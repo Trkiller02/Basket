@@ -1,8 +1,8 @@
+import AthleteWrap from "@/components/edit-forms/athlete-wrap";
 import { AthletesEditForm } from "@/components/edit-forms/athletes";
 import HealthEditForm from "@/components/edit-forms/health";
 import { RepresentativeEditForm } from "@/components/edit-forms/representative";
-import { getEntityDataById } from "@/lib/action-data";
-import { fetchData } from "@/utils/fetchHandler";
+import { getEntityData, getEntityDataById } from "@/lib/action-data";
 import type { Athlete } from "@/utils/interfaces/athlete";
 import type { Health } from "@/utils/interfaces/health";
 import type { Representative } from "@/utils/interfaces/representative";
@@ -15,30 +15,29 @@ export default async function Page({
 	if (!["atleta", "representante", "usuario"].includes(entity))
 		return notFound();
 
-	const data = await fetchData<Athlete | Representative>(
-		`/api/${
-			entity === "atleta"
-				? "athletes"
-				: entity === "representante"
-					? "representatives"
-					: "users"
-		}/${id}`,
+	const data = await getEntityData<Athlete | Representative>(
+		entity === "atleta"
+			? "athletes"
+			: entity === "representante"
+				? "representatives"
+				: "users",
+		id,
 	);
 
 	if (!data) return notFound();
 
 	const healthData =
 		entity === "atleta"
-			? await getEntityDataById<Health>("health", data.id ?? "")
+			? getEntityDataById<Health>("health", data.id ?? "", true)
 			: undefined;
 
 	return (
-		<section>
+		<section className="flex h-full gap-4 justify-center items-center pb-6">
 			{entity === "atleta" && (
-				<>
-					<AthletesEditForm data={data as Athlete} />
-					<HealthEditForm data={healthData} />
-				</>
+				<AthleteWrap
+					healthPromise={healthData as Promise<Health>}
+					athletesData={data as Athlete}
+				/>
 			)}
 			{entity === "representante" && (
 				<RepresentativeEditForm data={data as Representative} />

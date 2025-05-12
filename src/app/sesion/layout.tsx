@@ -6,18 +6,21 @@ export default async function SesionLayout({
 }: { children: React.ReactNode }) {
 	return (
 		<section
-			className="flex h-screen justify-around items-center"
+			className="flex h-screen justify-center items-center"
 			id="auth-layout"
 		>
-			<Image
-				src="/bg-login.jpeg"
-				alt="players background"
-				className="object-contain h-[90%] w-auto mask-radial-at-center mask-radial-from-100% mask-radial-to-0%"
-				width={200}
-				height={200}
-				priority
-			/>
-			{children}
+			<div className="relative flex md:grid grid-cols-2 md:w-1/2 gap-4 border-2 border-primary bg-content1 rounded-xl shadow-md mx-4 h-3/5">
+				<div className="relative max-md:hidden w-full h-full">
+					<Image
+						src="/bg-login.jpeg"
+						alt="players background"
+						className="object-cover"
+						fill
+						priority
+					/>
+				</div>
+				{children}
+			</div>
 		</section>
 	);
 }

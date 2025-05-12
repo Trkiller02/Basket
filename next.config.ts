@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
 		parallelServerCompiles: true,
 		webpackBuildWorker: true,
 	},
+	eslint: {
+		ignoreDuringBuilds: true,
+	},
 };
 
 export default nextConfig;

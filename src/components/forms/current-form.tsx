@@ -1,6 +1,6 @@
 import { formEntities } from "@/utils/selectList";
 import dynamic from "next/dynamic";
-import { memo } from "react";
+import { memo, Suspense } from "react";
 
 const LazyAthleteForm = dynamic(() => import("@/components/forms/athlete"));
 const LazyReprForm = dynamic(() => import("@/components/forms/representative"));
@@ -26,7 +26,12 @@ async function CurrentForm({
 			</>
 		);
 
-	if (etapa === "resumen") return <LazyResumeForm />;
+	if (etapa === "resumen")
+		return (
+			<Suspense fallback={<div>Loading...</div>}>
+				<LazyResumeForm />
+			</Suspense>
+		);
 }
 
 export default memo(CurrentForm);

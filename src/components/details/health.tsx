@@ -1,3 +1,5 @@
+"use client";
+
 import { Card, CardBody, CardHeader } from "@heroui/card";
 import type { Athlete } from "@/utils/interfaces/athlete";
 import { redirect, useRouter } from "next/navigation";

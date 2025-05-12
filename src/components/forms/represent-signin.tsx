@@ -52,7 +52,7 @@ export default function RepresentSignin() {
 	};
 
 	return (
-		<Card className="w-1/4 p-2 border-2 border-primary">
+		<Card className="md:w-1/4 p-2 border-2 border-primary">
 			<CardHeader>
 				<h1 className="text-2xl font-medium text-center">
 					Completa tus datos personales

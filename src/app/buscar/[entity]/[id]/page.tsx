@@ -1,6 +1,6 @@
 import AthleteResume from "@/components/details/athlete";
 import { HealthResume } from "@/components/details/health";
-import { RepresentativeResume } from "@/components/details/representative";
+import RepresentativeResume from "@/components/details/representative";
 import { getEntityDataById } from "@/lib/action-data";
 import { fetchData } from "@/utils/fetchHandler";
 import type { Athlete } from "@/utils/interfaces/athlete";

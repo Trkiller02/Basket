@@ -31,9 +31,14 @@ export const userSchema = Yup.object({
 		.min(4, Messages.MIN_ERR)
 		.max(32, Messages.MAX_ERR)
 		.oneOf([Yup.ref("password")], Messages.MATCH_ERR),
+	restore_code: Yup.string().optional(),
 });
 
-export const personSchema = userSchema.omit(["password", "repeat_password"]);
+export const personSchema = userSchema.omit([
+	"password",
+	"repeat_password",
+	"restore_code",
+]);
 
 export const athleteSchema = Yup.object({
 	birth_date: Yup.string().datetime().required(Messages.REQUIRED),
@@ -67,7 +72,7 @@ export const invoiceSchema = Yup.object({
 	representative_id: Yup.string().optional(),
 	athlete_id: Yup.string().required(Messages.REQUIRED),
 	description: Yup.string().optional(),
-	image_path: Yup.string().optional(),
+	image_path: Yup.string().required(Messages.REQUIRED),
 });
 
 export const authLoginSchema = Yup.object({
@@ -84,7 +89,8 @@ export const relationSchema = Yup.object({
 });
 
 export const changePasswordSchema = Yup.object({
-	password: Yup.string().required(Messages.REQUIRED),
+	restore_code: Yup.string().required(Messages.REQUIRED),
+	ci_number: Yup.string().required(Messages.REQUIRED),
 	repeat_password: Yup.string()
 		.required(Messages.REQUIRED)
 		.min(4, Messages.MIN_ERR)

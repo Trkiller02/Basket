@@ -93,9 +93,9 @@ export const GET = async (
 	);
 
 	return new NextResponse(stream as unknown as ReadableStream, {
-		/* headers: {
+		headers: {
 			"Content-Type": "application/pdf",
 			"Content-Disposition": `attachment; filename="factura_${sampleInvoiceData.invoiceNumber}.pdf"`,
-		}, */
+		},
 	});
 };

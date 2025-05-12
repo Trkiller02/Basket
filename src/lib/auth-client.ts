@@ -9,6 +9,10 @@ export const authClient = createAuthClient({
 		adminClient(),
 		inferAdditionalFields({
 			user: {
+				restore_code: {
+					type: "string",
+					required: false,
+				},
 				lastname: {
 					type: "string",
 					required: true,

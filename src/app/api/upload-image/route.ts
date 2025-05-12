@@ -8,9 +8,12 @@ export const POST = async (req: Request) => {
 		const { file, name, type } = await req.json();
 
 		if (!file) {
-			return NextResponse.json({
-				message: "No se ha seleccionado ningún archivo.",
-			});
+			return NextResponse.json(
+				{
+					message: "No se ha seleccionado ningún archivo.",
+				},
+				{ status: 400 },
+			);
 		}
 
 		const base64Data = file.replace(/^data:image\/\w+;base64,/, "");

@@ -24,13 +24,13 @@ import { setUpper } from "@/utils/setUpper";
 import { getCategories } from "@/utils/getCategories";
 import { toast } from "sonner";
 import { MsgError } from "@/utils/messages";
+import { findEntity } from "@/utils/getEntity";
 
 function AthleteForm() {
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const router = useRouter();
 	const registerData = useRegisterStore((state) => state.registerData);
 	const setRegisterData = useRegisterStore((state) => state.setRegisterData);
-	const [isAvailable, setIsAvailable] = useState<boolean | undefined>();
 	const getStep = useGetStep("atleta", { data: registerData });
 
 	const handleIconClick = () => {
@@ -68,41 +68,6 @@ function AthleteForm() {
 		});
 	};
 
-	const findEntity = async (id: string) => {
-		try {
-			const response = await getEntityData<Athlete>(
-				"athletes",
-				id.toUpperCase(),
-			);
-			if (response) setIsAvailable(false);
-			return response;
-		} catch (error) {
-			if ((error as Error).message === MsgError.NOT_FOUND) {
-				setIsAvailable(true);
-
-				throw {
-					message: "Registro no encontrado",
-					description: "Puede continuar con el registro.",
-				};
-			}
-
-			throw {
-				message: "Error al buscar registro",
-				description: (error as Error).message,
-			};
-		}
-	};
-
-	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
-	useEffect(() => {
-		const temporizador = setTimeout(() => {
-			setIsAvailable(undefined);
-		}, 3000); // 3000 milisegundos = 3 segundos
-
-		// Limpia el temporizador si el componente se desmonta o el estado cambia antes de que expire el temporizador
-		return () => clearTimeout(temporizador);
-	}, [isAvailable]);
-
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
 		if (registerData.athlete) {
@@ -136,52 +101,35 @@ function AthleteForm() {
 						isInvalid={!!error}
 						errorMessage={error?.message}
 						endContent={
-							typeof isAvailable !== "boolean" ? (
-								<Tooltip content="Buscar registro" color="primary">
-									<Button
-										isDisabled={!field.value}
-										isIconOnly
-										variant="light"
-										aria-label="Buscar entidad"
-										className="text-foreground-700"
-										onPress={() =>
-											toast.promise(findEntity(field.value), {
-												loading: "Verificando si existe...",
-												description: "Será breve.",
-												success: (data) => {
-													return {
-														message: "Registro encontrado",
-														description: "¿Desea editarlo?",
-														action: {
-															label: "Editar",
-															onClick: () =>
-																router.replace(`/editar/atleta/${field.value}`),
-														},
-													};
-												},
-												error: (error) => error,
-											})
-										}
-									>
-										<Search className="px-1" />
-									</Button>
-								</Tooltip>
-							) : (
-								<Tooltip
-									content={isAvailable ? "Disponible" : "Registrado"}
-									color="default"
+							<Tooltip content="Buscar registro" color="primary">
+								<Button
+									isDisabled={!field.value}
+									isIconOnly
+									variant="light"
+									aria-label="Buscar entidad"
+									className="text-foreground-700"
+									onPress={() =>
+										toast.promise(findEntity(field.value, registerData), {
+											loading: "Verificando si existe...",
+											description: "Será breve.",
+											success: (data) => {
+												return {
+													message: "Registro encontrado",
+													description: "¿Desea editarlo?",
+													action: {
+														label: "Editar",
+														onClick: () =>
+															router.replace(`/editar/atleta/${field.value}`),
+													},
+												};
+											},
+											error: (error) => error.message,
+										})
+									}
 								>
-									<div
-										className={`w-6 h-6 flex justify-center items-center rounded-full ${isAvailable ? "bg-success" : "bg-danger"}`}
-									>
-										{isAvailable ? (
-											<Check className="text-white py-2" />
-										) : (
-											<X className="text-white py-2" />
-										)}
-									</div>
-								</Tooltip>
-							)
+									<Search className="px-1" />
+								</Button>
+							</Tooltip>
 						}
 					/>
 				)}

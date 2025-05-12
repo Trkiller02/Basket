@@ -7,7 +7,7 @@ export async function middleware(request: NextRequest) {
 		headers: await headers(),
 	});
 
-	if (request.nextUrl.pathname === "/sesion/iniciar" && !session) {
+	if (request.nextUrl.pathname.startsWith("/sesion") && !session) {
 		return NextResponse.next();
 	}
 
@@ -15,7 +15,7 @@ export async function middleware(request: NextRequest) {
 		return NextResponse.redirect(new URL("/sesion/iniciar", request.url));
 	}
 
-	if (request.nextUrl.pathname === "/sesion/iniciar" && session) {
+	if (request.nextUrl.pathname.startsWith("/sesion") && session) {
 		return NextResponse.redirect(new URL("/", request.url));
 	}
 

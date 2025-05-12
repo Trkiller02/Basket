@@ -3,17 +3,21 @@ import { betterAuth } from "better-auth";
 import { admin, twoFactor } from "better-auth/plugins";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 
-import { fetchData } from "@/utils/fetchHandler";
-
 export const auth = betterAuth({
 	session: {
+		expiresIn: 60 * 60 * 24 * 7, // 7 days
+		updateAge: 60 * 60 * 24, // 1 day (every 1 day the session expiration is updated),
 		cookieCache: {
 			enabled: true,
-			maxAge: 5 * 60, // Cache duration in seconds
+			maxAge: 60 * 5, // 5 minutes
 		},
 	},
 	user: {
 		additionalFields: {
+			restore_code: {
+				type: "string",
+				required: false,
+			},
 			lastname: {
 				type: "string",
 				required: true,
@@ -58,7 +62,7 @@ export const auth = betterAuth({
 	plugins: [
 		twoFactor(),
 		admin({
-			adminRole: "admin",
+			adminRole: ["admin", "user"],
 			defaultRole: "representante",
 		}),
 	],

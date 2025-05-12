@@ -22,5 +22,5 @@ export interface CreateInvoices {
 	representative_id?: string;
 	description?: string;
 	athlete_id: string;
-	image_path?: string;
+	image_path: string;
 }

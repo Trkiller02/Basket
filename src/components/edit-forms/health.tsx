@@ -1,11 +1,9 @@
 "use client";
 
 import { Input } from "@heroui/input";
-import { Button } from "@heroui/button";
 import { updateEntityData } from "@/lib/action-data";
 import type { Health } from "@/utils/interfaces/health";
 import { setUpper } from "@/utils/setUpper";
-import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Controller, useForm } from "react-hook-form";
@@ -17,12 +15,7 @@ import { Checkbox } from "@heroui/checkbox";
 import { cn } from "@heroui/theme";
 
 export default function HealthEditForm({ data }: { data?: Health }) {
-	const router = useRouter();
-
 	const form = useForm<Partial<Health>>({
-		criteriaMode: "firstError",
-		mode: "all",
-		defaultValues: data,
 		resolver: yupResolver(healthSchema.partial()),
 		shouldUseNativeValidation: true,
 		progressive: true,
@@ -31,7 +24,7 @@ export default function HealthEditForm({ data }: { data?: Health }) {
 	const onSubmit = async (updateData: Partial<Health>) => {
 		const response = await updateEntityData<{ message: string }>(
 			"health",
-			data?.id ?? "",
+			String(data?.id),
 			setUpper(updateData),
 		);
 
@@ -53,7 +46,7 @@ export default function HealthEditForm({ data }: { data?: Health }) {
 			className="flex flex-col md:grid grid-cols-2 gap-3"
 			onReset={() => form.reset()}
 			onSubmit={form.handleSubmit(onSubmit)}
-			id="salud-form"
+			id="salud-edit-form"
 		>
 			{/* BLOOD_TYPE FIELD */}
 			<Controller
@@ -99,7 +92,7 @@ export default function HealthEditForm({ data }: { data?: Health }) {
 								<div className="flex flex-col items-start">
 									<p>Autorización médica</p>
 									<span
-										className={`text-tiny ${error ? "text-danger" : "text-default-500"}`}
+										className={`text-tiny ${error ? "text-danger" : "text-default-800"}`}
 									>
 										{error
 											? error.message
@@ -135,7 +128,7 @@ export default function HealthEditForm({ data }: { data?: Health }) {
 								<div className="flex flex-col items-start">
 									<p>Asma</p>
 									<span
-										className={`text-tiny ${error ? "text-danger" : "text-default-500"}`}
+										className={`text-tiny ${error ? "text-danger" : "text-default-800"}`}
 									>
 										{error ? error.message : "Padece dificultad para respirar."}
 									</span>
@@ -220,18 +213,6 @@ export default function HealthEditForm({ data }: { data?: Health }) {
 					/>
 				)}
 			/>
-			<div className="flex justify-between items-center col-span-2 pt-2">
-				<Button onPress={() => router.back()} color="danger">
-					Cancelar
-				</Button>
-				<Button
-					type="submit"
-					color="primary"
-					isDisabled={!form.formState.isValid}
-				>
-					Enviar
-				</Button>
-			</div>
 		</form>
 	);
 }

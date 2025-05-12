@@ -3,32 +3,31 @@
 import { Input } from "@heroui/input";
 import { NumberInput } from "@heroui/number-input";
 import { Button } from "@heroui/button";
-import { Tooltip } from "@heroui/tooltip";
-import { Check, Search, UserX, X } from "lucide-react";
 
 import type { Representative } from "@/utils/interfaces/representative";
-import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { addToast } from "@heroui/toast";
-import { Select, SelectItem } from "@heroui/select";
 import { setUpper } from "@/utils/setUpper";
 
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Controller, useForm } from "react-hook-form";
 import { representativeSchema } from "@/utils/interfaces/schemas";
 import { updateEntityData } from "@/lib/action-data";
+import { use, useEffect } from "react";
 
-export function RepresentativeEditForm({ data }: { data?: Representative }) {
+export function RepresentativeEditForm({ data }: { data: Representative }) {
 	const router = useRouter();
 
 	const form = useForm<Partial<Representative>>({
 		mode: "all",
 		criteriaMode: "firstError",
-		defaultValues: data,
 		resolver: yupResolver(representativeSchema.partial()),
 		shouldUseNativeValidation: true,
 		progressive: true,
 	});
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+	useEffect(() => form.reset(data), [data]);
 
 	const onSubmit = async (updateData: Partial<Representative>) => {
 		const response = await updateEntityData<{ message: string }>(

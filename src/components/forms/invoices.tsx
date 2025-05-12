@@ -1,20 +1,13 @@
 "use client";
 
-import {
-	getEntityData,
-	setEntityData,
-	updateEntityData,
-} from "@/lib/action-data";
+import { setEntityData } from "@/lib/action-data";
 import { fetchData } from "@/utils/fetchHandler";
 import type { Athlete } from "@/utils/interfaces/athlete";
 import type { CreateInvoices, Invoices } from "@/utils/interfaces/invoice";
-import type { Representative } from "@/utils/interfaces/representative";
 import { invoiceSchema } from "@/utils/interfaces/schemas";
 import { getInvoiceStatusColor } from "@/utils/invoiceHelper";
 import { Button } from "@heroui/button";
 import { Input } from "@heroui/input";
-import { NumberInput } from "@heroui/number-input";
-import { addToast } from "@heroui/toast";
 import { User } from "@heroui/user";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Upload } from "lucide-react";
@@ -22,12 +15,14 @@ import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useRef } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { Autocomplete, AutocompleteItem } from "@heroui/autocomplete";
 import { Select, SelectItem } from "@heroui/select";
+import { toast } from "sonner";
 
 export default function InvoicesForm({
 	athleteList,
-}: { athleteList?: Athlete[] }) {
+	pricing,
+	representId,
+}: { athleteList?: Athlete[]; pricing: string; representId?: string }) {
 	const athleteId = useSearchParams().get("q");
 
 	const fileInputRef = useRef<HTMLInputElement>(null);
@@ -42,7 +37,8 @@ export default function InvoicesForm({
 		if (file) {
 			const lector = new FileReader();
 			lector.onload = (evento) => {
-				form.setValue("image_path", evento.target?.result?.toString());
+				if (evento.target?.result)
+					form.setValue("image_path", evento.target.result.toString());
 			};
 
 			lector.readAsDataURL(file);
@@ -58,7 +54,7 @@ export default function InvoicesForm({
 	const athletesIdSolvent = useMemo(
 		() =>
 			athleteList
-				?.filter((athlete) => [1, 2].includes(athlete.solvent || 0))
+				?.filter((athlete) => [1, 2, 3].includes(athlete.solvent || 0))
 				.map((item) => item.id ?? ""),
 		[athleteList],
 	);
@@ -76,20 +72,25 @@ export default function InvoicesForm({
 		const response = await setEntityData("invoices", {
 			...data,
 			athlete_id: data.athlete_id.split(","),
+			representative_id: representId ?? data.representative_id,
 			image_path: (image as { message: string }).message,
 		});
 
-		if (response)
-			addToast({
-				title: "Pago enviado",
-				description: "¡Gracias por completar el formulario!",
-				color: "success",
-			});
+		return "Se ha enviado el pago correctamente";
 	};
 
 	return (
 		<form
-			onSubmit={form.handleSubmit(onSubmit)}
+			onSubmit={form.handleSubmit((values) =>
+				toast.promise(onSubmit(values), {
+					loading: "Enviando...",
+					description: "Por favor espere.",
+					success: (data) => {
+						return data;
+					},
+					error: (error) => error.message,
+				}),
+			)}
 			onReset={() => form.reset()}
 			id="invoice-form"
 			className="flex flex-col  gap-3 w-1/2 border-content2 bg-content1 p-4 rounded-xl shadow-md"
@@ -100,8 +101,11 @@ export default function InvoicesForm({
 					<h6 className="text-lg font-medium text-default-700">
 						Comprobante del pago:
 					</h6>
-					<p className="text-sm text-gray-500">
+					<p className="text-sm text-gray-600">
 						El comprobante debe ser de buena calidad.
+						<span className="text-default-900 font-semibold block">
+							Monto: {pricing.toString()} Bs
+						</span>
 					</p>
 				</div>
 				{/* biome-ignore lint/a11y/useKeyWithClickEvents: <explanation> */}
@@ -124,12 +128,18 @@ export default function InvoicesForm({
 					<input
 						{...form.register("image_path")}
 						ref={fileInputRef}
+						required
 						type="file"
 						onChange={handleFileChange}
 						hidden
 						accept="image/*"
 					/>
 				</div>
+				{form.formState.errors.image_path && (
+					<p className="text-sm text-danger">
+						{form.formState.errors.image_path.message}
+					</p>
+				)}
 			</div>
 			{athleteList ? (
 				<Controller
@@ -254,6 +264,7 @@ export default function InvoicesForm({
 					size="lg"
 					color="primary"
 					type="submit"
+					form="invoice-form"
 					isLoading={form.formState.isSubmitting}
 				>
 					Enviar

@@ -12,60 +12,64 @@ import { Avatar } from "@heroui/avatar";
 import Image from "next/image";
 import { Button } from "@heroui/button";
 import { ChevronDown, Dribbble, User2 } from "lucide-react";
-import { useSession } from "@/lib/auth-client";
+import { authClient, useSession } from "@/lib/auth-client";
 
 export default function NavBar() {
 	const { data: session, isPending } = useSession();
 
 	return (
-		<Navbar>
+		<Navbar maxWidth="full" className="flex justify-between items-center">
 			<NavbarBrand>
-				<Image src="/trapiche.svg" alt="Trapichito" width={100} height={50} />
+				<Image src="/trapiche.svg" alt="Trapichito" width={45} height={45} />
 			</NavbarBrand>
 
 			<NavbarContent className="hidden sm:flex gap-4" justify="center">
-				<Dropdown>
-					<NavbarItem>
-						<DropdownTrigger>
-							<Button
-								disableRipple
-								className="p-0 bg-transparent data-[hover=true]:bg-transparent"
-								endContent={<ChevronDown className="py-2" />}
-								radius="sm"
-								variant="light"
+				{session?.user.role !== "representante" ? (
+					<Dropdown>
+						<NavbarItem>
+							<DropdownTrigger>
+								<Button
+									disableRipple
+									className="p-0 bg-transparent data-[hover=true]:bg-transparent"
+									endContent={<ChevronDown className="py-2" />}
+									radius="sm"
+									variant="light"
+								>
+									Registrar
+								</Button>
+							</DropdownTrigger>
+						</NavbarItem>
+						<DropdownMenu
+							aria-label="Registered Features"
+							itemClasses={{
+								base: "gap-4",
+							}}
+						>
+							<DropdownItem
+								key="athlete"
+								color="default"
+								description="Jugador que se incorporará a la Escuela"
+								startContent={<Dribbble className="py-2" />}
+								as={Link}
+								href="/registrar?etapa=atleta"
 							>
-								Registrar
-							</Button>
-						</DropdownTrigger>
-					</NavbarItem>
-					<DropdownMenu
-						aria-label="Registered Features"
-						itemClasses={{
-							base: "gap-4",
-						}}
-					>
-						<DropdownItem
-							key="athlete"
-							description="Jugador que se incorporará a la Escuela"
-							startContent={<Dribbble className="py-2" />}
-							as={Link}
-							href="/registrar?etapa=atleta"
-						>
-							Atleta
-						</DropdownItem>
-						<DropdownItem
-							key="user"
-							description="Representante/Usuario que se incorporará a la Escuela"
-							startContent={<User2 className="py-2" />}
-							as={Link}
-							href="/registrar/usuario"
-						>
-							Usuario
-						</DropdownItem>
-					</DropdownMenu>
-				</Dropdown>
-				<NavbarItem isActive>
-					<Link aria-current="page" href="#">
+								Atleta
+							</DropdownItem>
+							<DropdownItem
+								key="user"
+								color="default"
+								description="Representante/Usuario que se incorporará a la Escuela"
+								startContent={<User2 className="py-2" />}
+								as={Link}
+								href="/usuario/registrar"
+							>
+								Usuario
+							</DropdownItem>
+						</DropdownMenu>
+					</Dropdown>
+				) : null}
+				<NavbarItem>
+					<Link aria-current="page" href="/pagos">
 						Pagos
 					</Link>
 				</NavbarItem>
@@ -74,7 +78,9 @@ export default function NavBar() {
 			<NavbarContent as="div" justify="end">
 				{!session || isPending ? (
 					<NavbarItem className="hidden lg:flex">
-						<Link href="/sesion/iniciar">Login</Link>
+						<Button as={Link} href="/sesion/iniciar" variant="faded">
+							Iniciar Sesión
+						</Button>
 					</NavbarItem>
 				) : (
 					<Dropdown placement="bottom-end">
@@ -90,13 +96,29 @@ export default function NavBar() {
 						</DropdownTrigger>
 						<DropdownMenu aria-label="Profile Actions" variant="flat">
 							<DropdownItem key="profile" className="h-14 gap-2">
-								<p className="font-semibold">Saludos {session?.user.name}!</p>
+								<p className="font-semibold">
+									Saludos {session?.user.name.split(" ")[0]}!
+								</p>
 								<p className="font-semibold">{session?.user.email}</p>
 							</DropdownItem>
-							<DropdownItem key="notifications">Notificaciones</DropdownItem>
-							<DropdownItem key="profile">Información personal</DropdownItem>
-							<DropdownItem key="configurations">Configuración</DropdownItem>
-							<DropdownItem key="logout" color="danger">
+							{session?.user.role !== "representante" ? (
+								<DropdownItem
+									key="notifications"
+									as={Link}
+									href="/notificaciones"
+								>
+									Notificaciones
+								</DropdownItem>
+							) : null}
+
+							<DropdownItem key="configurations" href="/configuracion">
+								Configuración
+							</DropdownItem>
+							<DropdownItem
+								key="logout"
+								color="danger"
+								onPress={() => authClient.signOut()}
+							>
 								Cerrar sesión
 							</DropdownItem>
 						</DropdownMenu>

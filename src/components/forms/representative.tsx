@@ -10,25 +10,21 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { Controller, useForm } from "react-hook-form";
 import type { Representative } from "@/utils/interfaces/representative";
 import { representativeSchema } from "@/utils/interfaces/schemas";
-import { useCallback, useEffect, useState } from "react";
-import { type RegisterData, useRegisterStore } from "@/store/useRegisterStore";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRegisterStore } from "@/store/useRegisterStore";
 import { useRouter } from "next/navigation";
-import { getEntityData } from "@/lib/action-data";
 import { useGetStep } from "@/utils/getStep";
-import { Select, SelectItem } from "@heroui/select";
-import { relationSelect } from "@/utils/selectList";
 import { setUpper } from "@/utils/setUpper";
-import { MsgError } from "@/utils/messages";
 import { toast } from "sonner";
 import { Checkbox } from "@heroui/checkbox";
 import { cn } from "@heroui/theme";
+import { findEntity } from "@/utils/getEntity";
 
 export default function RepresentativeForm({
 	data,
 	etapa,
 }: { data?: Representative; etapa: "representante" | "madre" | "padre" }) {
 	const [disKeys, setDisKeys] = useState<Set<string>>(new Set([]));
-	const [relation, setRelation] = useState<string>("representante");
 	const [isAvailable, setIsAvailable] = useState<boolean | undefined>();
 
 	const registerData = useRegisterStore((state) => state.registerData);
@@ -47,6 +43,16 @@ export default function RepresentativeForm({
 
 	const getStep = useGetStep(etapa, { data: registerData });
 
+	const key = useMemo(
+		() =>
+			etapa === "madre"
+				? "mother"
+				: etapa === "padre"
+					? "father"
+					: "representative",
+		[etapa],
+	);
+
 	const disabledKeys = useCallback(() => {
 		if (registerData.mother && !disKeys.has("madre")) {
 			setDisKeys((disKeys) => disKeys.add("madre"));
@@ -64,15 +70,8 @@ export default function RepresentativeForm({
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
-		const key: keyof RegisterData =
-			etapa === "madre"
-				? "mother"
-				: etapa === "padre"
-					? "father"
-					: "representative";
-
 		if (registerData[key]) {
-			if (form.formState.isSubmitting || registerData[key] === "omitted")
+			if (form.formState.isSubmitting || typeof registerData[key] === "string")
 				return router.replace(`/registrar?etapa=${getStep()}`);
 
 			form.reset(
@@ -87,7 +86,7 @@ export default function RepresentativeForm({
 		}
 
 		disabledKeys();
-	}, [registerData, disabledKeys, etapa]);
+	}, [registerData, etapa]);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
@@ -99,64 +98,17 @@ export default function RepresentativeForm({
 		return () => clearTimeout(temporizador);
 	}, [isAvailable]);
 
-	const findEntity = async (id: string) => {
-		try {
-			const response = await getEntityData<Representative>(
-				"representatives",
-				id.toUpperCase(),
-			);
-			if (response) setIsAvailable(false);
-			return response;
-		} catch (error) {
-			if ((error as Error).message === MsgError.NOT_FOUND) {
-				setIsAvailable(true);
-
-				throw {
-					message: "Registro no encontrado",
-					description: "Puede continuar con el registro.",
-				};
-			}
-
-			throw {
-				message: "Error al buscar registro",
-				description: (error as Error).message,
-			};
-		}
-	};
-
-	const onSubmit = (data: Representative) => {
-		const key: keyof RegisterData =
-			etapa === "madre"
-				? "mother"
-				: etapa === "padre"
-					? "father"
-					: "representative";
-
-		if (typeof registerData[key] === "string")
-			return router.replace(`/registrar?etapa=${getStep()}`);
-
-		setRegisterData({ [key]: setUpper<Representative>(data) });
-	};
-
-	const onOmit = (entity: string) => {
-		if (!["madre", "padre", "representante"].includes(entity)) return;
-
-		const key: keyof RegisterData =
-			etapa === "madre"
-				? "mother"
-				: etapa === "padre"
-					? "father"
-					: "representative";
-
-		setRegisterData({ [key]: "omitted" });
-	};
-
 	return (
 		<form
 			className="grid grid-cols-2 gap-3 w-full"
-			onSubmit={form.handleSubmit(onSubmit)}
+			onSubmit={form.handleSubmit((data) =>
+				setRegisterData({
+					[key]: setUpper<Representative>(data),
+					tutor: data.tutor ? key : undefined,
+				}),
+			)}
 			onReset={() => form.reset()}
-			id="representante-form"
+			id={`${etapa}-form`}
 		>
 			<h3 className="col-span-2 font-semibold text-lg">Datos personales:</h3>
 			{/* CI FIELD */}
@@ -182,7 +134,7 @@ export default function RepresentativeForm({
 										aria-label="Buscar entidad"
 										className="text-foreground-700"
 										onPress={() =>
-											toast.promise(findEntity(field.value), {
+											toast.promise(findEntity(field.value, registerData), {
 												loading: "Verificando si existe...",
 												description: "Será breve.",
 												success: (data) => {
@@ -229,7 +181,7 @@ export default function RepresentativeForm({
 			/>
 
 			<div className="flex flex-row gap-2">
-				<Select
+				{/* <Select
 					items={relationSelect}
 					label="Relación:"
 					selectedKeys={relation ? [relation] : undefined}
@@ -241,23 +193,54 @@ export default function RepresentativeForm({
 					{({ value, key }: { value: string; key: string }) => (
 						<SelectItem key={key}>{value}</SelectItem>
 					)}
-				</Select>
+				</Select> */}
+				<Controller
+					control={form.control}
+					name="tutor"
+					render={({ field, fieldState: { error } }) => {
+						const { value, ...restField } = field;
+						return (
+							<Checkbox
+								{...restField}
+								defaultSelected={etapa === "representante"}
+								isInvalid={!!error}
+								isIndeterminate={!!registerData.tutor}
+								classNames={{
+									base: cn(
+										"bg-default-100",
+										"hover:bg-default-200",
+										"r rounded-xl m-1 border-2 border-transparent",
+										"data-[selected=true]:border-primary",
+									),
+									label: "w-full",
+								}}
+							>
+								<div className="flex flex-col items-start">
+									<p>Tutor legal</p>
+									<span
+										className={`text-tiny ${error ? "text-danger" : "text-default-800"}`}
+									>
+										{error ? error.message : "Responsable del atleta."}
+									</span>
+								</div>
+							</Checkbox>
+						);
+					}}
+				/>
 				{!data && (
 					<Tooltip content="Omitir Relación">
 						<Button
 							isDisabled={
-								!!relation &&
-								disKeys.size < 3 &&
-								!data &&
-								relation === "representante"
+								disKeys.size >= 2 ||
+								(disKeys.size >= 2 && etapa === "representante")
 							}
-							variant="light"
-							isIconOnly
+							size="lg"
 							aria-label="Omitir Relación"
 							className="text-foreground-700 mt-2"
-							onPress={() => onOmit(relation)}
+							onPress={() => setRegisterData({ [key]: "omitted" })}
+							endContent={<UserX className="px-1" />}
 						>
-							<UserX className="px-1" />
+							Omitir {etapa.charAt(0).toUpperCase() + etapa.slice(1)}
 						</Button>
 					</Tooltip>
 				)}
@@ -348,45 +331,13 @@ export default function RepresentativeForm({
 					name="height"
 					render={({ field, fieldState: { error } }) => (
 						<NumberInput
+							step={0.01}
 							{...field}
 							label="Estatura:"
 							isInvalid={!!error}
 							errorMessage={error?.message}
 						/>
 					)}
-				/>
-				<Controller
-					control={form.control}
-					name="tutor"
-					render={({ field, fieldState: { error } }) => {
-						const { value, ...restField } = field;
-						return (
-							<Checkbox
-								{...restField}
-								isSelected={relation === "representante" ? true : value}
-								isInvalid={!!error}
-								isIndeterminate={!!registerData.tutor}
-								classNames={{
-									base: cn(
-										"bg-default-100",
-										"hover:bg-default-200",
-										"r rounded-xl m-1 border-2 border-transparent",
-										"data-[selected=true]:border-primary",
-									),
-									label: "w-full",
-								}}
-							>
-								<div className="flex flex-col items-start">
-									<p>Tutor legal</p>
-									<span
-										className={`text-tiny ${error ? "text-danger" : "text-default-800"}`}
-									>
-										{error ? error.message : "Responsable del atleta."}
-									</span>
-								</div>
-							</Checkbox>
-						);
-					}}
 				/>
 			</div>
 		</form>
