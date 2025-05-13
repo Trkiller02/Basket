@@ -16,6 +16,8 @@ export async function middleware(request: NextRequest) {
 	}
 
 	if (request.nextUrl.pathname.startsWith("/sesion") && session) {
+		if (request.nextUrl.pathname.endsWith("/completar"))
+			return NextResponse.next();
 		return NextResponse.redirect(new URL("/", request.url));
 	}
 

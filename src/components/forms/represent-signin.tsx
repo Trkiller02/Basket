@@ -1,10 +1,9 @@
 "use client";
 
-import { Card, CardBody, CardFooter, CardHeader } from "@heroui/card";
 import { Input } from "@heroui/input";
 import { NumberInput } from "@heroui/number-input";
 import { yupResolver } from "@hookform/resolvers/yup";
-import React from "react";
+import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import * as Yup from "yup";
 import { useRouter } from "next/navigation";
@@ -15,9 +14,14 @@ import { useSession } from "@/lib/auth-client";
 
 export default function RepresentSignin() {
 	const router = useRouter();
-	const { data: session } = useSession();
+	const { data: session, isPending } = useSession();
 
-	const form = useForm<{ occupation: string; height: number }>({
+	useEffect(() => console.log(session), [session]);
+
+	const form = useForm<{
+		occupation: string;
+		height: number;
+	}>({
 		criteriaMode: "firstError",
 		mode: "all",
 		resolver: yupResolver(
@@ -33,12 +37,14 @@ export default function RepresentSignin() {
 	});
 
 	const onSubmit = async (data: { occupation: string; height: number }) => {
+		console.log({ session });
+
 		try {
 			const response = await setEntityData<{ message: string }>(
 				"representatives",
 				{
 					...data,
-					user_id: session?.user?.id,
+					user_id: session?.user.id ?? "",
 				},
 			);
 
@@ -52,67 +58,62 @@ export default function RepresentSignin() {
 	};
 
 	return (
-		<Card className="md:w-1/4 p-2 border-2 border-primary">
-			<CardHeader>
-				<h1 className="text-2xl font-medium text-center">
-					Completa tus datos personales
-				</h1>
-			</CardHeader>
-			<CardBody>
-				<form
-					id="represent-signin-form"
-					onSubmit={form.handleSubmit((values) =>
-						toast.promise(onSubmit(values), {
-							loading: "Completando...",
-							description: "Por favor espere.",
-							success: (data) => {
-								router.push("/");
-								return data;
-							},
-							error: (error) => error,
-						}),
-					)}
-				>
-					<Controller
-						control={form.control}
-						name="occupation"
-						render={({ field, fieldState: { error } }) => (
-							<Input
-								{...field}
-								label="Ocupación:"
-								description="¿En qué ocupación trabaja?"
-								isInvalid={!!error}
-								errorMessage={error?.message}
-							/>
-						)}
+		<form
+			id="represent-signin-form"
+			className="flex flex-col gap-4 w-full px-2 h-full justify-center items-center"
+			onSubmit={form.handleSubmit((values) =>
+				toast.promise(onSubmit(values), {
+					loading: "Completando...",
+					description: "Por favor espere.",
+					success: (data) => {
+						router.push("/");
+						return data;
+					},
+					error: (error) => error,
+				}),
+			)}
+		>
+			<h1 className="text-2xl font-medium text-center">
+				Completa tus datos personales
+			</h1>
+
+			<Controller
+				control={form.control}
+				name="occupation"
+				render={({ field, fieldState: { error } }) => (
+					<Input
+						{...field}
+						label="Ocupación:"
+						description="¿En qué ocupación trabaja?"
+						isInvalid={!!error}
+						errorMessage={error?.message}
 					/>
-					{/* HEIGHT FIELD */}
-					<Controller
-						control={form.control}
-						name="height"
-						render={({ field, fieldState: { error } }) => (
-							<NumberInput
-								{...field}
-								label="Estatura:"
-								isInvalid={!!error}
-								errorMessage={error?.message}
-							/>
-						)}
+				)}
+			/>
+			{/* HEIGHT FIELD */}
+			<Controller
+				control={form.control}
+				name="height"
+				render={({ field, fieldState: { error } }) => (
+					<NumberInput
+						step={0.01}
+						{...field}
+						label="Estatura:"
+						isInvalid={!!error}
+						errorMessage={error?.message}
 					/>
-				</form>
-			</CardBody>
-			<CardFooter>
-				<Button
-					type="submit"
-					className="col-span-2"
-					fullWidth
-					color="primary"
-					form="represent-signin-form"
-					isLoading={form.formState.isSubmitting}
-				>
-					Completar
-				</Button>
-			</CardFooter>
-		</Card>
+				)}
+			/>
+			<Button
+				type="submit"
+				className="col-span-2"
+				fullWidth
+				color="primary"
+				form="represent-signin-form"
+				isLoading={form.formState.isSubmitting}
+			>
+				Completar
+			</Button>
+		</form>
 	);
 }

@@ -61,7 +61,7 @@ export default function NavBar() {
 								description="Representante/Usuario que se incorporará a la Escuela"
 								startContent={<User2 className="py-2" />}
 								as={Link}
-								href="/usuario/registrar"
+								href="/usuarios/registrar"
 							>
 								Usuario
 							</DropdownItem>

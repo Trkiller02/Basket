@@ -50,20 +50,27 @@ export const GET = async (
 	const querys = req.nextUrl.searchParams;
 	const { id } = await params;
 	const deleted = querys.get("deleted");
+	const forFormView = querys.get("formView");
 
 	const [result] = await db
-		.select({
-			id: representatives.id,
-			user_id: {
-				id: users.id,
-				ci_number: users.ci_number,
-				name: users.name,
-				lastname: users.lastname,
-				email: users.email,
-				phone_number: users.phone_number,
-			},
-			occupation: representatives.occupation,
-		})
+		.select(
+			forFormView
+				? {
+						id: representatives.id,
+					}
+				: {
+						id: representatives.id,
+						user_id: {
+							id: users.id,
+							ci_number: users.ci_number,
+							name: users.name,
+							lastname: users.lastname,
+							email: users.email,
+							phone_number: users.phone_number,
+						},
+						occupation: representatives.occupation,
+					},
+		)
 		.from(representatives)
 		.innerJoin(users, eq(representatives.user_id, users.id))
 		.where(

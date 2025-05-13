@@ -31,6 +31,8 @@ export default function UserForm() {
 	}>();
 	const [isOpen, setIsOpen] = useState(false);
 
+	const router = useRouter();
+
 	const findEntity = async (id: string) => {
 		try {
 			const response = await getEntityData("users", id.toUpperCase(), true);
@@ -89,7 +91,11 @@ export default function UserForm() {
 		if (error) throw error;
 
 		if (info) {
-			setData({ name: data.name, password: data.password, restore_code: key });
+			setData({
+				name: data.name.toUpperCase(),
+				password: data.password,
+				restore_code: key,
+			});
 			setIsOpen(true);
 			return "Registro exitoso";
 		}
@@ -106,10 +112,10 @@ export default function UserForm() {
 	}, [isAvailable]);
 
 	return (
-		<Card className="w-1/3 p-2 border-2 border-primary">
+		<Card className="w-1/3 p-2 border-2 border-primary justify-self-center">
 			<CardHeader>
 				<h1 className="text-2xl font-medium text-center">
-					Registro
+					Registro&nbsp;
 					<p className="text-primary inline-flex">|</p> Usuario
 				</h1>
 			</CardHeader>
@@ -126,6 +132,7 @@ export default function UserForm() {
 								return data;
 							},
 							error: (error) => error.message,
+							onAutoClose: () => router.push("/"),
 						}),
 					)}
 				>

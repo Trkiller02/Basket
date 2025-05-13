@@ -202,7 +202,11 @@ export default function RepresentativeForm({
 						return (
 							<Checkbox
 								{...restField}
-								defaultSelected={etapa === "representante"}
+								defaultSelected={
+									etapa === "representante" ||
+									disKeys.size >= 2 ||
+									registerData.tutor === key
+								}
 								isInvalid={!!error}
 								isIndeterminate={!!registerData.tutor}
 								classNames={{

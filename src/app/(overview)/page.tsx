@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { Suspense } from "react";
 import LoadingAthletesPreview from "@/components/previews/athletes/loading-preview";
+import { getEntityData } from "@/lib/action-data";
+import { MsgError } from "@/utils/messages";
 
 export const experimental_ppr = true;
 
@@ -14,6 +16,16 @@ export default async function Page() {
 	});
 
 	if (!session) redirect("/sesion/iniciar");
+
+	if (session?.user.role === "representante") {
+		try {
+			await getEntityData("representatives", session?.user.ci_number, true);
+		} catch (error) {
+			if ((error as Error).message === MsgError.NOT_FOUND)
+				return redirect("/sesion/completar");
+			console.log(error);
+		}
+	}
 
 	return session?.user?.role === "representante" ? (
 		<Suspense fallback={<LoadingAthletesPreview />}>

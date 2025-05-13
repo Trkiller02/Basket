@@ -163,7 +163,9 @@ export default function ResumeForm() {
 							? setEntityData("repr-athletes", {
 									athlete_id: athlete?.message,
 									representative_id:
-										representPromises[index]?.message ?? registerData[key],
+										typeof registerData[key] === "string"
+											? registerData[key]
+											: representPromises[index]?.message,
 									relation:
 										key === "representative"
 											? "representante"
