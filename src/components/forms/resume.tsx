@@ -61,40 +61,44 @@ export default function ResumeForm() {
 	const registerRepresentative = async (
 		type: "representative" | "mother" | "father",
 	) => {
-		if (!registerData[type]) return undefined;
+		if (!registerData[type] || registerData[type] === "omitted")
+			return undefined;
 
 		if (typeof registerData[type] === "string") {
-			if (registerData[type].match(regexList.forDNI)) {
-				const data = await getEntityData<Representative>(
-					"representatives",
-					registerData[type] as string,
-				);
+			const data = await getEntityData<Representative>(
+				"representatives",
+				registerData[type] as string,
+			);
 
-				if (data) return { message: data.id as string };
-			}
-			return;
+			if (!data) throw new Error("Representante no encontrado");
+
+			return { message: data.id as string };
 		}
-
-		if (registerData.tutor !== type)
-			return setEntityData<{ message: string }>("representatives", {
-				...registerData[type],
-				role: "representante",
-			});
 
 		const keygen = crypto.randomUUID();
 
 		const password = keygen.slice(0, 6);
 		const restore_code = keygen.slice(6, 12);
 
-		const response = setEntityData<{ message: string }>("representatives", {
-			...registerData[type],
-			password,
-			restore_code: await bcrypt.hash(restore_code, 10),
-			role: "representante",
-		});
+		const response = await setEntityData<{ message: string }>(
+			"representatives",
+			{
+				...(registerData[type] as Representative),
+				user_id: {
+					...(registerData[type] as Representative).user_id,
+					...(registerData.tutor !== type
+						? {}
+						: {
+								password,
+								restore_code: await bcrypt.hash(restore_code, 10),
+								role: "representante",
+							}),
+				},
+			},
+		);
 
 		return {
-			...response,
+			message: response?.message ?? "",
 			props: { name: registerData[type].user_id.name, password, restore_code },
 		};
 	};
@@ -143,7 +147,7 @@ export default function ResumeForm() {
 					(type: string, index: number) => {
 						const key = type as "representative" | "mother" | "father";
 
-						if (!representData[index]) return undefined;
+						if (!representPromises[index]) return undefined;
 
 						return setEntityData("repr-athletes", {
 							athlete_id: athlete?.message,
@@ -166,6 +170,7 @@ export default function ResumeForm() {
 
 			setData(representPromises[idxAccountRepresent]?.props);
 			setIsOpen(true);
+			clearRegisterData();
 
 			return {
 				message: "Registro guardado",
@@ -188,7 +193,7 @@ export default function ResumeForm() {
 			onSubmit={(e) => {
 				e.preventDefault();
 
-				toast.promise(onSubmit, {
+				return toast.promise(onSubmit, {
 					loading: "Guardando...",
 					description: "Por favor espere.",
 					success: (data) => {
@@ -197,12 +202,11 @@ export default function ResumeForm() {
 							action: {
 								label: "Imprimir",
 								onClick: async () =>
-									await fetchData(`/api/reports/register/${data.id}`),
+									await fetch(`/api/reports/register/${data.id}`),
 							},
 						};
 					},
 					error: (error) => error.message,
-					onAutoClose: () => router.push("/"),
 				});
 			}}
 			id="resumen-form"

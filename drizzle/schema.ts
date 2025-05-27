@@ -226,19 +226,27 @@ export const configurations = pgTable("configurations", {
 	value: text("value").notNull(),
 });
 
-export const notifications = pgTable("notifications", {
-	id: bigint({ mode: "number" }).primaryKey().generatedByDefaultAsIdentity({
-		name: "notifications_id_seq",
-		startWith: 1,
-		increment: 1,
-		minValue: 1,
-		cache: 1,
-	}),
-	user_id: text("user_id")
-		.notNull()
-		.references(() => users.id),
-	description: text("description"),
-	type: text("type").notNull(),
-	reference_id: text("reference_id"),
-	created_at: timestamp("created_at").defaultNow(),
-});
+export const notifications = pgTable(
+	"notifications",
+	{
+		id: bigint({ mode: "number" }).primaryKey().generatedByDefaultAsIdentity({
+			name: "notifications_id_seq",
+			startWith: 1,
+			increment: 1,
+			minValue: 1,
+			cache: 1,
+		}),
+		user_id: text("user_id").notNull(),
+		description: text("description"),
+		type: text("type").notNull(),
+		reference_id: text("reference_id"),
+		created_at: timestamp("created_at").defaultNow(),
+	},
+	(table) => [
+		foreignKey({
+			columns: [table.user_id],
+			foreignColumns: [users.id],
+			name: "notifications_user_id_fkey",
+		}),
+	],
+);

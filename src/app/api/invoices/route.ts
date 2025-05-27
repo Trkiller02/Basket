@@ -134,13 +134,6 @@ export const POST = auth(async (req) => {
 				.update(athletes)
 				.set({ solvent: 3 })
 				.where(eq(athletes.id, athlete));
-
-			await db.insert(notifications).values({
-				user_id: session?.user?.id ?? represent.user_id.id,
-				description: `${NOTIFICATION_MSG.PAYMENT} de atleta`,
-				type: NOTIFICATION_TYPE.PAYMENT,
-				reference_id: String(id),
-			});
 		}
 	} else {
 		const [{ id: athlete }] = await db
@@ -165,13 +158,6 @@ export const POST = auth(async (req) => {
 			.update(athletes)
 			.set({ solvent: 3 })
 			.where(eq(athletes.id, athlete));
-
-		await db.insert(notifications).values({
-			user_id: session?.user?.id ?? represent.user_id.id,
-			description: `${NOTIFICATION_MSG.PAYMENT} de atleta`,
-			type: NOTIFICATION_TYPE.PAYMENT,
-			reference_id: String(id),
-		});
 	}
 
 	return NextResponse.json({ message: "Completado" }, { status: 201 });

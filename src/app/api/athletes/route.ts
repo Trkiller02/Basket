@@ -139,12 +139,6 @@ export const POST = auth(async (req) => {
 			.values({ ...rest, user_id: userId })
 			.returning({ id: athletes.id });
 
-		await db.insert(notifications).values({
-			user_id: session?.user?.id ?? "",
-			description: NOTIFICATION_MSG.REGISTER + id,
-			type: NOTIFICATION_TYPE.REGISTER,
-		});
-
 		return NextResponse.json({ message: id }, { status: 201 });
 	} catch (error) {
 		return NextResponse.json(
