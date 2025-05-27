@@ -1,7 +1,5 @@
-import { authClient } from "@/lib/auth-client";
+import { auth } from "@/auth";
 import DashboardLayout from "../tablero/layout";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 
 // export default DashboardLayout;
 
@@ -16,16 +14,14 @@ export default async function OverviewLayout({
 	table: React.ReactNode;
 	stadistics: React.ReactNode;
 }) {
-	const session = await auth.api.getSession({
-		headers: await headers(),
-	});
+	const session = await auth();
 
 	return (
 		<DashboardLayout>
 			<section className="flex flex-col gap-2 w-full">
-				{session?.user?.role === "admin" && stadistics}
+				{session?.user?.role === "administrador" && stadistics}
 				{children}
-				{session?.user?.role === "admin" && table}
+				{session?.user?.role === "administrador" && table}
 			</section>
 		</DashboardLayout>
 	);

@@ -10,7 +10,7 @@ import {
 import { type NextRequest, NextResponse } from "next/server";
 import { MsgError } from "@/utils/messages";
 import { getLocalTimeZone, today } from "@internationalized/date";
-import { auth } from "@/lib/auth";
+import { auth } from "@/auth";
 import { headers } from "next/headers";
 import { regexList } from "@/utils/regexPatterns";
 import { NOTIFICATION_MSG, NOTIFICATION_TYPE } from "@/utils/typeNotifications";
@@ -77,15 +77,11 @@ export const GET = async (req: NextRequest) => {
 	}
 };
 
-export async function POST(req: NextRequest) {
+export const POST = auth(async (req) => {
 	const { representative_id, description, athlete_id, image_path } =
 		await req.json();
 
-	const session = await auth.api.getSession({
-		headers: await headers(),
-	});
-
-	console.log({ session });
+	const session = req.auth;
 
 	const [represent] = await db
 		.select({
@@ -140,7 +136,7 @@ export async function POST(req: NextRequest) {
 				.where(eq(athletes.id, athlete));
 
 			await db.insert(notifications).values({
-				user_id: session?.user.id ?? represent.user_id.id,
+				user_id: session?.user?.id ?? represent.user_id.id,
 				description: `${NOTIFICATION_MSG.PAYMENT} de atleta`,
 				type: NOTIFICATION_TYPE.PAYMENT,
 				reference_id: String(id),
@@ -171,7 +167,7 @@ export async function POST(req: NextRequest) {
 			.where(eq(athletes.id, athlete));
 
 		await db.insert(notifications).values({
-			user_id: session?.user.id ?? represent.user_id.id,
+			user_id: session?.user?.id ?? represent.user_id.id,
 			description: `${NOTIFICATION_MSG.PAYMENT} de atleta`,
 			type: NOTIFICATION_TYPE.PAYMENT,
 			reference_id: String(id),
@@ -185,4 +181,4 @@ export async function POST(req: NextRequest) {
 			{ status: 400 },
 		);
 	} */
-}
+});

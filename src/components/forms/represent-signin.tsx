@@ -3,20 +3,20 @@
 import { Input } from "@heroui/input";
 import { NumberInput } from "@heroui/number-input";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useEffect } from "react";
+import { use, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import * as Yup from "yup";
 import { useRouter } from "next/navigation";
 import { setEntityData } from "@/lib/action-data";
 import { toast } from "sonner";
 import { Button } from "@heroui/button";
-import { useSession } from "@/lib/auth-client";
+import type { Session } from "next-auth";
 
-export default function RepresentSignin() {
+export default function RepresentSignin({
+	sessionData,
+}: { sessionData: Promise<Session | null> }) {
 	const router = useRouter();
-	const { data: session, isPending } = useSession();
-
-	useEffect(() => console.log(session), [session]);
+	const session = use(sessionData);
 
 	const form = useForm<{
 		occupation: string;
@@ -37,14 +37,12 @@ export default function RepresentSignin() {
 	});
 
 	const onSubmit = async (data: { occupation: string; height: number }) => {
-		console.log({ session });
-
 		try {
 			const response = await setEntityData<{ message: string }>(
 				"representatives",
 				{
 					...data,
-					user_id: session?.user.id ?? "",
+					user_id: session?.user?.id ?? "",
 				},
 			);
 

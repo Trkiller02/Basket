@@ -1,10 +1,10 @@
 "use server";
 
 import { fetchData } from "@/utils/fetchHandler";
-import { auth } from "./auth";
 import type { ChangePasswod, User } from "@/utils/interfaces/user";
 import bcrypt from "bcryptjs";
 import { NOTIFICATION_MSG, NOTIFICATION_TYPE } from "@/utils/typeNotifications";
+import { AxiosInstance } from "./axios";
 
 export const getEntityData = async <T>(
 	entity: "representatives" | "athletes" | "users",
@@ -34,7 +34,8 @@ export const setEntityData = async <T>(
 		| "repr-athletes"
 		| "invoices"
 		| "notifications"
-		| "configurations",
+		| "configurations"
+		| "users",
 	data: Record<string, unknown>,
 ) => {
 	return await fetchData<T>(`/api/${entity}`, {
@@ -44,7 +45,7 @@ export const setEntityData = async <T>(
 };
 
 export const updateEntityData = async <T>(
-	entity: "representatives" | "athletes" | "health",
+	entity: "representatives" | "athletes" | "health" | "users",
 	query: string,
 	data: Record<string, unknown>,
 ) => {
@@ -64,22 +65,24 @@ export const deleteEntityData = async (
 };
 
 export const changePassword = async (data: ChangePasswod) => {
-	if (!data.ci_number) throw { message: "ID no especificado" };
+	if (!data.ci_number) throw new Error("ID no especificado");
 
 	if (data.new_password !== data.repeat_password)
-		throw { message: "Contraseña no especificada" };
+		throw new Error("Contraseña no especificada");
 
 	const user = await getEntityData<User>("users", data.ci_number);
 
-	if (!user) throw { message: "Usuario no encontrado" };
+	if (!user) throw new Error("Usuario no encontrado");
 
 	if (!(await bcrypt.compare(data.restore_code, user.restore_code)))
-		throw { message: "Código de restauración no válido" };
+		throw new Error("Código de restauración no válido");
 
-	const ctx = await auth.$context;
-	const hash = await ctx.password.hash(data.new_password);
+	const hash = await bcrypt.hash(data.new_password, 10);
 
-	await ctx.internalAdapter.updatePassword(user.id, hash); //(you can also use your orm directly)
+	await fetchData(`/api/users/${user.id}`, {
+		method: "PATCH",
+		body: { password: hash },
+	});
 
 	await setEntityData("notifications", {
 		user_id: user.id,
@@ -88,4 +91,23 @@ export const changePassword = async (data: ChangePasswod) => {
 	});
 
 	return { message: "Contraseña cambiada con éxito" };
+};
+
+export const fetcher = async (
+	url: string,
+	args?: {
+		method: "GET" | "POST" | "PATCH" | "DELETE";
+		body?: Record<string, unknown>;
+	},
+) => {
+	switch (args?.method) {
+		case "POST":
+			return await AxiosInstance.post(url, args.body);
+		case "PATCH":
+			return await AxiosInstance.patch(url, args.body);
+		case "DELETE":
+			return await AxiosInstance.delete(url);
+		default:
+			return await AxiosInstance.get(url);
+	}
 };

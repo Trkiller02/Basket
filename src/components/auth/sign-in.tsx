@@ -1,6 +1,5 @@
 "use client";
 
-import { authClient } from "@/lib/auth-client";
 import { authLoginSchema } from "@/utils/interfaces/schemas";
 import { Button } from "@heroui/button";
 import { Input } from "@heroui/input";
@@ -9,16 +8,14 @@ import { Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 import NextLink from "next/link";
 import { Link } from "@heroui/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { toast } from "sonner";
+import { signIn } from "next-auth/react";
 
 export default function LoginComponent() {
-	const router = useRouter();
 	const [isVisible, setIsVisible] = useState(false);
 
-	const form = useForm<{ email: string; password: string }>({
+	const form = useForm<{ query: string; password: string }>({
 		criteriaMode: "firstError",
 		mode: "all",
 		defaultValues: {},
@@ -27,16 +24,13 @@ export default function LoginComponent() {
 		progressive: true,
 	});
 
-	const onSubmit = async (data: { email: string; password: string }) => {
-		const { data: info, error } = await authClient.signIn.email({
-			callbackURL: "/",
-			email: data.email,
+	const onSubmit = async (data: { query: string; password: string }) => {
+		await signIn("credentials", {
+			query: data.query,
 			password: data.password,
+			redirect: true,
+			redirectTo: "/sesion/iniciar",
 		});
-
-		if (info) return toast.success("Inicio de sesión exitoso");
-
-		return toast.error(error.message ?? "Error al iniciar sesión");
 	};
 
 	return (
@@ -63,15 +57,13 @@ export default function LoginComponent() {
 			</h2>
 			{/* EMAIL FIELD */}
 			<Controller
-				name="email"
+				name="query"
 				control={form.control}
 				render={({ field, fieldState: { error } }) => (
 					<Input
 						{...field}
-						color={error ? "danger" : "default"}
-						label="Correo electrónico:"
-						type="email"
-						description="Ej: pedro123@gmail.com"
+						label="Correo electrónico o C.I:"
+						description="Ej: pedro123@gmail.com o V29882328"
 						isInvalid={!!error}
 						errorMessage={error?.message}
 					/>

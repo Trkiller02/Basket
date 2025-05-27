@@ -8,7 +8,6 @@ import { fetchData } from "@/utils/fetchHandler";
 import { getEntityData, setEntityData } from "@/lib/action-data";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { authClient } from "@/lib/auth-client";
 
 import type { Representative } from "@/utils/interfaces/representative";
 import type { Athlete } from "@/utils/interfaces/athlete";
@@ -62,7 +61,7 @@ export default function ResumeForm() {
 	const registerRepresentative = async (
 		type: "representative" | "mother" | "father",
 	) => {
-		if (!registerData[type]) return;
+		if (!registerData[type]) return undefined;
 
 		if (typeof registerData[type] === "string") {
 			if (registerData[type].match(regexList.forDNI)) {
@@ -77,42 +76,27 @@ export default function ResumeForm() {
 		}
 
 		if (registerData.tutor !== type)
-			return setEntityData<{ message: string }>(
-				"representatives",
-				registerData[type] as Representative,
-			);
+			return setEntityData<{ message: string }>("representatives", {
+				...registerData[type],
+				role: "representante",
+			});
 
 		const keygen = crypto.randomUUID();
 
 		const password = keygen.slice(0, 6);
-		const restore_code = await bcrypt.hash(keygen.slice(6, 12), 10);
-
-		const { data, error } = await authClient.admin.createUser({
-			email: registerData[type].user_id.email,
-			name: registerData[type].user_id.name,
-			password,
-			role: "representante",
-			data: {
-				lastname: registerData[type].user_id.lastname,
-				phone_number: registerData[type].user_id.phone_number,
-				ci_number: registerData[type].user_id.ci_number,
-				restore_code,
-			},
-		});
-
-		if (error) throw error;
+		const restore_code = keygen.slice(6, 12);
 
 		const response = setEntityData<{ message: string }>("representatives", {
 			...registerData[type],
-			user_id: data?.user.id,
+			password,
+			restore_code: await bcrypt.hash(restore_code, 10),
+			role: "representante",
 		});
 
-		if (response) {
-			return {
-				...response,
-				props: { name: data.user.name, password, restore_code },
-			};
-		}
+		return {
+			...response,
+			props: { name: registerData[type].user_id.name, password, restore_code },
+		};
 	};
 
 	const onSubmit = async () => {
@@ -159,22 +143,19 @@ export default function ResumeForm() {
 					(type: string, index: number) => {
 						const key = type as "representative" | "mother" | "father";
 
-						return registerData[key] !== "omitted"
-							? setEntityData("repr-athletes", {
-									athlete_id: athlete?.message,
-									representative_id:
-										typeof registerData[key] === "string"
-											? registerData[key]
-											: representPromises[index]?.message,
-									relation:
-										key === "representative"
-											? "representante"
-											: key === "mother"
-												? "madre"
-												: "padre",
-									tutor: registerData.tutor === key,
-								})
-							: undefined;
+						if (!representData[index]) return undefined;
+
+						return setEntityData("repr-athletes", {
+							athlete_id: athlete?.message,
+							representative_id: representPromises[index]?.message,
+							relation:
+								key === "representative"
+									? "representante"
+									: key === "mother"
+										? "madre"
+										: "padre",
+							tutor: registerData.tutor === key,
+						});
 					},
 				),
 			]);

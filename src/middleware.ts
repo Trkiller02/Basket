@@ -1,31 +1,33 @@
-import { type NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
+import { NextResponse } from "next/server";
+import { auth as middleware } from "@/auth";
 
-export async function middleware(request: NextRequest) {
-	const session = await auth.api.getSession({
-		headers: await headers(),
-	});
-
-	if (request.nextUrl.pathname.startsWith("/sesion") && !session) {
-		return NextResponse.next();
-	}
+export default middleware((request) => {
+	const session = request.auth;
 
 	if (!session) {
+		if (
+			request.nextUrl.pathname.endsWith("/iniciar") ||
+			request.nextUrl.pathname.endsWith("/recuperar")
+		)
+			return NextResponse.next();
+
 		return NextResponse.redirect(new URL("/sesion/iniciar", request.url));
 	}
 
-	if (request.nextUrl.pathname.startsWith("/sesion") && session) {
-		if (request.nextUrl.pathname.endsWith("/completar"))
-			return NextResponse.next();
-		return NextResponse.redirect(new URL("/", request.url));
+	if (session) {
+		if (request.nextUrl.pathname.startsWith("/sesion")) {
+			if (request.nextUrl.pathname.endsWith("/completar"))
+				return NextResponse.next();
+
+			return NextResponse.redirect(new URL("/", request.url));
+		}
 	}
 
 	/* if (!!session && request.nextUrl.pathname.startsWith("/sesion"))
 		return NextResponse.redirect(new URL("/", request.url)); */
 
 	return NextResponse.next();
-}
+});
 
 export const config = {
 	runtime: "nodejs",

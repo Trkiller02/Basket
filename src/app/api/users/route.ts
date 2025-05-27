@@ -57,3 +57,46 @@ export async function GET(req: NextRequest) {
 		);
 	}
 }
+
+export async function POST(req: NextRequest) {
+	const body = await req.json();
+
+	console.error({ body });
+
+	if (body.query) {
+		console.log(body.query);
+		const [user] = await db
+			.select({
+				id: users.id,
+				ci_number: users.ci_number,
+				email: users.email,
+				name: users.name,
+				lastname: users.lastname,
+				role: users.role,
+			})
+			.from(users)
+			.where(
+				eq(
+					body.query.includes("@") ? users.email : users.ci_number,
+					body.query,
+				),
+			);
+
+		if (!user)
+			return NextResponse.json(
+				{ message: MsgError.NOT_FOUND },
+				{
+					status: 404,
+				},
+			);
+
+		return NextResponse.json(user);
+	}
+
+	const [{ id }] = await db
+		.insert(users)
+		.values(body as typeof users.$inferInsert)
+		.returning({ id: users.id });
+
+	return NextResponse.json({ message: id });
+}

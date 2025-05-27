@@ -7,42 +7,49 @@ import { Button, ButtonGroup } from "@heroui/button";
 import { Input } from "@heroui/input";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Eye, EyeOff } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 export default function ChangePassword() {
 	const [isVisible, setIsVisible] = useState(false);
+	const router = useRouter();
 
 	const form = useForm<ChangePasswod>({
+		mode: "all",
+		criteriaMode: "firstError",
 		resolver: yupResolver(changePasswordSchema),
 		shouldUseNativeValidation: true,
 		progressive: true,
 	});
 
 	const onSubmit = async (data: ChangePasswod) => {
-		if (data.new_password !== data.repeat_password) {
-			return toast.error("Las contraseñas no coinciden");
-		}
-
-		return toast.promise(changePassword(data), {
-			success: "Contraseña cambiada con éxito",
-			error: "Error al cambiar la contraseña",
-			loading: "Cambiando contraseña...",
-		});
+		return changePassword(data);
 	};
 
 	return (
 		<form
-			className="flex flex-col gap-3 w-1/2 border-content2 bg-content1 p-4 rounded-xl shadow-md"
-			onSubmit={form.handleSubmit(onSubmit)}
+			className="flex flex-col p-2 gap-2 self-center h-full justify-around"
+			onSubmit={form.handleSubmit((values) =>
+				toast.promise(onSubmit(values), {
+					success: (data) => {
+						router.push("/sesion/iniciar");
+						return data;
+					},
+					error: (err: Error) => err.message,
+					loading: "Cambiando contraseña...",
+				}),
+			)}
 		>
+			<h2 className="text-2xl font-medium text-center">Recuperar contraseña</h2>
 			<Controller
 				name="ci_number"
 				control={form.control}
 				render={({ field, fieldState: { error } }) => (
 					<Input
 						{...field}
+						isRequired
 						color={error ? "danger" : "default"}
 						label="Cédula de identidad:"
 						placeholder="V30..."
@@ -57,6 +64,7 @@ export default function ChangePassword() {
 				control={form.control}
 				render={({ field, fieldState: { error } }) => (
 					<Input
+						isRequired
 						type={isVisible ? "text" : "password"}
 						{...field}
 						label="Código de restauración:"
@@ -83,6 +91,7 @@ export default function ChangePassword() {
 				control={form.control}
 				render={({ field, fieldState: { error } }) => (
 					<Input
+						isRequired
 						type={isVisible ? "text" : "password"}
 						{...field}
 						label="Nueva contraseña:"
@@ -132,8 +141,10 @@ export default function ChangePassword() {
 			/>
 
 			<ButtonGroup className="mt-4 self-end">
-				<Button color="primary">Cambiar contraseña</Button>
-				<Button color="secondary" variant="flat">
+				<Button color="primary" type="submit">
+					Cambiar contraseña
+				</Button>
+				<Button color="secondary" variant="flat" onPress={() => router.back()}>
 					Cancelar
 				</Button>
 			</ButtonGroup>

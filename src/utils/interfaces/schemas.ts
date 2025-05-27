@@ -76,7 +76,7 @@ export const invoiceSchema = Yup.object({
 });
 
 export const authLoginSchema = Yup.object({
-	email: Yup.string().email(Messages.EMAIL_ERR).required(Messages.REQUIRED),
+	query: Yup.string().matches(regexList.forAuth).required(Messages.REQUIRED),
 	password: Yup.string().required(Messages.REQUIRED),
 });
 

@@ -1,18 +1,22 @@
 "use client";
 
-import { authClient } from "@/lib/auth-client";
+import { updateEntityData } from "@/lib/action-data";
 import { changePasswordSchema } from "@/utils/interfaces/schemas";
 import type { ChangePasswod } from "@/utils/interfaces/user";
 import { Button, ButtonGroup } from "@heroui/button";
 import { Input } from "@heroui/input";
 import { yupResolver } from "@hookform/resolvers/yup";
+import bcrypt from "bcryptjs";
 import { Eye, EyeOff } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 export default function ChangePasswodWithSession() {
 	const [isVisible, setIsVisible] = useState(false);
+
+	const { data: session } = useSession();
 
 	const form = useForm<ChangePasswod>({
 		resolver: yupResolver(changePasswordSchema),
@@ -26,10 +30,8 @@ export default function ChangePasswodWithSession() {
 		}
 
 		return toast.promise(
-			authClient.changePassword({
-				newPassword: data.new_password,
-				currentPassword: data.ci_number,
-				revokeOtherSessions: true, // revoke all other sessions the user is signed into
+			updateEntityData("users", session?.user?.id ?? "", {
+				password: await bcrypt.hash(data.new_password, 10),
 			}),
 			{
 				success: "Contraseña cambiada con éxito",

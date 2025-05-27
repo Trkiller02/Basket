@@ -12,10 +12,10 @@ import { Avatar } from "@heroui/avatar";
 import Image from "next/image";
 import { Button } from "@heroui/button";
 import { ChevronDown, Dribbble, User2 } from "lucide-react";
-import { authClient, useSession } from "@/lib/auth-client";
+import { signOut, useSession } from "next-auth/react";
 
 export default function NavBar() {
-	const { data: session, isPending } = useSession();
+	const { data: session } = useSession();
 
 	return (
 		<Navbar maxWidth="full" className="flex justify-between items-center">
@@ -24,7 +24,7 @@ export default function NavBar() {
 			</NavbarBrand>
 
 			<NavbarContent className="hidden sm:flex gap-4" justify="center">
-				{session?.user.role !== "representante" ? (
+				{session?.user?.role !== "representante" ? (
 					<Dropdown>
 						<NavbarItem>
 							<DropdownTrigger>
@@ -76,7 +76,7 @@ export default function NavBar() {
 			</NavbarContent>
 
 			<NavbarContent as="div" justify="end">
-				{!session || isPending ? (
+				{!session ? (
 					<NavbarItem className="hidden lg:flex">
 						<Button as={Link} href="/sesion/iniciar" variant="faded">
 							Iniciar Sesión
@@ -90,18 +90,18 @@ export default function NavBar() {
 								as="button"
 								className="transition-transform"
 								color="primary"
-								name={session?.user.name}
+								name={session?.user?.name}
 								size="sm"
 							/>
 						</DropdownTrigger>
 						<DropdownMenu aria-label="Profile Actions" variant="flat">
 							<DropdownItem key="profile" className="h-14 gap-2">
 								<p className="font-semibold">
-									Saludos {session?.user.name.split(" ")[0]}!
+									Saludos {session?.user?.name.split(" ")[0]}!
 								</p>
-								<p className="font-semibold">{session?.user.email}</p>
+								<p className="font-semibold">{session?.user?.email}</p>
 							</DropdownItem>
-							{session?.user.role !== "representante" ? (
+							{session?.user?.role !== "representante" ? (
 								<DropdownItem
 									key="notifications"
 									as={Link}
@@ -117,7 +117,7 @@ export default function NavBar() {
 							<DropdownItem
 								key="logout"
 								color="danger"
-								onPress={() => authClient.signOut()}
+								onPress={() => signOut()}
 							>
 								Cerrar sesión
 							</DropdownItem>

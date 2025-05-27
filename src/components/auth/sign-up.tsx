@@ -9,11 +9,9 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { Controller, useForm } from "react-hook-form";
 import type { User } from "@/utils/interfaces/user";
 import { userSchema } from "@/utils/interfaces/schemas";
-import { getEntityData } from "@/lib/action-data";
+import { getEntityData, setEntityData } from "@/lib/action-data";
 import { useEffect, useState } from "react";
 import { MsgError } from "@/utils/messages";
-import { authClient } from "@/lib/auth-client";
-import Link from "next/link";
 import { toast } from "sonner";
 import { Card, CardBody, CardFooter, CardHeader } from "@heroui/card";
 import { setUpper } from "@/utils/setUpper";
@@ -73,22 +71,18 @@ export default function UserForm() {
 	) => {
 		const key = crypto.randomUUID().slice(0, 6);
 
-		const { data: info, error } = await authClient.admin.createUser({
+		const info = await setEntityData("users", {
 			...setUpper({
 				email: data.email,
 				password: data.password ?? "",
 				name: data.name,
-				role: data.role ?? "user",
-				data: {
-					lastname: data.lastname,
-					phone_number: data.phone_number,
-					ci_number: data.ci_number,
-					restore_code: await bcrypt.hash(key, 10),
-				},
+				role: data.role ?? "representante",
+				lastname: data.lastname,
+				phone_number: data.phone_number,
+				ci_number: data.ci_number,
+				restore_code: await bcrypt.hash(key, 10),
 			}),
 		});
-
-		if (error) throw error;
 
 		if (info) {
 			setData({

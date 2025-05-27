@@ -4,8 +4,7 @@ import { and, eq, ilike, isNotNull, isNull, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { type NextRequest, NextResponse } from "next/server";
 import { MsgError } from "@/utils/messages";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
+import { auth } from "@/auth";
 import { NOTIFICATION_MSG, NOTIFICATION_TYPE } from "@/utils/typeNotifications";
 
 /* export const athletesController = new Elysia({
@@ -123,25 +122,28 @@ export const GET = async (req: NextRequest) => {
 	}
 };
 
-export const POST = async (req: NextRequest) => {
-	const session = await auth.api.getSession({
-		headers: await headers(),
-	});
-
+export const POST = auth(async (req) => {
 	try {
 		const body = (await req.json()) as CreateAthletesDto;
+		const session = req.auth;
 
 		const { user_id, ...rest } = body;
 
 		const [{ userId }] = await db
 			.insert(users)
-			.values({ ...user_id, id: crypto.randomUUID() })
+			.values({ ...user_id, id: crypto.randomUUID(), role: "atleta" })
 			.returning({ userId: users.id });
 
 		const [{ id }] = await db
 			.insert(athletes)
 			.values({ ...rest, user_id: userId })
 			.returning({ id: athletes.id });
+
+		await db.insert(notifications).values({
+			user_id: session?.user?.id ?? "",
+			description: NOTIFICATION_MSG.REGISTER + id,
+			type: NOTIFICATION_TYPE.REGISTER,
+		});
 
 		return NextResponse.json({ message: id }, { status: 201 });
 	} catch (error) {
@@ -150,4 +152,4 @@ export const POST = async (req: NextRequest) => {
 			{ status: 400 },
 		);
 	}
-};
+});

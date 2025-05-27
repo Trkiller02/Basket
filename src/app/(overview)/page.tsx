@@ -1,23 +1,20 @@
 import AthletesPreview from "@/components/previews/athletes/athletes-wrapper";
 import SearchForm from "@/components/search-form";
-import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
 import { Suspense } from "react";
 import LoadingAthletesPreview from "@/components/previews/athletes/loading-preview";
 import { getEntityData } from "@/lib/action-data";
 import { MsgError } from "@/utils/messages";
+import { auth } from "@/auth";
 
 export const experimental_ppr = true;
 
 export default async function Page() {
-	const session = await auth.api.getSession({
-		headers: await headers(),
-	});
+	const session = await auth();
 
 	if (!session) redirect("/sesion/iniciar");
 
-	if (session?.user.role === "representante") {
+	if (session?.user?.role === "representante") {
 		try {
 			await getEntityData("representatives", session?.user.ci_number, true);
 		} catch (error) {

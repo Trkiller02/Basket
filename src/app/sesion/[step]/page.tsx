@@ -1,19 +1,25 @@
-"use client";
-
-import ChangePassword from "@/components/auth/change-password";
-import LoginComponent from "@/components/auth/sign-in";
-import RepresentSignin from "@/components/forms/represent-signin";
 import { notFound } from "next/navigation";
-import { use } from "react";
+import dynamic from "next/dynamic";
+import { auth } from "@/auth";
 
-function AuthPage({ params }: { params: Promise<{ step: string }> }) {
-	const { step } = use(params);
+const LazyLoginComponent = dynamic(() => import("@/components/auth/sign-in"));
+const LazyRepresentSignin = dynamic(
+	() => import("@/components/forms/represent-signin"),
+);
+const LazyChangePassword = dynamic(
+	() => import("@/components/auth/change-password"),
+);
 
-	if (step === "iniciar") return <LoginComponent />;
+async function AuthPage({ params }: { params: Promise<{ step: string }> }) {
+	const { step } = await params;
+	const session = auth();
 
-	if (step === "completar") return <RepresentSignin />;
+	if (step === "iniciar") return <LazyLoginComponent />;
 
-	if (step === "recuperar") return <ChangePassword />;
+	if (step === "completar")
+		return <LazyRepresentSignin sessionData={session} />;
+
+	if (step === "recuperar") return <LazyChangePassword />;
 
 	return notFound();
 }

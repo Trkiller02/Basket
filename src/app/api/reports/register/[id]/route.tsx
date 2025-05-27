@@ -2,7 +2,7 @@ import RegistrationForm from "@/components/reports/create-athlete";
 import { db } from "@/lib/db";
 import {
 	athletes,
-	athletes_health,
+	health,
 	athletes_representatives,
 	representatives,
 	users,
@@ -50,7 +50,7 @@ export const GET = async (
 			.from(athletes)
 			.innerJoin(users, eq(athletes.user_id, users.id))
 			.where(and(eq(athletes.id, id), isNull(users.deleted_at))),
-		db.select().from(athletes_health).where(eq(athletes_health.athlete_id, id)),
+		db.select().from(health).where(eq(health.athlete_id, id)),
 		idxMother === -1
 			? undefined
 			: db

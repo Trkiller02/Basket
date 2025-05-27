@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { athletes_health } from "@drizzle/schema";
+import { health } from "@drizzle/schema";
 import { eq } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
 
@@ -14,12 +14,8 @@ export const GET = async (
 
 	const [result] = await db
 		.select()
-		.from(athletes_health)
-		.where(
-			formAthlete
-				? eq(athletes_health.athlete_id, id)
-				: eq(athletes_health.id, +id),
-		);
+		.from(health)
+		.where(formAthlete ? eq(health.athlete_id, id) : eq(health.id, +id));
 
 	if (!result)
 		return NextResponse.json(
@@ -37,8 +33,5 @@ export const PATCH = async (
 	const { body } = await req.json();
 	const { id } = await params;
 
-	const result = await db
-		.update(athletes_health)
-		.set(body)
-		.where(eq(athletes_health.id, +id));
+	const result = await db.update(health).set(body).where(eq(health.id, +id));
 };

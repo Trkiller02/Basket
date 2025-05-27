@@ -6,7 +6,7 @@ import { and, eq, ilike, isNotNull, isNull } from "drizzle-orm";
 import { MsgError } from "@/utils/messages";
 import { headers } from "next/headers";
 import { NOTIFICATION_MSG, NOTIFICATION_TYPE } from "@/utils/typeNotifications";
-import { auth } from "@/lib/auth";
+import { auth } from "@/auth";
 
 /*
 export const representativeController = new Elysia({
@@ -118,10 +118,6 @@ export const POST = async (req: NextRequest) => {
 
 		const { user_id, ...rest } = body;
 
-		const session = await auth.api.getSession({
-			headers: await headers(),
-		});
-
 		if (typeof user_id !== "object") {
 			const [{ id }] = await db
 				.insert(representatives)
@@ -133,7 +129,7 @@ export const POST = async (req: NextRequest) => {
 
 		const [{ userId }] = await db
 			.insert(users)
-			.values({ ...user_id, id: crypto.randomUUID() })
+			.values({ ...user_id, id: crypto.randomUUID(), role: "representante" })
 			.returning({ userId: users.id });
 
 		const [{ id }] = await db
