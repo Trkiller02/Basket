@@ -42,10 +42,16 @@ export const personSchema = userSchema.omit([
 
 export const athleteSchema = Yup.object({
 	birth_date: Yup.string().datetime().required(Messages.REQUIRED),
-	age: Yup.number().min(3).max(20).required(Messages.REQUIRED),
+	age: Yup.number()
+		.min(5, Messages.MIN_ERR)
+		.max(20, Messages.MAX_ERR)
+		.required(Messages.REQUIRED),
 	birth_place: Yup.string().required(Messages.REQUIRED),
 	address: Yup.string().required(Messages.REQUIRED),
-	solvent: Yup.number().min(0).max(3).optional(),
+	solvent: Yup.number()
+		.min(0, Messages.MIN_ERR)
+		.max(3, Messages.MAX_ERR)
+		.optional(),
 	image: Yup.string().optional(),
 	user_id: personSchema,
 });

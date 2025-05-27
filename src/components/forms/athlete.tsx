@@ -274,7 +274,7 @@ function AthleteForm() {
 					years: 20,
 				})}
 				maxValue={parseDate(`${new Date().getFullYear()}-12-31`).subtract({
-					years: 4,
+					years: 5,
 				})}
 				isInvalid={!!form.formState.errors.birth_date}
 				description="Ingrese la fecha de nacimiento"
