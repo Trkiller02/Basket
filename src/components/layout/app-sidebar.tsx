@@ -15,6 +15,7 @@ import Image from "next/image";
 import Logo from "@/assets/trapiche.svg";
 import {
 	Barcode,
+	LayoutDashboard,
 	LeafIcon,
 	LogOut,
 	ScanLine,
@@ -26,28 +27,28 @@ import {
 const data = {
 	navMain: [
 		{
-			title: "Sections",
+			title: "Modulos",
 			url: "#",
 			items: [
 				{
-					title: "Dashboard",
-					url: "#",
-					icon: ScanLine,
+					title: "Panel",
+					url: "/",
+					icon: LayoutDashboard,
 				},
 				{
-					title: "Insights",
-					url: "#",
+					title: "Registrar",
+					url: "/registrar",
 					icon: Barcode,
 				},
 				{
-					title: "Contacts",
-					url: "#",
+					title: "Pagos",
+					url: "/pagos",
 					icon: UserRoundCheck,
 					isActive: true,
 				},
 
 				{
-					title: "Reports",
+					title: "",
 					url: "#",
 					icon: LeafIcon,
 				},
@@ -87,7 +88,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 								alt="logo_trapichito"
 								width={46}
 								height={46}
-								className="aspect-square size-10 rounded-lg border-2 border-sidebar-primary bg-white"
+								className="aspect-square size-10 rounded-lg invert border-2 border-border bg-white"
 							/>
 
 							<div className="grid flex-1 text-left text-sm leading-tight">

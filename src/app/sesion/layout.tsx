@@ -10,9 +10,13 @@ export default async function SesionLayout({
 			<div className="flex flex-col gap-4 p-6 md:p-10">
 				<div className="flex justify-center gap-2 md:justify-start">
 					<a href="/" className="flex items-center gap-2 font-medium">
-						<div className="flex size-10 items-center justify-center rounded-xl border-2 border-black">
-							<Image src={Logo} alt="logo_trapichito" className="size-8" />
-						</div>
+						<Image
+							src={Logo}
+							alt="logo_trapichito"
+							width={46}
+							height={46}
+							className="aspect-square size-10 rounded-lg invert border-2 border-border bg-white"
+						/>
 						Trapichito.
 					</a>
 				</div>

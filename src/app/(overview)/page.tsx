@@ -1,5 +1,4 @@
 import { auth } from "@/auth";
-import { redirect } from "next/navigation";
 
 const Page = async () => {
 	const session = await auth();
@@ -12,7 +11,7 @@ const Page = async () => {
 				¡Hola{session?.user?.name ? `, ${session.user.name}` : ""}!
 			</h1>
 			<p className="text-sm text-muted-foreground">
-				{session?.user?.role === "representative"
+				{session?.user?.role === "representante"
 					? "Estos son los atletas que tienes registrados en la institución:"
 					: "Aquí puedes buscar y examinar los registros de los Atletas dentro de la institución."}
 			</p>

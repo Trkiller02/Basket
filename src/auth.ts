@@ -1,5 +1,9 @@
 import NextAuth, { type DefaultSession } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import { db } from "./lib/db";
+import { users } from "@drizzle/schema";
+import { eq } from "drizzle-orm";
+import bcrypt from "bcryptjs";
 
 declare module "next-auth" {
 	/**
@@ -12,7 +16,7 @@ declare module "next-auth" {
 		ci_number: string;
 		email: string;
 		image?: string;
-		role: "representative" | "secretary" | "administrator";
+		role: "representante" | "secretaria" | "administrador" | "atleta";
 	}
 }
 
@@ -23,20 +27,45 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 				query: {
 					label: "Email or DNI",
 					placeholder: "johndoe@gmail.com",
+					required: true,
 				},
 				password: {
 					type: "password",
 					label: "Contraseña",
 					placeholder: "*****",
+					required: true,
 				},
 			},
 			authorize: async (credentials) => {
 				// return user object with their profile data
+				const [user] = await db
+					.select({
+						name: users.name,
+						lastname: users.lastname,
+						password: users.password,
+						email: users.email,
+						ci_number: users.ci_number,
+						role: users.role,
+					})
+					.from(users)
+					.where(eq(users.ci_number, credentials.query as string));
+
+				if (!user) return null;
+
+				const { password, name, lastname, ...userInfo } = user;
+
+				if (!password) return null;
+
+				const isValidPassword = await bcrypt.compare(
+					credentials.password as string,
+					password,
+				);
+
+				if (!isValidPassword) return null;
+
 				return {
-					name: "John Doe",
-					email: "johndoe@gmail.com",
-					ci_number: "123456789",
-					role: "administrator",
+					...userInfo,
+					name: `${name} ${lastname}`,
 				};
 			},
 		}),

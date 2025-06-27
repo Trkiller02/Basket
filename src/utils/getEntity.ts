@@ -2,22 +2,23 @@ import type { RegisterData } from "@/store/useRegisterStore";
 import { MsgError } from "./messages";
 import { REPRESENT_LIST } from "./selectList";
 import { getEntityData } from "@/lib/action-data";
+import type { User } from "./interfaces/user";
 
-export const findEntity = async (id: string, registerData: RegisterData) => {
+export const findEntity = async (id: string, registerData?: RegisterData) => {
 	try {
-		[...REPRESENT_LIST, "athlete"].map((item) => {
-			const prop = item as keyof Omit<RegisterData, "health" | "tutor">;
+		if (registerData) {
+			[...REPRESENT_LIST, "athlete"].map((item) => {
+				const prop = item as keyof Omit<RegisterData, "health" | "tutor">;
 
-			if (typeof registerData[prop] === "object") {
-				if (registerData[prop].user_id.ci_number === id) {
-					throw new Error(`Esta C.I se encuentra asignado a ${prop}`);
+				if (typeof registerData[prop] === "object") {
+					if (registerData[prop].user_id.ci_number === id) {
+						throw new Error(`Esta C.I se encuentra asignado a ${prop}`);
+					}
 				}
-			}
-		});
+			});
+		}
 
-		const response = await getEntityData("users", id.toUpperCase());
-
-		console.log(response);
+		const response = await getEntityData<User>("users", id.toUpperCase());
 
 		return response;
 	} catch (error) {

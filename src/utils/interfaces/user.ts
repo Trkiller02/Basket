@@ -5,14 +5,15 @@ export type User = {
 	lastname: string;
 	email: string;
 	phone_number?: string;
+	image?: string;
 	password?: string;
 	repeat_password?: string;
-	restore_code: string;
-	role?: string;
+	restore_code?: string;
+	role?: "representante" | "secretaria" | "administrador" | "atleta";
 };
-export interface ChangePasswod {
+export interface ChangePassword {
 	ci_number: string;
 	restore_code: string;
 	repeat_password: string;
-	new_password: string;
+	password: string;
 }

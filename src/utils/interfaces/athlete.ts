@@ -1,22 +1,22 @@
 import type { User } from "./user";
 
 export type Athlete = {
-	image?: string;
 	id?: string;
-	birth_date: string;
 	age: number;
-	birth_place: string;
 	address: string;
-	solvent?: number;
+	birth_date: string;
+	birth_place: string;
 	category?: string;
 	position?: string;
-	user_id: Omit<User, "password" | "repeat_password" | "restore_code" | "id">;
+	solvent?: number;
+	user_id: Omit<
+		User,
+		"password" | "repeat_password" | "restore_code" | "id" | "role"
+	>;
 };
 
 export interface DataRequest
-	extends Partial<
-			Pick<Athlete, "solvent" | "age" | "image" | "category" | "position">
-		>,
+	extends Partial<Pick<Athlete, "solvent" | "age" | "category" | "position">>,
 		Pick<User, "name" | "lastname" | "email" | "phone_number" | "ci_number"> {
 	id: string;
 	role_id?: string;

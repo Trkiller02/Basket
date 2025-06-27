@@ -1,6 +1,8 @@
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { TooltipProvider } from "../ui/tooltip";
+import { Toaster as ToastProvider } from "sonner";
 
 export default function GlobalLayout({
 	children,
@@ -20,7 +22,8 @@ export default function GlobalLayout({
 			<SidebarInset>
 				<SiteHeader />
 				<div className="flex flex-1 flex-col gap-4 lg:gap-6 p-4 lg:p-6 ">
-					{children}
+					<TooltipProvider>{children}</TooltipProvider>
+					<ToastProvider />
 				</div>
 			</SidebarInset>
 		</SidebarProvider>

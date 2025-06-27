@@ -1,17 +1,35 @@
-"use client";
-
-import { LoginForm } from "@/components/auth/login-form";
+import { auth } from "@/auth";
+import dynamic from "next/dynamic";
 import { notFound } from "next/navigation";
-import { use } from "react";
 
-function AuthPage({ params }: { params: Promise<{ step: string }> }) {
-	const { step } = use(params);
+const LazyLoginForm = dynamic(() =>
+	import("@/components/auth/login-form").then((mod) => mod.LoginForm),
+);
+const LazyFillEntity = dynamic(() =>
+	import("@/components/auth/fill-entity").then((mod) => mod.FillEntity),
+);
 
-	if (step === "iniciar") return <LoginForm />;
+const LazyRestorePassword = dynamic(() =>
+	import("@/components/auth/restore-password").then(
+		(mod) => mod.RestorePassword,
+	),
+);
 
-	if (step === "completar") return;
+const LazyValidateUser = dynamic(() =>
+	import("@/components/auth/user-validation").then((mod) => mod.UserValidation),
+);
 
-	if (step === "recuperar") return;
+async function AuthPage({ params }: { params: Promise<{ step: string }> }) {
+	const { step } = await params;
+	const session = auth();
+
+	if (step === "iniciar") return <LazyLoginForm />;
+
+	if (step === "completar") return <LazyFillEntity userSession={session} />;
+
+	if (step === "recuperar") return <LazyRestorePassword />;
+
+	if (step === "validar") return <LazyValidateUser session={await session} />;
 
 	return notFound();
 }

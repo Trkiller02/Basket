@@ -2,7 +2,7 @@ import RegistrationForm from "@/components/reports/create-athlete";
 import { db } from "@/lib/db";
 import {
 	athletes,
-	athletes_health,
+	health,
 	athletes_representatives,
 	representatives,
 	users,
@@ -33,7 +33,7 @@ export const GET = async (
 	const idxMother = mapRelation.findIndex((item) => item.relation === "madre");
 	const idxFather = mapRelation.findIndex((item) => item.relation === "padre");
 
-	const [[athlete], [health], mother, father] = await Promise.all([
+	const [[athlete], [healthData], mother, father] = await Promise.all([
 		db
 			.select({
 				id: athletes.id,
@@ -41,6 +41,7 @@ export const GET = async (
 					name: users.name,
 					lastname: users.lastname,
 					ci_number: users.ci_number,
+					email: users.email,
 				},
 				age: athletes.age,
 				birth_date: athletes.birth_date,
@@ -50,7 +51,7 @@ export const GET = async (
 			.from(athletes)
 			.innerJoin(users, eq(athletes.user_id, users.id))
 			.where(and(eq(athletes.id, id), isNull(users.deleted_at))),
-		db.select().from(athletes_health).where(eq(athletes_health.athlete_id, id)),
+		db.select().from(health).where(eq(health.athlete_id, id)),
 		idxMother === -1
 			? undefined
 			: db
@@ -99,7 +100,7 @@ export const GET = async (
 		<RegistrationForm
 			data={{
 				athlete,
-				health,
+				healthData,
 				father: Array.isArray(father) ? father[0] : undefined,
 				mother: Array.isArray(mother) ? mother[0] : undefined,
 			}}
@@ -109,7 +110,7 @@ export const GET = async (
 	return new NextResponse(stream as unknown as ReadableStream, {
 		headers: {
 			"Content-Type": "application/pdf",
-			"Content-Disposition": `attachment; filename="factura_${sampleInvoiceData.invoiceNumber}.pdf"`,
+			"Content-Disposition": `attachment; filename="factura_${id}.pdf"`,
 		},
 	});
 };

@@ -11,7 +11,7 @@ export const fetchData = async <T>(
 	const { method } = options;
 
 	const response = await fetch(
-		`${typeof window === "undefined" ? process.env.BETTER_AUTH_URL : ""}${url}`,
+		`${typeof window === "undefined" ? process.env.BACKEND_URL : ""}${url}`,
 		{
 			method: method ?? "GET",
 			body:

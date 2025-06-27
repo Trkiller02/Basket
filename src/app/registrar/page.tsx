@@ -1,10 +1,10 @@
 import { FormSkeleton } from "@/components/skeletons/forms";
-import FormButtons from "@/components/forms/buttons";
+import FormButtons from "@/components/register-forms/buttons";
 import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import { formEntities } from "@/utils/selectList";
-import { FormWrapper } from "@/components/forms/form-wrapper";
-import CurrentForm from "@/components/forms/current-form";
+import { FormWrapper } from "@/components/register-forms/form-wrapper";
+import CurrentForm from "@/components/register-forms/current-form";
 
 export const experimental_ppr = true;
 

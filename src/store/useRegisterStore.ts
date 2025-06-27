@@ -32,12 +32,12 @@ export const useRegisterStore = create<RegisterStore>((set, get) => ({
 		set((state) => ({ registerData: { ...state.registerData, ...data } })),
 	setSessionData: () => {
 		if (typeof window === "undefined") return;
-		sessionStorage.setItem("registerData", JSON.stringify(get().registerData));
+		localStorage.setItem("registerData", JSON.stringify(get().registerData));
 	},
 	getSessionData: () => {
 		if (typeof window === "undefined") return;
 
-		const data = sessionStorage.getItem("registerData");
+		const data = localStorage.getItem("registerData");
 
 		if (!data) return;
 
