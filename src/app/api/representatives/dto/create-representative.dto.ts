@@ -1,14 +1,15 @@
-import { createInsertSchema } from "drizzle-typebox";
-import { representatives } from "@drizzle/schema";
-import { CreateUserDto } from "@api/users/dto/create-user.dto";
+import type { representatives } from "@drizzle/schema";
+import type { CreateUserDto } from "@api/users/dto/create-user.dto";
 
+/* 
+import { createInsertSchema } from "drizzle-typebox";
 export const CreateRepresentativeDto = createInsertSchema(representatives, {
 	user_id: CreateUserDto,
 });
-
+ */
 export type CreateRepresentativeDto = Omit<
-	typeof CreateRepresentativeDto.static,
+	typeof representatives.$inferInsert,
 	"user_id"
 > & {
-	user_id: typeof CreateUserDto.static;
+	user_id: CreateUserDto;
 };

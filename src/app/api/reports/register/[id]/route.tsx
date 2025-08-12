@@ -110,7 +110,7 @@ export const GET = async (
 	return new NextResponse(stream as unknown as ReadableStream, {
 		headers: {
 			"Content-Type": "application/pdf",
-			"Content-Disposition": `attachment; filename="factura_${id}.pdf"`,
+			"Content-Disposition": `attachment; filename="inscripcion_${athlete.user_id.ci_number}.pdf"`,
 		},
 	});
 };

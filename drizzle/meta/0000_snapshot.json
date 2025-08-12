@@ -1,29 +1,150 @@
 {
-  "id": "00000000-0000-0000-0000-000000000000",
-  "prevId": "",
+  "id": "adbfe8f0-b1a6-4b7c-9b2e-119fa52a1304",
+  "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
+    "public.athletes": {
+      "name": "athletes",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "birth_date": {
+          "name": "birth_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "age": {
+          "name": "age",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "birth_place": {
+          "name": "birth_place",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "address": {
+          "name": "address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "solvent": {
+          "name": "solvent",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "category": {
+          "name": "category",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "position": {
+          "name": "position",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "public_atletas_pkey": {
+          "name": "public_atletas_pkey",
+          "columns": [
+            {
+              "expression": "id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "public_atletas_usuario_id_key": {
+          "name": "public_atletas_usuario_id_key",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "public_idx_solvente": {
+          "name": "public_idx_solvente",
+          "columns": [
+            {
+              "expression": "solvent",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last",
+              "opclass": "int4_ops"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "atletas_usuario_id_fkey": {
+          "name": "atletas_usuario_id_fkey",
+          "tableFrom": "athletes",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.athletes_representatives": {
       "name": "athletes_representatives",
       "schema": "",
       "columns": {
         "id": {
           "name": "id",
-          "type": "bigint",
+          "type": "bigserial",
           "primaryKey": true,
-          "notNull": true,
-          "identity": {
-            "type": "byDefault",
-            "name": "athletes_representatives_id_seq",
-            "increment": "1",
-            "minValue": "1",
-            "maxValue": "9223372036854775807",
-            "startWith": "1",
-            "cache": "1",
-            "cycle": false,
-            "schema": "public"
-          }
+          "notNull": true
         },
         "athlete_id": {
           "name": "athlete_id",
@@ -58,10 +179,10 @@
           "columns": [
             {
               "expression": "id",
+              "isExpression": false,
               "asc": true,
               "nulls": "last",
-              "opclass": "int8_ops",
-              "isExpression": false
+              "opclass": "int8_ops"
             }
           ],
           "isUnique": true,
@@ -75,7 +196,6 @@
           "name": "atletas_representantes_atleta_id_fkey",
           "tableFrom": "athletes_representatives",
           "tableTo": "athletes",
-          "schemaTo": "public",
           "columnsFrom": [
             "athlete_id"
           ],
@@ -89,7 +209,6 @@
           "name": "atletas_representantes_representante_id_fkey",
           "tableFrom": "athletes_representatives",
           "tableTo": "representatives",
-          "schemaTo": "public",
           "columnsFrom": [
             "representative_id"
           ],
@@ -102,8 +221,33 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "checkConstraints": {},
       "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.configurations": {
+      "name": "configurations",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "value": {
+          "name": "value",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
       "isRLSEnabled": false
     },
     "public.health": {
@@ -112,20 +256,9 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "bigint",
+          "type": "bigserial",
           "primaryKey": true,
-          "notNull": true,
-          "identity": {
-            "type": "byDefault",
-            "name": "health_id_seq",
-            "increment": "1",
-            "minValue": "1",
-            "maxValue": "9223372036854775807",
-            "startWith": "1",
-            "cache": "1",
-            "cycle": false,
-            "schema": "public"
-          }
+          "notNull": true
         },
         "athlete_id": {
           "name": "athlete_id",
@@ -190,10 +323,10 @@
           "columns": [
             {
               "expression": "id",
+              "isExpression": false,
               "asc": true,
               "nulls": "last",
-              "opclass": "int8_ops",
-              "isExpression": false
+              "opclass": "int8_ops"
             }
           ],
           "isUnique": true,
@@ -206,10 +339,10 @@
           "columns": [
             {
               "expression": "athlete_id",
+              "isExpression": false,
               "asc": true,
               "nulls": "last",
-              "opclass": "uuid_ops",
-              "isExpression": false
+              "opclass": "uuid_ops"
             }
           ],
           "isUnique": true,
@@ -223,7 +356,6 @@
           "name": "salud_atletas_atleta_id_fkey",
           "tableFrom": "health",
           "tableTo": "athletes",
-          "schemaTo": "public",
           "columnsFrom": [
             "athlete_id"
           ],
@@ -236,55 +368,19 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "checkConstraints": {},
       "policies": {},
+      "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.configurations": {
-      "name": "configurations",
+    "public.history": {
+      "name": "history",
       "schema": "",
       "columns": {
         "id": {
           "name": "id",
-          "type": "text",
+          "type": "bigserial",
           "primaryKey": true,
           "notNull": true
-        },
-        "value": {
-          "name": "value",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {},
-      "policies": {},
-      "isRLSEnabled": false
-    },
-    "public.notifications": {
-      "name": "notifications",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "bigint",
-          "primaryKey": true,
-          "notNull": true,
-          "identity": {
-            "type": "byDefault",
-            "name": "notifications_id_seq",
-            "increment": "1",
-            "minValue": "1",
-            "maxValue": "9223372036854775807",
-            "startWith": "1",
-            "cache": "1",
-            "cycle": false,
-            "schema": "public"
-          }
         },
         "user_id": {
           "name": "user_id",
@@ -298,9 +394,10 @@
           "primaryKey": false,
           "notNull": false
         },
-        "type": {
-          "name": "type",
-          "type": "text",
+        "action": {
+          "name": "action",
+          "type": "history_types",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
         },
@@ -314,7 +411,7 @@
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "default": "now()"
         }
       },
@@ -324,10 +421,10 @@
           "columns": [
             {
               "expression": "user_id",
+              "isExpression": false,
               "asc": true,
               "nulls": "last",
-              "opclass": "uuid_ops",
-              "isExpression": false
+              "opclass": "uuid_ops"
             }
           ],
           "isUnique": false,
@@ -337,11 +434,10 @@
         }
       },
       "foreignKeys": {
-        "notifications_user_id_fkey": {
-          "name": "notifications_user_id_fkey",
-          "tableFrom": "notifications",
+        "history_user_id_fkey": {
+          "name": "history_user_id_fkey",
+          "tableFrom": "history",
           "tableTo": "users",
-          "schemaTo": "public",
           "columnsFrom": [
             "user_id"
           ],
@@ -354,8 +450,8 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "checkConstraints": {},
       "policies": {},
+      "checkConstraints": {},
       "isRLSEnabled": false
     },
     "public.invoices": {
@@ -364,20 +460,9 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "bigint",
+          "type": "bigserial",
           "primaryKey": true,
-          "notNull": true,
-          "identity": {
-            "type": "byDefault",
-            "name": "invoices_id_seq",
-            "increment": "1",
-            "minValue": "1",
-            "maxValue": "9223372036854775807",
-            "startWith": "1",
-            "cache": "1",
-            "cycle": false,
-            "schema": "public"
-          }
+          "notNull": true
         },
         "representative_id": {
           "name": "representative_id",
@@ -417,10 +502,10 @@
           "columns": [
             {
               "expression": "id",
+              "isExpression": false,
               "asc": true,
               "nulls": "last",
-              "opclass": "int8_ops",
-              "isExpression": false
+              "opclass": "int8_ops"
             }
           ],
           "isUnique": true,
@@ -433,10 +518,10 @@
           "columns": [
             {
               "expression": "payment_date",
+              "isExpression": false,
               "asc": true,
               "nulls": "last",
-              "opclass": "date_ops",
-              "isExpression": false
+              "opclass": "date_ops"
             }
           ],
           "isUnique": false,
@@ -450,7 +535,6 @@
           "name": "facturas_atleta_id_fkey",
           "tableFrom": "invoices",
           "tableTo": "athletes",
-          "schemaTo": "public",
           "columnsFrom": [
             "athlete_id"
           ],
@@ -464,7 +548,6 @@
           "name": "facturas_representante_id_fkey",
           "tableFrom": "invoices",
           "tableTo": "representatives",
-          "schemaTo": "public",
           "columnsFrom": [
             "representative_id"
           ],
@@ -477,8 +560,93 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "checkConstraints": {},
       "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.representatives": {
+      "name": "representatives",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "occupation": {
+          "name": "occupation",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "height": {
+          "name": "height",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "public_representantes_pkey": {
+          "name": "public_representantes_pkey",
+          "columns": [
+            {
+              "expression": "id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "public_representantes_usuario_id_key": {
+          "name": "public_representantes_usuario_id_key",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "representantes_usuario_id_fkey": {
+          "name": "representantes_usuario_id_fkey",
+          "tableFrom": "representatives",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
       "isRLSEnabled": false
     },
     "public.users": {
@@ -527,7 +695,7 @@
           "type": "roles",
           "typeSchema": "public",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "default": "'representante'"
         },
         "image": {
@@ -575,10 +743,10 @@
           "columns": [
             {
               "expression": "ci_number",
+              "isExpression": false,
               "asc": true,
               "nulls": "last",
-              "opclass": "text_ops",
-              "isExpression": false
+              "opclass": "text_ops"
             }
           ],
           "isUnique": true,
@@ -591,10 +759,10 @@
           "columns": [
             {
               "expression": "email",
+              "isExpression": false,
               "asc": true,
               "nulls": "last",
-              "opclass": "text_ops",
-              "isExpression": false
+              "opclass": "text_ops"
             }
           ],
           "isUnique": true,
@@ -607,10 +775,10 @@
           "columns": [
             {
               "expression": "id",
+              "isExpression": false,
               "asc": true,
               "nulls": "last",
-              "opclass": "uuid_ops",
-              "isExpression": false
+              "opclass": "uuid_ops"
             }
           ],
           "isUnique": true,
@@ -622,246 +790,33 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "checkConstraints": {},
       "policies": {},
-      "isRLSEnabled": false
-    },
-    "public.athletes": {
-      "name": "athletes",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "image": {
-          "name": "image",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "birth_date": {
-          "name": "birth_date",
-          "type": "date",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "age": {
-          "name": "age",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "birth_place": {
-          "name": "birth_place",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "address": {
-          "name": "address",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "solvent": {
-          "name": "solvent",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
-        "category": {
-          "name": "category",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "position": {
-          "name": "position",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {
-        "public_atletas_pkey": {
-          "name": "public_atletas_pkey",
-          "columns": [
-            {
-              "expression": "id",
-              "asc": true,
-              "nulls": "last",
-              "opclass": "uuid_ops",
-              "isExpression": false
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "public_atletas_usuario_id_key": {
-          "name": "public_atletas_usuario_id_key",
-          "columns": [
-            {
-              "expression": "user_id",
-              "asc": true,
-              "nulls": "last",
-              "opclass": "uuid_ops",
-              "isExpression": false
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "public_idx_solvente": {
-          "name": "public_idx_solvente",
-          "columns": [
-            {
-              "expression": "solvent",
-              "asc": true,
-              "nulls": "last",
-              "opclass": "int4_ops",
-              "isExpression": false
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "atletas_usuario_id_fkey": {
-          "name": "atletas_usuario_id_fkey",
-          "tableFrom": "athletes",
-          "tableTo": "users",
-          "schemaTo": "public",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
       "checkConstraints": {},
-      "policies": {},
-      "isRLSEnabled": false
-    },
-    "public.representatives": {
-      "name": "representatives",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "occupation": {
-          "name": "occupation",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "height": {
-          "name": "height",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {
-        "public_representantes_pkey": {
-          "name": "public_representantes_pkey",
-          "columns": [
-            {
-              "expression": "id",
-              "asc": true,
-              "nulls": "last",
-              "opclass": "uuid_ops",
-              "isExpression": false
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "public_representantes_usuario_id_key": {
-          "name": "public_representantes_usuario_id_key",
-          "columns": [
-            {
-              "expression": "user_id",
-              "asc": true,
-              "nulls": "last",
-              "opclass": "uuid_ops",
-              "isExpression": false
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "representantes_usuario_id_fkey": {
-          "name": "representantes_usuario_id_fkey",
-          "tableFrom": "representatives",
-          "tableTo": "users",
-          "schemaTo": "public",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {},
-      "policies": {},
       "isRLSEnabled": false
     }
   },
   "enums": {
+    "public.history_types": {
+      "name": "history_types",
+      "schema": "public",
+      "values": [
+        "MODIFICO",
+        "CREO",
+        "ELIMINO",
+        "PAGO",
+        "INICIO SESION",
+        "CERRO SESION"
+      ]
+    },
     "public.roles": {
       "name": "roles",
+      "schema": "public",
       "values": [
         "representante",
         "secretaria",
         "administrador",
         "atleta"
-      ],
-      "schema": "public"
+      ]
     }
   },
   "schemas": {},
@@ -870,11 +825,8 @@
   "policies": {},
   "views": {},
   "_meta": {
+    "columns": {},
     "schemas": {},
-    "tables": {},
-    "columns": {}
-  },
-  "internal": {
     "tables": {}
   }
 }

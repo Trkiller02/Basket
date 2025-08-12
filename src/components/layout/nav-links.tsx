@@ -15,11 +15,6 @@ export function NavBreadcrumbs() {
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
 
-	// Skip rendering if we're on the home page
-	if (pathname === "/") {
-		return null;
-	}
-
 	// Split the pathname into segments and remove empty segments
 	const segments = pathname.split("/").filter(Boolean);
 

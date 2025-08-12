@@ -1,14 +1,15 @@
 import type { UpdateAthletesDto } from "../dto/update-athletes.dto";
 
 import { type NextRequest, NextResponse } from "next/server";
-import { athletes, notifications, users } from "@drizzle/schema";
+import { athletes, history, users } from "@drizzle/schema";
 import { and, eq, ilike, isNotNull, isNull } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { MsgError } from "@/utils/messages";
 import { regexList } from "@/utils/regexPatterns";
-import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { NOTIFICATION_MSG, NOTIFICATION_TYPE } from "@/utils/typeNotifications";
+import { auth } from "@/auth";
+import { insertHistory } from "@/lib/db-data";
 
 /*
 export const athletesController = new Elysia({
@@ -95,99 +96,120 @@ export const GET = async (
 	return NextResponse.json(result);
 };
 
-export const PATCH = async (
-	req: NextRequest,
-	{ params }: { params: Promise<{ id: string }> },
-) => {
-	const body = (await req.json()) as UpdateAthletesDto;
-	const { id } = await params;
+export const PATCH = auth(
+	async (req, { params }: { params: Promise<{ id: string }> }) => {
+		if (!req.auth)
+			return NextResponse.json({ message: "No autenticado" }, { status: 401 });
 
-	if (!body || Object.keys(body).length === 0)
-		throw { message: MsgError.BAD_REQUEST, code: 400 };
+		const body = (await req.json()) as UpdateAthletesDto;
+		const { id } = await params;
 
-	const session = await auth.api.getSession({
-		headers: await headers(),
-	});
+		if (!body || Object.keys(body).length === 0)
+			throw { message: MsgError.BAD_REQUEST, code: 400 };
 
-	const [athlete] = await db
-		.select({
-			id: athletes.id,
-			user_id: {
-				id: users.id,
-			},
-		})
-		.from(athletes)
-		.innerJoin(users, eq(athletes.user_id, users.id))
-		.where(
-			and(
-				eq(
-					id?.includes("@")
-						? users.email
-						: id.includes("-")
-							? athletes.id
-							: users.ci_number,
-					id ?? "",
+		const [athlete] = await db
+			.select({
+				id: athletes.id,
+				user_id: {
+					id: users.id,
+				},
+			})
+			.from(athletes)
+			.innerJoin(users, eq(athletes.user_id, users.id))
+			.where(
+				and(
+					eq(
+						id?.includes("@")
+							? users.email
+							: id.includes("-")
+								? athletes.id
+								: users.ci_number,
+						id ?? "",
+					),
 				),
-			),
-		);
+			);
 
-	if (!athlete)
-		return NextResponse.json({ message: MsgError.NOT_FOUND }, { status: 404 });
+		if (!athlete)
+			return NextResponse.json(
+				{ message: MsgError.NOT_FOUND },
+				{ status: 404 },
+			);
 
-	const { user_id, ...restBody } = body;
+		const { user_id, ...restBody } = body;
 
-	if (restBody) {
-		await db.update(athletes).set(restBody).where(eq(athletes.id, id));
-	}
+		if (restBody) {
+			await db.update(athletes).set(restBody).where(eq(athletes.id, id));
+		}
 
-	if (user_id) {
-		await db.update(users).set(user_id).where(eq(users.id, athlete.user_id.id));
-	}
+		if (user_id) {
+			await db
+				.update(users)
+				.set(user_id)
+				.where(eq(users.id, athlete.user_id.id));
+		}
 
-	return NextResponse.json({ message: "Atleta actualizado con exito" });
-};
+		await insertHistory({
+			user_id: req.auth.user.id ?? "",
+			description: "Datos del atleta actualizados",
+			action: "MODIFICO",
+			reference_id: id,
+		});
+		return NextResponse.json({ message: "Atleta actualizado con exito" });
+	},
+);
 
-export const DELETE = async (
-	req: NextRequest,
-	{ params }: { params: Promise<{ id: string }> },
-) => {
-	const { id } = await params;
+export const DELETE = auth(
+	async (req, { params }: { params: Promise<{ id: string }> }) => {
+		if (!req.auth)
+			return NextResponse.json({ message: "No autenticado" }, { status: 401 });
 
-	const session = await auth.api.getSession({
-		headers: await headers(),
-	});
+		if (req.auth.user.role !== "administrador")
+			return NextResponse.json({ message: "No autorizado" }, { status: 401 });
 
-	const [athlete] = await db
-		.select({
-			id: athletes.id,
-			user_id: {
-				id: users.id,
-				email: users.email,
-				ci_number: users.ci_number,
-			},
-		})
-		.from(athletes)
-		.innerJoin(users, eq(athletes.user_id, users.id))
-		.where(
-			and(
-				eq(
-					id?.includes("@")
-						? users.email
-						: id.includes("-")
-							? athletes.id
-							: users.ci_number,
-					id ?? "",
+		const { id } = await params;
+
+		const [athlete] = await db
+			.select({
+				id: athletes.id,
+				user_id: {
+					id: users.id,
+					email: users.email,
+					ci_number: users.ci_number,
+				},
+			})
+			.from(athletes)
+			.innerJoin(users, eq(athletes.user_id, users.id))
+			.where(
+				and(
+					eq(
+						id?.includes("@")
+							? users.email
+							: id.includes("-")
+								? athletes.id
+								: users.ci_number,
+						id ?? "",
+					),
 				),
-			),
-		);
+			);
 
-	if (!athlete)
-		return NextResponse.json({ message: MsgError.NOT_FOUND }, { status: 404 });
+		if (!athlete)
+			return NextResponse.json(
+				{ message: MsgError.NOT_FOUND },
+				{ status: 404 },
+			);
 
-	await db
-		.update(users)
-		.set({ deleted_at: new Date() })
-		.where(eq(users.id, athlete.user_id.id));
+		await db
+			.update(users)
+			.set({ deleted_at: new Date().toISOString() })
+			.where(eq(users.id, athlete.user_id.id));
 
-	return NextResponse.json({ message: `DELETED ${id}` });
-};
+		await insertHistory({
+			user_id: req.auth.user.id ?? "",
+			description: "Datos del atleta actualizados",
+			action: "ELIMINO",
+			reference_id: id,
+		});
+
+		return NextResponse.json({ message: `Eliminado ${id}` });
+	},
+);

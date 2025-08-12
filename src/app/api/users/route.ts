@@ -1,8 +1,10 @@
-import { db } from "@/lib/db";
+import { NextResponse, type NextRequest } from "next/server";
+import type { CreateUserDto } from "./dto/create-user.dto";
+import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import { MsgError } from "@/utils/messages";
 import { users } from "@drizzle/schema";
-import { and, eq, isNotNull, isNull } from "drizzle-orm";
-import { NextResponse, type NextRequest } from "next/server";
+import { db } from "@/lib/db";
+import { auth } from "@/auth";
 
 export async function GET(req: NextRequest) {
 	const params = req.nextUrl.searchParams;
@@ -44,7 +46,13 @@ export async function GET(req: NextRequest) {
 				{ status: 404 },
 			);
 
-		return NextResponse.json(result);
+		return NextResponse.json({
+			result,
+			pagination: {
+				page,
+				total_pages: Math.round(result.length / Number(limit ?? 10)),
+			},
+		});
 	} catch (error) {
 		return NextResponse.json(
 			{
@@ -57,3 +65,38 @@ export async function GET(req: NextRequest) {
 		);
 	}
 }
+
+export const POST = auth(async (req) => {
+	if (!req.auth) {
+		return NextResponse.json(
+			{ message: MsgError.UNAUTHORIZED },
+			{ status: 401 },
+		);
+	}
+
+	if (req.auth.user.role !== "administrador")
+		return NextResponse.json(
+			{ message: MsgError.UNAUTHORIZED },
+			{ status: 401 },
+		);
+
+	const body = (await req.json()) as CreateUserDto;
+
+	try {
+		const [{ id: userId }] = await db.insert(users).values(body).returning({
+			id: users.id,
+		});
+
+		return NextResponse.json({ message: userId }, { status: 201 });
+	} catch (error) {
+		return NextResponse.json(
+			{
+				message:
+					(error as Error).message === "connect ECONNREFUSED 127.0.0.1:5432"
+						? MsgError.DB_CONNECTION
+						: (error as Error).message,
+			},
+			{ status: 400 },
+		);
+	}
+});

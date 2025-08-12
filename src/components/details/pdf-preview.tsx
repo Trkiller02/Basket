@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Download, FileText } from "lucide-react";
+import { toast } from "sonner";
 
 export const PDFPreview = ({ urlDownload }: { urlDownload: string }) => {
 	const downloadPDF = async () => {
@@ -12,7 +13,7 @@ export const PDFPreview = ({ urlDownload }: { urlDownload: string }) => {
 			},
 		});
 
-		if (!response.ok) return alert("Error al descargar el PDF");
+		if (!response.ok) return toast.error("Error al descargar el PDF");
 
 		const blob = await response?.blob();
 
@@ -48,7 +49,7 @@ export const PDFPreview = ({ urlDownload }: { urlDownload: string }) => {
 					<span className="text-sm text-gray-600">
 						planilla_{Date.now()}.pdf
 					</span>
-					<Button onClick={() => {}} size="sm" className="gap-2">
+					<Button onClick={() => downloadPDF()} size="sm" className="gap-2">
 						<Download className="h-4 w-4" />
 						Descargar
 					</Button>

@@ -1,18 +1,17 @@
 import {
-	pgTable,
-	uniqueIndex,
-	foreignKey,
 	bigint,
-	uuid,
-	text,
 	boolean,
-	index,
-	timestamp,
 	date,
+	foreignKey,
+	index,
 	integer,
 	pgEnum,
+	pgTable,
+	text,
+	timestamp,
+	uniqueIndex,
+	uuid,
 } from "drizzle-orm/pg-core";
-import { sql } from "drizzle-orm";
 
 export const roles = pgEnum("roles", [
 	"representante",
@@ -21,7 +20,7 @@ export const roles = pgEnum("roles", [
 	"atleta",
 ]);
 
-export const notificationsTypes = pgEnum("notifications_types", [
+export const historyTypes = pgEnum("history_types", [
 	"MODIFICO",
 	"CREO",
 	"ELIMINO",
@@ -38,8 +37,9 @@ export const athletes_representatives = pgTable(
 			name: "athletes_representatives_id_seq",
 			startWith: 1,
 			increment: 1,
+			maxValue: "9223372036854775807",
 			minValue: 1,
-			cache: 1,
+			cache: 10,
 		}),
 		athlete_id: uuid().notNull(),
 		representative_id: uuid().notNull(),
@@ -71,9 +71,10 @@ export const health = pgTable(
 		id: bigint({ mode: "number" }).primaryKey().generatedByDefaultAsIdentity({
 			name: "health_id_seq",
 			startWith: 1,
+			maxValue: "9223372036854775807",
 			increment: 1,
 			minValue: 1,
-			cache: 1,
+			cache: 10,
 		}),
 		athlete_id: uuid().notNull(),
 		medical_authorization: boolean().default(false),
@@ -107,22 +108,23 @@ export const configurations = pgTable("configurations", {
 	value: text().notNull(),
 });
 
-export const notifications = pgTable(
-	"notifications",
+export const history = pgTable(
+	"history",
 	{
 		// You can use { mode: "bigint" } if numbers are exceeding js number limitations
 		id: bigint({ mode: "number" }).primaryKey().generatedByDefaultAsIdentity({
-			name: "notifications_id_seq",
+			name: "history_id_seq",
 			startWith: 1,
 			increment: 1,
+			maxValue: "9223372036854775807",
 			minValue: 1,
-			cache: 1,
+			cache: 10,
 		}),
 		user_id: uuid().notNull(),
 		description: text(),
-		action_type: notificationsTypes("action_type").notNull(),
+		action: historyTypes("action").notNull(),
 		reference_id: text(),
-		created_at: timestamp({ mode: "string" }).defaultNow(),
+		created_at: timestamp({ mode: "string" }).defaultNow().notNull(),
 	},
 	(table) => [
 		index("public_idx_user_id").using(
@@ -132,7 +134,7 @@ export const notifications = pgTable(
 		foreignKey({
 			columns: [table.user_id],
 			foreignColumns: [users.id],
-			name: "notifications_user_id_fkey",
+			name: "history_user_id_fkey",
 		}),
 	],
 );
@@ -145,14 +147,16 @@ export const invoices = pgTable(
 			name: "invoices_id_seq",
 			startWith: 1,
 			increment: 1,
+			maxValue: "9223372036854775807",
 			minValue: 1,
-			cache: 1,
+			cache: 10,
 		}),
 		representative_id: uuid().notNull(),
 		payment_date: date().defaultNow(),
 		description: text(),
 		athlete_id: uuid().notNull(),
 		image_path: text(),
+		verified: boolean().default(false),
 	},
 	(table) => [
 		uniqueIndex("public_facturas_pkey").using(
@@ -213,7 +217,6 @@ export const athletes = pgTable(
 	"athletes",
 	{
 		id: uuid().defaultRandom().primaryKey().notNull(),
-		image: text(),
 		birth_date: date().notNull(),
 		age: integer().notNull(),
 		birth_place: text().notNull(),

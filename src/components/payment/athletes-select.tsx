@@ -55,10 +55,8 @@ import { toast } from "sonner";
 import { findEntity } from "@/utils/getEntity";
 import useSWR from "swr";
 import { fetcher } from "@/lib/axios";
-import { regexList } from "@/utils/regexPatterns";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { User } from "@/utils/interfaces/user";
 
 export default function InvoicesFormForm({
 	athleteList,
@@ -289,7 +287,7 @@ export default function InvoicesFormForm({
 																				<div
 																					className={`w-4 h-4 rounded-full border-2 border-border ${getInvoiceStatusColor(
 																						estudiante.solvent,
-																						true,
+																						"bg",
 																					)}`}
 																				/>
 																			</TooltipTrigger>
@@ -383,7 +381,7 @@ export default function InvoicesFormForm({
 																						"w-4 h-4 rounded-full border-2 border-border",
 																						getInvoiceStatusColor(
 																							estudiante.solvent,
-																							true,
+																							"bg",
 																						),
 																					)}
 																				/>

@@ -6,6 +6,8 @@ import { db } from "@/lib/db";
 import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import { MsgError } from "@/utils/messages";
 import { regexList } from "@/utils/regexPatterns";
+import { auth } from "@/auth";
+import { insertHistory } from "@/lib/db-data";
 
 /*
 export const representativeController = new Elysia({
@@ -98,109 +100,144 @@ export const GET = async (
 	return NextResponse.json(result);
 };
 
-export const PATCH = async (
-	req: NextRequest,
-	{ params }: { params: Promise<{ id: string }> },
-) => {
-	const body = (await req.json()) as UpdateRepresentativeDto;
-	const { id } = await params;
+export const PATCH = auth(
+	async (req, { params }: { params: Promise<{ id: string }> }) => {
+		if (!req.auth)
+			return NextResponse.json(
+				{ message: MsgError.UNAUTHORIZED },
+				{ status: 401 },
+			);
 
-	if (!body || Object.keys(body).length === 0)
-		throw { message: MsgError.BAD_REQUEST, code: 400 };
+		const body = (await req.json()) as UpdateRepresentativeDto;
+		const { id } = await params;
 
-	const [representative] = await db
-		.select({
-			id: representatives.id,
-			user_id: {
-				id: users.id,
-				email: users.email,
-				ci_number: users.ci_number,
-			},
-		})
-		.from(representatives)
-		.innerJoin(users, eq(representatives.user_id, users.id))
-		.where(
-			and(
-				eq(
-					id?.includes("@")
-						? users.email
-						: id.includes("-")
-							? representatives.id
-							: users.ci_number,
-					id ?? "",
+		if (!body || Object.keys(body).length === 0)
+			return NextResponse.json(
+				{ message: MsgError.BAD_REQUEST },
+				{ status: 400 },
+			);
+
+		const [representative] = await db
+			.select({
+				id: representatives.id,
+				user_id: {
+					id: users.id,
+					email: users.email,
+					ci_number: users.ci_number,
+				},
+			})
+			.from(representatives)
+			.innerJoin(users, eq(representatives.user_id, users.id))
+			.where(
+				and(
+					eq(
+						id?.includes("@")
+							? users.email
+							: id.includes("-")
+								? representatives.id
+								: users.ci_number,
+						id ?? "",
+					),
 				),
-			),
-		);
+			);
 
-	if (!representative)
-		return NextResponse.json(
-			{ message: MsgError.NOT_FOUND },
-			{
-				status: 404,
-			},
-		);
+		if (!representative)
+			return NextResponse.json(
+				{ message: MsgError.NOT_FOUND },
+				{
+					status: 404,
+				},
+			);
 
-	const { user_id, ...restBody } = body;
+		const { user_id, ...restBody } = body;
 
-	if (restBody) {
-		await db
-			.update(representatives)
-			.set(restBody)
-			.where(eq(representatives.id, id));
-	}
+		if (restBody) {
+			await db
+				.update(representatives)
+				.set(restBody)
+				.where(eq(representatives.id, id));
+		}
 
-	if (user_id) {
+		if (user_id) {
+			await db
+				.update(users)
+				.set(user_id)
+				.where(eq(users.id, representative.user_id.id));
+		}
+
+		await insertHistory({
+			user_id: req.auth?.user.id ?? "",
+			action: "MODIFICO",
+			description: `Representante ${representative.user_id.ci_number} actualizado`,
+		});
+
+		return NextResponse.json({
+			message: "Representante actualizado con exito",
+		});
+	},
+);
+
+export const DELETE = auth(
+	async (req, { params }: { params: Promise<{ id: string }> }) => {
+		const { id } = await params;
+
+		if (!req.auth)
+			return NextResponse.json(
+				{ message: MsgError.UNAUTHORIZED },
+				{ status: 401 },
+			);
+
+		if (req.auth.user.role === "representante")
+			return NextResponse.json(
+				{ message: MsgError.UNAUTHORIZED },
+				{ status: 401 },
+			);
+
+		const [representative] = await db
+			.select({
+				id: representatives.id,
+				user_id: {
+					id: users.id,
+					email: users.email,
+					ci_number: users.ci_number,
+				},
+			})
+			.from(representatives)
+			.innerJoin(users, eq(representatives.user_id, users.id))
+			.where(
+				and(
+					eq(
+						id?.includes("@")
+							? users.email
+							: id.includes("-")
+								? representatives.id
+								: users.ci_number,
+						id ?? "",
+					),
+				),
+			);
+
+		if (!representative)
+			return NextResponse.json(
+				{ message: MsgError.NOT_FOUND },
+				{
+					status: 404,
+				},
+			);
+
 		await db
 			.update(users)
-			.set(user_id)
+			.set({ deleted_at: new Date(Date.now()).toISOString().split("T")[0] })
 			.where(eq(users.id, representative.user_id.id));
-	}
 
-	return NextResponse.json({ message: "Representante actualizado con exito" });
-};
+		await insertHistory({
+			user_id: req.auth?.user.id ?? "",
+			action: "ELIMINO",
+			description: `Representante ${representative.user_id.ci_number} eliminado`,
+		});
 
-export const DELETE = async (
-	req: NextRequest,
-	{ params }: { params: Promise<{ id: string }> },
-) => {
-	const { id } = await params;
-
-	const [representative] = await db
-		.select({
-			id: representatives.id,
-			user_id: {
-				id: users.id,
-				email: users.email,
-				ci_number: users.ci_number,
-			},
-		})
-		.from(representatives)
-		.innerJoin(users, eq(representatives.user_id, users.id))
-		.where(
-			and(
-				eq(
-					id?.includes("@")
-						? users.email
-						: id.includes("-")
-							? representatives.id
-							: users.ci_number,
-					id ?? "",
-				),
-			),
-		);
-
-	if (!representative)
-		return NextResponse.json(
-			{ message: MsgError.NOT_FOUND },
-			{
-				status: 404,
-			},
-		);
-
-	await db
-		.update(users)
-		.set({ deleted_at: new Date(Date.now()) })
-		.where(eq(users.id, representative.user_id.id));
-
-	return NextResponse.json({ message: `DELETED ${id}` });
-};
+		return NextResponse.json({
+			message: `Representante ${representative.user_id.ci_number} eliminado`,
+		});
+	},
+);

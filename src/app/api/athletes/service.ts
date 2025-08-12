@@ -1,4 +1,4 @@
-import type { SearchQuery } from "@/utils/interfaces/search";
+/* import type { SearchQuery } from "@/utils/interfaces/search";
 import type { CreateAthletesDto } from "./dto/create-athletes.dto";
 import { athletes, users } from "@drizzle/schema";
 import { and, eq, ilike, isNotNull, isNull } from "drizzle-orm";
@@ -132,3 +132,4 @@ export class AthletesService {
 		return { message: `DELETED ${id}` };
 	}
 }
+ */

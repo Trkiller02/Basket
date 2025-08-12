@@ -17,11 +17,11 @@ import { eq } from "drizzle-orm";
 
 		await db.insert(users).values({
 			id: "113aa5e8-196a-4431-aac0-3f4d5a4aa158",
-			name: "OMAR AUGUSTO",
-			email: "fernandez56@gmail.com",
-			lastname: "MARQUEZ FERNANDEZ",
+			name: "ARMANDO JOSE",
+			email: "admin0000@gmail.com",
+			lastname: "FERNANDEZ HENRIQUEZ",
 			password: await bcrypt.hash("123456", 10),
-			ci_number: "V29886348",
+			ci_number: "V00000000",
 			role: "administrador",
 			restore_code: await bcrypt.hash("123456", 10),
 		});

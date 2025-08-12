@@ -205,6 +205,7 @@ function AthleteForm() {
 
 				<div className="inline-flex items-center gap-4">
 					{/* biome-ignore lint/a11y/useKeyWithClickEvents: <explanation> */}
+					{/** biome-ignore lint/a11y/noStaticElementInteractions: <explanation> */}
 					<div
 						className="relative flex h-20 w-20 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-primary bg-gray-50 hover:bg-gray-100"
 						onClick={handleIconClick}

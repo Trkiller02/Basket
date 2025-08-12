@@ -1,3 +1,5 @@
+"use client";
+
 import {
 	Sidebar,
 	SidebarContent,
@@ -16,12 +18,14 @@ import Logo from "@/assets/trapiche.svg";
 import {
 	Barcode,
 	LayoutDashboard,
-	LeafIcon,
 	LogOut,
-	ScanLine,
 	Settings2,
 	UserRoundCheck,
 } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { UserDropdown } from "../user-dropdown";
+import type { Session } from "next-auth";
+import Link from "next/link";
 
 // This is sample data.
 const data = {
@@ -44,54 +48,35 @@ const data = {
 					title: "Pagos",
 					url: "/pagos",
 					icon: UserRoundCheck,
-					isActive: true,
-				},
-
-				{
-					title: "",
-					url: "#",
-					icon: LeafIcon,
-				},
-			],
-		},
-		{
-			title: "Other",
-			url: "#",
-			items: [
-				{
-					title: "Settings",
-					url: "#",
-					icon: Settings2,
-				},
-				{
-					title: "Help Center",
-					url: "#",
-					icon: LeafIcon,
 				},
 			],
 		},
 	],
 };
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({
+	session,
+	...props
+}: React.ComponentProps<typeof Sidebar> & {
+	session: Promise<Session | null>;
+}) {
+	const pathname = usePathname();
+
 	return (
 		<Sidebar {...props}>
 			<SidebarHeader>
 				<SidebarMenu>
 					<SidebarMenuItem>
-						<SidebarMenuButton
-							size="lg"
-							className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-						>
-							<Image
-								src={Logo}
-								alt="logo_trapichito"
-								width={46}
-								height={46}
-								className="aspect-square size-10 rounded-lg invert border-2 border-border bg-white"
-							/>
+						<SidebarMenuButton size="lg" asChild>
+							<div className="flex text-left text-sm leading-tight">
+								<Image
+									src={Logo}
+									alt="logo_trapichito"
+									width={48}
+									height={48}
+									className="aspect-square size-10 rounded-lg invert border-2 border-border bg-white"
+								/>
 
-							<div className="grid flex-1 text-left text-sm leading-tight">
 								<span className="truncate font-medium">Trapichito</span>
 							</div>
 						</SidebarMenuButton>
@@ -105,25 +90,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 						<SidebarGroupLabel className="uppercase text-muted-foreground/60">
 							{item.title}
 						</SidebarGroupLabel>
-						<SidebarGroupContent className="px-2">
+						<SidebarGroupContent>
 							<SidebarMenu>
 								{item.items.map((item) => (
 									<SidebarMenuItem key={item.title}>
 										<SidebarMenuButton
 											asChild
-											className="group/menu-button font-medium gap-3 h-9 rounded-md bg-gradient-to-r hover:bg-transparent hover:from-sidebar-accent hover:to-sidebar-accent/40 data-[active=true]:from-primary/20 data-[active=true]:to-primary/5 [&>svg]:size-auto"
-											isActive={item.isActive}
+											className="group/menu-button font-medium gap-3 h-12 rounded-md bg-gradient-to-r hover:bg-transparent hover:from-sidebar-accent hover:to-sidebar-accent/40 data-[active=true]:from-primary/20 data-[active=true]:to-primary/5 [&>svg]:size-auto"
+											isActive={pathname === item.url}
 										>
-											<a href={item.url}>
+											<Link href={item.url}>
 												{item.icon && (
 													<item.icon
 														className="text-muted-foreground/60 group-data-[active=true]/menu-button:text-primary"
-														size={22}
+														size={18}
 														aria-hidden="true"
 													/>
 												)}
 												<span>{item.title}</span>
-											</a>
+											</Link>
 										</SidebarMenuButton>
 									</SidebarMenuItem>
 								))}
@@ -133,9 +118,28 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 				))}
 			</SidebarContent>
 			<SidebarFooter>
-				<hr className="border-t border-border mx-2 -mt-px" />
 				<SidebarMenu>
 					<SidebarMenuItem>
+						<SidebarMenuButton
+							className="group/menu-button font-medium gap-3 h-12 rounded-md bg-gradient-to-r hover:bg-transparent hover:from-sidebar-accent hover:to-sidebar-accent/40 data-[active=true]:from-primary/20 data-[active=true]:to-primary/10 [&>svg]:size-auto"
+							asChild
+							isActive={pathname.startsWith("/configuracion")}
+						>
+							<Link href="/configuracion">
+								<Settings2
+									className="text-muted-foreground/60 group-data-[active=true]/menu-button:text-primary"
+									size={18}
+									aria-hidden="true"
+								/>
+								<span>Configuración</span>
+							</Link>
+						</SidebarMenuButton>
+					</SidebarMenuItem>
+					<UserDropdown sessionPromise={session} />
+				</SidebarMenu>
+				{/* <hr className="border-t border-border mx-2 -mt-px" />
+				<SidebarMenu>
+				<SidebarMenuItem>
 						<SidebarMenuButton className="font-medium gap-3 h-9 rounded-md bg-gradient-to-r hover:bg-transparent hover:from-sidebar-accent hover:to-sidebar-accent/40 data-[active=true]:from-primary/20 data-[active=true]:to-primary/5 [&>svg]:size-auto">
 							<LogOut
 								className="text-muted-foreground/60 group-data-[active=true]/menu-button:text-primary"
@@ -145,7 +149,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 							<span>Sign Out</span>
 						</SidebarMenuButton>
 					</SidebarMenuItem>
-				</SidebarMenu>
+				</SidebarMenu> */}
 			</SidebarFooter>
 			<SidebarRail />
 		</Sidebar>

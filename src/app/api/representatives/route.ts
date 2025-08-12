@@ -1,12 +1,13 @@
 import type { CreateRepresentativeDto } from "./dto/create-representative.dto";
 import { type NextRequest, NextResponse } from "next/server";
-import { notifications, representatives, users } from "@drizzle/schema";
+import { representatives, users } from "@drizzle/schema";
 import { db } from "@/lib/db";
 import { and, eq, ilike, isNotNull, isNull } from "drizzle-orm";
 import { MsgError } from "@/utils/messages";
 import { headers } from "next/headers";
 import { NOTIFICATION_MSG, NOTIFICATION_TYPE } from "@/utils/typeNotifications";
-import { auth } from "@/lib/auth";
+import { auth } from "@/auth";
+import { insertHistory } from "@/lib/db-data";
 
 /*
 export const representativeController = new Elysia({
@@ -69,6 +70,7 @@ export const GET = async (req: NextRequest) => {
 								lastname: users.lastname,
 								email: users.email,
 								phone_number: users.phone_number,
+								role: users.role,
 							},
 							occupation: representatives.occupation,
 						},
@@ -112,15 +114,23 @@ export const GET = async (req: NextRequest) => {
 	}
 };
 
-export const POST = async (req: NextRequest) => {
+export const POST = auth(async (req) => {
 	try {
+		if (!req.auth)
+			return NextResponse.json(
+				{ message: MsgError.UNAUTHORIZED },
+				{ status: 401 },
+			);
+
+		if (!["secretaria", "administrador"].includes(req.auth.user.role))
+			return NextResponse.json(
+				{ message: MsgError.UNAUTHORIZED },
+				{ status: 401 },
+			);
+
 		const body = (await req.json()) as CreateRepresentativeDto;
 
 		const { user_id, ...rest } = body;
-
-		const session = await auth.api.getSession({
-			headers: await headers(),
-		});
 
 		if (typeof user_id !== "object") {
 			const [{ id }] = await db
@@ -141,6 +151,12 @@ export const POST = async (req: NextRequest) => {
 			.values({ ...rest, user_id: userId })
 			.returning({ id: representatives.id });
 
+		await insertHistory({
+			user_id: req.auth?.user.id ?? "",
+			action: "CREO",
+			description: `Representante ${user_id.ci_number} creado`,
+		});
+
 		return NextResponse.json({ message: id }, { status: 201 });
 	} catch (error) {
 		console.error(error);
@@ -150,4 +166,4 @@ export const POST = async (req: NextRequest) => {
 			{ status: 400 },
 		);
 	}
-};
+});

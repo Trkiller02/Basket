@@ -1,53 +1,47 @@
-import {
-	extractPropsRepresentative,
-	extractPropsAthlete,
-} from "./extractProps";
 import { fetchData } from "../fetchHandler";
-import type { Athlete, DataRequest } from "../interfaces/athlete";
-import type { Representative } from "../interfaces/representative";
+import type { UserTable } from "../interfaces/athlete";
+import { ExtractUserProps } from "./extractProps";
 
-export const getDataTable = async (searchParams: {
-	[key: string]: string | undefined;
-}): Promise<DataRequest[] | undefined> => {
+interface GetDataTableParams {
+	searchParams: Record<string, string | undefined>;
+	reprId?: string;
+}
+
+export const getEntityToFetch = (entity: string) =>
+	entity === "atleta"
+		? "athletes"
+		: entity === "representante"
+			? "representatives"
+			: "users";
+
+export const getDataTable = async ({
+	searchParams,
+	reprId,
+}: GetDataTableParams): Promise<UserTable[]> => {
 	// GENERAL SEARCH PARAMS
-	const { ent, q, eliminados, page } = searchParams;
+	const { ent = "usuarios", q, e, p } = searchParams;
 
-	if (ent && q) {
-		const params = new URLSearchParams();
-		if (q) params.append("query", q);
-		if (eliminados) params.append("deleted", eliminados);
-		if (page) params.append("page", page);
+	if (reprId)
+		return (
+			(
+				await fetchData<{ result?: UserTable[] }>(
+					`/api/repr-athletes/${reprId}?table=true`,
+				)
+			)?.result ?? []
+		);
 
-		try {
-			if (ent === "atleta") {
-				const res = await fetchData<{ result: Athlete[] }>(
-					`/api/athletes?${params.toString()}`,
-				);
+	const params = new URLSearchParams();
+	if (q) params.append("query", q);
+	if (e) params.append("deleted", e);
+	if (p) params.append("page", p);
 
-				if (res) {
-					return Array.isArray(res.result)
-						? res.result.map(extractPropsAthlete)
-						: [extractPropsAthlete(res.result)];
-				}
-			}
+	const res = await fetchData<{ result: UserTable[] }>(
+		`/api/${getEntityToFetch(ent)}?${params.toString()}`,
+	);
 
-			if (ent === "representante") {
-				const res = await fetchData<{ result: Representative[] }>(
-					`/api/representatives?${params.toString()}`,
-				);
+	if (!res) return [];
 
-				if (res)
-					return Array.isArray(res.result)
-						? res.result.map(extractPropsRepresentative)
-						: [extractPropsRepresentative(res.result)];
-			}
-
-			const res = await fetchData(`/api/users?${params.toString()}`);
-			if (res) return Array.isArray(res) ? res : [res];
-
-			return [];
-		} catch (error) {
-			console.log((error as Error).message);
-		}
-	}
+	return Array.isArray(res.result)
+		? res.result.map(ExtractUserProps)
+		: [ExtractUserProps(res.result)];
 };

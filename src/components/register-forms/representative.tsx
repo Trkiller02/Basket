@@ -1,9 +1,9 @@
 "use client";
 
-import { Check, Search, UserX, UserX2, X } from "lucide-react";
+import { Search, UserX, UserX2, X } from "lucide-react";
 
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import type { Representative } from "@/utils/interfaces/representative";
 import { representativeSchema } from "@/utils/interfaces/schemas";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -36,7 +36,9 @@ import {
 
 export default function RepresentativeForm({
 	etapa,
-}: { etapa: "representante" | "madre" | "padre" }) {
+}: {
+	etapa: "representante" | "madre" | "padre";
+}) {
 	const [disKeys, setDisKeys] = useState<Set<string>>(new Set([]));
 
 	const registerData = useRegisterStore((state) => state.registerData);

@@ -1,12 +1,13 @@
 import type { CreateAthletesDto } from "./dto/create-athletes.dto";
-import { athletes, notifications, users } from "@drizzle/schema";
+import { athletes, users } from "@drizzle/schema";
 import { and, eq, ilike, isNotNull, isNull, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { type NextRequest, NextResponse } from "next/server";
 import { MsgError } from "@/utils/messages";
 import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
+import { auth } from "@/auth";
 import { NOTIFICATION_MSG, NOTIFICATION_TYPE } from "@/utils/typeNotifications";
+import { insertHistory } from "@/lib/db-data";
 
 /* export const athletesController = new Elysia({
 	prefix: "/athletes",
@@ -42,21 +43,8 @@ export const GET = async (req: NextRequest) => {
 	const query = querys.get("query");
 	const deleted = querys.get("deleted") === "true";
 	const isFormView = querys.get("formView");
-	const isChartView = querys.get("chartView");
 
 	try {
-		if (isChartView) {
-			const result = await db
-				.select({
-					category: athletes.category,
-					count: sql<number>`count(*)`.as("count"),
-				})
-				.from(athletes)
-				.groupBy(athletes.category);
-
-			return NextResponse.json(result);
-		}
-
 		const result = await db
 			.select(
 				isFormView
@@ -78,9 +66,9 @@ export const GET = async (req: NextRequest) => {
 								lastname: users.lastname,
 								email: users.email,
 								phone_number: users.phone_number,
+								role: users.role,
 							},
 							age: athletes.age,
-							image: athletes.image,
 							category: athletes.category,
 							position: athletes.position,
 							solvent: athletes.solvent,
@@ -123,16 +111,18 @@ export const GET = async (req: NextRequest) => {
 	}
 };
 
-export const POST = async (req: NextRequest) => {
-	const session = await auth.api.getSession({
-		headers: await headers(),
-	});
+export const POST = auth(async (req) => {
+	if (!req.auth)
+		return NextResponse.json({ message: "No autenticado" }, { status: 401 });
+
+	if (!["secretaria", "administrador"].includes(req.auth.user.role))
+		return NextResponse.json({ message: "No autorizado" }, { status: 401 });
+
+	const body = (await req.json()) as CreateAthletesDto;
+
+	const { user_id, ...rest } = body;
 
 	try {
-		const body = (await req.json()) as CreateAthletesDto;
-
-		const { user_id, ...rest } = body;
-
 		const [{ userId }] = await db
 			.insert(users)
 			.values({ ...user_id, id: crypto.randomUUID() })
@@ -143,6 +133,13 @@ export const POST = async (req: NextRequest) => {
 			.values({ ...rest, user_id: userId })
 			.returning({ id: athletes.id });
 
+		await insertHistory({
+			user_id: req.auth?.user.id ?? "",
+			description: "Datos del atleta creados",
+			action: "CREO",
+			reference_id: id,
+		});
+
 		return NextResponse.json({ message: id }, { status: 201 });
 	} catch (error) {
 		return NextResponse.json(
@@ -150,4 +147,4 @@ export const POST = async (req: NextRequest) => {
 			{ status: 400 },
 		);
 	}
-};
+});

@@ -5,6 +5,7 @@ import type { Athlete } from "./athlete";
 import type { Representative } from "./representative";
 import type { Health } from "./health";
 import type { CreateInvoices } from "./invoice";
+import type { User } from "./user";
 
 export const userSchema = Yup.object({
 	name: Yup.string()
@@ -67,6 +68,42 @@ export const authRestorePasswordSchema = Yup.object({
 		.min(4, Messages.MIN_ERR)
 		.max(32, Messages.MAX_ERR)
 		.oneOf([Yup.ref("password")], Messages.MATCH_ERR),
+});
+
+export const userProfileChange: Yup.ObjectSchema<
+	Partial<
+		Omit<User, "id" | "role" | "image" | "ci_number"> & {
+			new_password: string;
+		}
+	>
+> = Yup.object({
+	new_password: Yup.string()
+		.optional()
+		.min(4, Messages.MIN_ERR)
+		.max(32, Messages.MAX_ERR),
+	repeat_password: Yup.string()
+		.optional()
+		.min(4, Messages.MIN_ERR)
+		.max(32, Messages.MAX_ERR)
+		.oneOf([Yup.ref("new_password")], Messages.MATCH_ERR),
+}).concat(
+	userSchema.omit(["repeat_password", "ci_number", "role", "image"]).partial(),
+);
+
+export const representativeProfileChange: Yup.ObjectSchema<
+	Partial<{
+		occupation?: string;
+		height?: number;
+		user_id?: Partial<
+			Omit<User, "id" | "role" | "image" | "ci_number"> & {
+				new_password: string;
+			}
+		>;
+	}>
+> = Yup.object({
+	occupation: Yup.string().optional(),
+	height: Yup.number().optional(),
+	user_id: userProfileChange,
 });
 
 export const personSchema = userSchema.omit([

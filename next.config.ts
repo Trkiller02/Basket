@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
 	experimental: {
 		parallelServerCompiles: true,
 		useLightningcss: true,
+		ppr: "incremental",
 	},
 };
 

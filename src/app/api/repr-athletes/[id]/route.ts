@@ -19,6 +19,7 @@ export async function GET(
 	const querys = await req.nextUrl.searchParams;
 
 	const forInvoice = !!querys.get("invoice");
+	const forTable = !!querys.get("table");
 
 	const [user] = await db
 		.select({
@@ -56,19 +57,34 @@ export async function GET(
 							},
 							solvent: athletes.solvent,
 						}
-					: {
-							id: athletes.id,
-							user_id: {
-								id: users.id,
-								ci_number: users.ci_number,
-								name: users.name,
-								lastname: users.lastname,
+					: forTable
+						? {
+								id: athletes.id,
+								user_id: {
+									id: users.id,
+									ci_number: users.ci_number,
+									image: users.image,
+									name: users.name,
+									lastname: users.lastname,
+									email: users.email,
+									phone_number: users.phone_number,
+								},
+								solvent: athletes.solvent,
+								category: athletes.category,
+								position: athletes.position,
+							}
+						: {
+								id: athletes.id,
+								user_id: {
+									id: users.id,
+									ci_number: users.ci_number,
+									name: users.name,
+									lastname: users.lastname,
+								},
+								solvent: athletes.solvent,
+								category: athletes.category,
+								age: athletes.age,
 							},
-							image: athletes.image,
-							solvent: athletes.solvent,
-							category: athletes.category,
-							age: athletes.age,
-						},
 			)
 			.from(athletes)
 			.innerJoin(users, eq(athletes.user_id, users.id))

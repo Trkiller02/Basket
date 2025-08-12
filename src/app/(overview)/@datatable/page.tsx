@@ -1,11 +1,23 @@
-import ContactsTable from "@/components/contacts-table";
+import { auth } from "@/auth";
+import ContactsTable from "@/components/new_table";
 
-const Datatable = async () => {
-	return (
-		<div className="min-h-[100vh] flex-1 md:min-h-min">
-			<ContactsTable />
-		</div>
-	);
+const Datatable = async (
+	/* {
+	searchParams,
+}: {
+	searchParams: Promise<Record<string, string | undefined>>;
+} */
+) => {
+	const session = await auth();
+
+	/* const data = await getDataTable({
+		searchParams: await searchParams,
+		...(session.user?.role === "representante" && {
+			id: session?.user?.id,
+		}),
+	}); */
+
+	return <ContactsTable session={session} />;
 };
 
 export default Datatable;

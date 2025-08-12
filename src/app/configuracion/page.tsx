@@ -9,7 +9,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import {
 	Info,
@@ -17,17 +17,112 @@ import {
 	Download,
 	DatabaseZap,
 	ChevronRight,
+	Wallet,
+	FolderClock,
 } from "lucide-react";
 import {
 	Collapsible,
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { updateEntityData } from "@/lib/action-data";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import useSWR from "swr";
+import { fetcher } from "@/lib/axios";
+import Link from "next/link";
 
 export default function ConfigurationPage() {
+	const { data: pricing, isLoading } = useSWR<{ result: string }>(
+		"/api/config?property=pricing",
+		fetcher,
+	);
+
+	const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+		event.preventDefault();
+
+		const formData = new FormData(event.currentTarget);
+
+		await updateEntityData("config", "pricing", {
+			value: formData.get("value") as string,
+		});
+	};
+
 	return (
 		<div className="container mx-auto py-8">
-			<h3 className="text-3xl font-semibold flex items-center gap-2 justify-between">
+			<section className="flex items-center md:grid grid-cols-2 gap-2">
+				<Card>
+					<CardHeader>
+						<CardTitle className="flex items-center gap-2">
+							<FolderClock className="h-5 w-5" />
+							Bitacora
+						</CardTitle>
+						<CardDescription>
+							Historial de interacción de los usuarios con el sistema
+						</CardDescription>
+					</CardHeader>
+					<CardContent className="space-y-4">
+						<Alert>
+							<Info className="size-6" />
+							<AlertTitle>¡Importante!</AlertTitle>
+							<AlertDescription>
+								Esta sección es unicamente para usuarios avanzados.
+								<br />
+								No va a poder realizar acciones sobre la bitacora, ya que esto
+								esta diseñado para llevar un registro de cambios e interacción
+								de los usuarios con el sistema, solo podrá visualizar los
+								eventos.
+							</AlertDescription>
+						</Alert>
+
+						<Button asChild>
+							<Link href="/configuracion/bitacora">Ver Historial</Link>
+						</Button>
+					</CardContent>
+				</Card>
+				<Card>
+					<CardHeader>
+						<CardTitle className="flex items-center gap-2">
+							<Wallet className="h-5 w-5" />
+							Monto mensual
+						</CardTitle>
+						<CardDescription>
+							Configura el monto a pagar por cada atleta
+						</CardDescription>
+					</CardHeader>
+					<CardContent>
+						<form onSubmit={handleSubmit} className="flex flex-col gap-4">
+							<Label htmlFor="value" className="block gap-2 relative">
+								Monto:
+								<Input
+									id="value"
+									name="value"
+									type="number"
+									min={0}
+									max={100000}
+									className="mt-2 ps-10"
+								/>
+								<span className="absolute bottom-[0.70rem] left-4 text-muted-foreground">
+									Bs
+								</span>
+							</Label>
+							<Alert>
+								<Info className="size-6" />
+								<AlertTitle className="flex">
+									Monto actual:&nbsp;
+									<strong>
+										<i>{pricing?.result} Bs</i>
+									</strong>
+								</AlertTitle>
+							</Alert>
+							<Button type="submit">Cambiar</Button>
+						</form>
+					</CardContent>
+				</Card>
+			</section>
+
+			<h3 className="text-xl font-semibold flex items-center gap-2 justify-between mt-4">
 				Seguridad de Datos:
 				<DatabaseZap className="size-8" />
 			</h3>

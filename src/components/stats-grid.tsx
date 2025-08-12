@@ -1,20 +1,13 @@
-import { cn } from "@/lib/utils";
 import { IconArrowUpRight } from "@tabler/icons-react";
+import { cn } from "@/lib/utils";
 
 interface StatsCardProps {
 	title: string;
 	value: string;
-	change: {
-		value: string;
-		trend: "up" | "down";
-	};
 	icon: React.ReactNode;
 }
 
-export function StatsCard({ title, value, change, icon }: StatsCardProps) {
-	const isPositive = change.trend === "up";
-	const trendColor = isPositive ? "text-emerald-500" : "text-red-500";
-
+export function StatsCard({ title, value, icon }: StatsCardProps) {
 	return (
 		<div className="relative p-4 lg:p-5 group before:absolute before:inset-y-8 before:right-0 before:w-px before:bg-gradient-to-b before:from-input/30 before:via-input before:to-input/30 last:before:hidden">
 			<div className="relative flex items-center gap-4">
@@ -24,24 +17,15 @@ export function StatsCard({ title, value, change, icon }: StatsCardProps) {
 					aria-hidden="true"
 				/>
 				{/* Icon */}
-				<div className="max-[480px]:hidden size-10 shrink-0 rounded-full bg-emerald-600/25 border border-emerald-600/50 flex items-center justify-center text-emerald-500">
+				<div className="max-[480px]:hidden size-12 shrink-0 rounded-full bg-slate-300/30 border-4 border-primary/50 flex items-center justify-center text-primary">
 					{icon}
 				</div>
 				{/* Content */}
 				<div>
-					<a
-						href="#"
-						className="font-medium tracking-widest text-xs uppercase text-muted-foreground/60 before:absolute before:inset-0"
-					>
+					<span className="font-medium tracking-widest text-xs uppercase text-muted-foreground/70 before:absolute before:inset-0">
 						{title}
-					</a>
+					</span>
 					<div className="text-2xl font-semibold mb-2">{value}</div>
-					<div className="text-xs text-muted-foreground/60">
-						<span className={cn("font-medium", trendColor)}>
-							{isPositive ? "↗" : "↘"} {change.value}
-						</span>{" "}
-						vs last week
-					</div>
 				</div>
 			</div>
 		</div>

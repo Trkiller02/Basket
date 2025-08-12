@@ -34,3 +34,7 @@ export interface AthleteResultRepr {
 	category?: string | null;
 	position?: string | null;
 }
+
+export interface UserTable
+	extends Omit<User, "password" | "repeat_password" | "restore_code">,
+		Partial<Pick<Athlete, "category" | "position" | "solvent">> {}

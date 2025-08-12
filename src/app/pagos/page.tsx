@@ -1,48 +1,20 @@
+import { auth } from "@/auth";
 import InvoicesFormForm from "@/components/payment/athletes-select";
+import { fetchData } from "@/utils/fetchHandler";
+import { redirect } from "next/navigation";
 
-export default function InvoicesPage() {
-	const estudiantes = [
-		{
-			id: "1",
-			user_id: {
-				ci_number: "V29883112",
-				name: "María González",
-				lastname: "Fernandez",
-				email: "pepe@gamil.com",
-			},
-			solvent: 0,
-		},
-		{
-			id: "2",
-			user_id: {
-				ci_number: "V29873113",
-				name: "Carlos Rodríguez",
-				lastname: "Fernandez",
-				email: "pepe@gamil.com",
-			},
-			solvent: 1,
-		},
-		{
-			id: "3",
-			user_id: {
-				ci_number: "V29893141",
-				name: "Ana Martínez",
-				lastname: "Fernandez",
-				email: "pepe@gamil.com",
-			},
-			solvent: 3,
-		},
-		{
-			id: "4",
-			user_id: {
-				ci_number: "V29843115",
-				name: "Luis Fernández",
-				lastname: "Fernandez",
-				email: "pepe@gamil.com",
-			},
-			solvent: 0,
-		},
-	];
+export default async function InvoicesPage() {
+	const [session, pricing] = await Promise.all([
+		auth(),
+		fetchData<{ result: string }>("/api/config?property=pricing"),
+	]);
 
-	return <InvoicesFormForm pricing={100} />;
+	if (!session) return redirect("/session/iniciar");
+
+	return (
+		<InvoicesFormForm
+			pricing={Number(pricing?.result)}
+			representId={session?.user?.ci_number}
+		/>
+	);
 }

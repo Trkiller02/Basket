@@ -22,4 +22,6 @@ export async function UserValidation({ session }: { session: Session | null }) {
 			return redirect("/sesion/iniciar");
 		}
 	}
+
+	return redirect("/");
 }

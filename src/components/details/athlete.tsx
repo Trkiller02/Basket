@@ -3,18 +3,19 @@
 import Image from "next/image";
 import { UserCircle } from "lucide-react";
 import type { Athlete } from "@/utils/interfaces/athlete";
-import { useRouter } from "next/navigation";
 import { Edit2 } from "lucide-react";
 import { Card, CardAction, CardContent, CardHeader } from "../ui/card";
 import { Button } from "../ui/button";
+import Link from "next/link";
 
 const AthleteResume = ({
 	data,
 	formView,
-}: { data: Athlete; formView?: boolean }) => {
+}: {
+	data: Athlete;
+	formView?: boolean;
+}) => {
 	if (!data) return null;
-
-	const router = useRouter();
 
 	const { user_id, ...restData } = data;
 
@@ -53,13 +54,17 @@ const AthleteResume = ({
 						variant="ghost"
 						size="icon"
 						className="mt-2 absolute right-3 top-2 col-end-4"
-						onClick={() =>
-							formView
-								? router.push("/registrar?etapa=atleta")
-								: router.push(`/editar/atleta/${data.id}`)
-						}
+						asChild
 					>
-						<Edit2 className="py-1" />
+						<Link
+							href={
+								formView
+									? "/registrar?etapa=atleta"
+									: `/editar/atleta/${data.id}`
+							}
+						>
+							<Edit2 className="py-1" />
+						</Link>
 					</Button>
 				</CardAction>
 			</CardHeader>

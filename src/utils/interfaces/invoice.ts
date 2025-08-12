@@ -8,6 +8,7 @@ export interface Invoices {
 	description?: string;
 	athlete_id: string;
 	image_path?: string;
+	verified?: boolean;
 }
 
 export interface DataInvoices {

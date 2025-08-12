@@ -19,6 +19,7 @@ import { fetcher } from "@/lib/axios";
 import { regexList } from "@/utils/regexPatterns";
 import { useForm } from "react-hook-form";
 import { QRDetails } from "../details/qr-code";
+import { PDFPreview } from "../details/pdf-preview";
 
 export default function ResumeForm() {
 	const registerData = useRegisterStore((state) => state.registerData);
@@ -30,6 +31,7 @@ export default function ResumeForm() {
 				password: string;
 				restore_code: string;
 				name: string;
+				athleteId: string;
 		  }
 		| undefined
 	>(undefined);
@@ -201,12 +203,11 @@ export default function ResumeForm() {
 				(item) => item?.props,
 			); */
 
-			setData(props);
+			setData({ ...props, athleteId });
 
 			return {
 				message: "Registro guardado",
 				description: "¡Gracias por completar el formulario!",
-				id: athleteId,
 			};
 		} catch (error) {
 			throw {
@@ -226,16 +227,8 @@ export default function ResumeForm() {
 			onSubmit={form.handleSubmit(() =>
 				toast.promise(onSubmit, {
 					loading: "Guardando...",
-					description: "Por favor espere.",
 					success: (data) => {
-						return {
-							...data,
-							action: {
-								label: "Imprimir",
-								onClick: async () =>
-									await fetch(`/api/reports/register/${data.id}`),
-							},
-						};
+						return data;
 					},
 					error: (error) => error.message,
 				}),
@@ -336,6 +329,7 @@ export default function ResumeForm() {
 
 			<MainDialog>
 				<QRDetails data={data} />
+				<PDFPreview urlDownload={`/api/reports/register/${data?.athleteId}`} />
 			</MainDialog>
 		</form>
 	);

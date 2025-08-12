@@ -6,37 +6,44 @@ import { Check, Minus } from "lucide-react";
 import { memo, useEffect, useState } from "react";
 import { Progress } from "./ui/progress";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 export const steps = [
 	{
 		key: "atleta",
 		label: "Atleta",
 		description: "Información básica del atleta.",
+		href: "/registrar?etapa=atleta",
 	},
 	{
 		key: "salud",
 		label: "Salud",
 		description: "Información sobre la salud del atleta.",
+		href: "/registrar?etapa=salud",
 	},
 	{
 		key: "representante",
 		description: "Quién representa al atleta.",
 		label: "Representante",
+		href: "/registrar?etapa=representante",
 	},
 	{
 		key: "madre",
 		label: "Madre",
 		description: "Datos socio-economicos de la madre del atleta.",
+		href: "/registrar?etapa=madre",
 	},
 	{
 		key: "padre",
 		label: "Padre",
 		description: "Datos socio-economicos del padre del atleta.",
+		href: "/registrar?etapa=padre",
 	},
 	{
 		key: "resumen",
 		label: "Resumen",
 		description: "Resumen del proceso de registro.",
+		href: "/registrar?etapa=resumen",
 	},
 ];
 
@@ -96,7 +103,8 @@ export const RowSteps = memo(
 				</div>
 
 				{steps.map((step, index) => (
-					<div
+					<Link
+						href={step.href}
 						key={index.toString()}
 						className={`bg-content1 flex flex-row items-center justify-start gap-3 p-2 py-4 rounded-2xl border-2 ${etapa === step.key ? "border-primary" : "border-content2"}`}
 					>
@@ -127,7 +135,7 @@ export const RowSteps = memo(
 							</div>
 							<div className="text-sm text-default-700">{step.description}</div>
 						</div>
-					</div>
+					</Link>
 				))}
 			</div>
 		);

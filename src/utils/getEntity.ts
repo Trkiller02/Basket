@@ -4,6 +4,10 @@ import { REPRESENT_LIST } from "./selectList";
 import { getEntityData } from "@/lib/action-data";
 import type { User } from "./interfaces/user";
 
+export const entitiesList = new Set(["representante", "usuario", "atleta"]);
+
+export const adminEntitiesList = new Set(["secretaria", "administrador"]);
+
 export const findEntity = async (id: string, registerData?: RegisterData) => {
 	try {
 		if (registerData) {

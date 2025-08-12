@@ -1,13 +1,21 @@
 "use server";
 
 import { fetchData } from "@/utils/fetchHandler";
-import { auth } from "@/auth";
 import type { ChangePassword, User } from "@/utils/interfaces/user";
 import bcrypt from "bcryptjs";
-import { NOTIFICATION_MSG, NOTIFICATION_TYPE } from "@/utils/typeNotifications";
+
+type EntityProp =
+	| "representatives"
+	| "athletes"
+	| "users"
+	| "health"
+	| "repr-athletes"
+	| "invoices"
+	| "history"
+	| "config";
 
 export const getEntityData = async <T>(
-	entity: "representatives" | "athletes" | "users",
+	entity: EntityProp,
 	query: string,
 	params?: { [key: string]: string },
 	forFormView = false,
@@ -19,15 +27,7 @@ export const getEntityData = async <T>(
 };
 
 export const setEntityData = async <T>(
-	entity:
-		| "users"
-		| "representatives"
-		| "athletes"
-		| "health"
-		| "repr-athletes"
-		| "invoices"
-		| "notifications"
-		| "configurations",
+	entity: EntityProp,
 	data: Record<string, unknown>,
 ) => {
 	return await fetchData<T>(`/api/${entity}`, {
@@ -37,7 +37,7 @@ export const setEntityData = async <T>(
 };
 
 export const updateEntityData = async <T>(
-	entity: "representatives" | "athletes" | "health" | "repr-athletes" | "users",
+	entity: EntityProp,
 	query: string,
 	data: Record<string, unknown>,
 ) => {
@@ -47,10 +47,7 @@ export const updateEntityData = async <T>(
 	});
 };
 
-export const deleteEntityData = async (
-	entity: "representatives" | "athletes",
-	query: string,
-) => {
+export const deleteEntityData = async (entity: EntityProp, query: string) => {
 	return await fetchData(`/api/${entity}/${query}`, {
 		method: "DELETE",
 	});

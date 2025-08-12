@@ -1,19 +1,14 @@
 import { db } from "@/lib/db";
 import { and, between, eq, isNull } from "drizzle-orm";
-import {
-	athletes,
-	invoices,
-	notifications,
-	representatives,
-	users,
-} from "@drizzle/schema";
+import { athletes, invoices, representatives, users } from "@drizzle/schema";
 import { type NextRequest, NextResponse } from "next/server";
 import { MsgError } from "@/utils/messages";
 import { getLocalTimeZone, today } from "@internationalized/date";
-import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { regexList } from "@/utils/regexPatterns";
 import { NOTIFICATION_MSG, NOTIFICATION_TYPE } from "@/utils/typeNotifications";
+import { auth } from "@/auth";
+import { insertHistory } from "@/lib/db-data";
 
 export const runtime = "nodejs";
 
@@ -23,34 +18,9 @@ export const GET = async (req: NextRequest) => {
 	const pageNumber = Number(params.get("page")) || 1;
 	const limitNumber = Number(params.get("limit")) || 10;
 	const query = params.get("query") ?? "";
-	const isPayment = params.get("payment") === "true";
-
-	const date = today(getLocalTimeZone());
-
 	try {
-		if (isPayment) {
-			const result = await db.$count(
-				invoices,
-				between(
-					invoices.payment_date,
-					date.subtract({ days: date.day - 1 }).toString(),
-					date.toString(),
-				),
-			);
-
-			return NextResponse.json({
-				result,
-			});
-		}
-
 		const result = await db
-			.select({
-				payment_date: invoices.payment_date,
-				representative_id: invoices.representative_id,
-				description: invoices.description,
-				athlete_id: invoices.athlete_id,
-				image_path: invoices.image_path,
-			})
+			.select()
 			.from(invoices)
 			.where(eq(invoices.representative_id, query))
 			.limit(limitNumber)
@@ -77,15 +47,9 @@ export const GET = async (req: NextRequest) => {
 	}
 };
 
-export async function POST(req: NextRequest) {
+export const POST = auth(async (req) => {
 	const { representative_id, description, athlete_id, image_path } =
 		await req.json();
-
-	const session = await auth.api.getSession({
-		headers: await headers(),
-	});
-
-	console.log({ session });
 
 	const [represent] = await db
 		.select({
@@ -139,10 +103,10 @@ export async function POST(req: NextRequest) {
 				.set({ solvent: 3 })
 				.where(eq(athletes.id, athlete));
 
-			await db.insert(notifications).values({
-				user_id: session?.user.id ?? represent.user_id.id,
-				description: `${NOTIFICATION_MSG.PAYMENT} de atleta`,
-				type: NOTIFICATION_TYPE.PAYMENT,
+			await insertHistory({
+				user_id: req.auth?.user.id ?? represent.user_id.id,
+				description: `${NOTIFICATION_MSG.PAYMENT} de atleta ${athleteID}`,
+				action: "PAGO",
 				reference_id: String(id),
 			});
 		}
@@ -170,10 +134,10 @@ export async function POST(req: NextRequest) {
 			.set({ solvent: 3 })
 			.where(eq(athletes.id, athlete));
 
-		await db.insert(notifications).values({
-			user_id: session?.user.id ?? represent.user_id.id,
-			description: `${NOTIFICATION_MSG.PAYMENT} de atleta`,
-			type: NOTIFICATION_TYPE.PAYMENT,
+		await insertHistory({
+			user_id: req.auth?.user.id ?? represent.user_id.id,
+			description: `${NOTIFICATION_MSG.PAYMENT} de atleta ${athlete}`,
+			action: "PAGO",
 			reference_id: String(id),
 		});
 	}
@@ -185,4 +149,4 @@ export async function POST(req: NextRequest) {
 			{ status: 400 },
 		);
 	} */
-}
+});
