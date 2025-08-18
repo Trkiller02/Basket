@@ -59,7 +59,7 @@ export const QRDetails = memo(({ data }: { data?: DataQrProp }) => {
 				<Info className="size-4" />
 				Guarde esto en un lugar seguro
 			</em>
-			<Button onClick={() => {}} size="lg" className="gap-2">
+			<Button onClick={() => downloadPDF()} size="lg" className="gap-2">
 				<Download className="h-4 w-4" />
 				Descargar QR
 			</Button>

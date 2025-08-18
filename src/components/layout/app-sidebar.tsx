@@ -16,16 +16,16 @@ import {
 import Image from "next/image";
 import Logo from "@/assets/trapiche.svg";
 import {
-	Barcode,
 	LayoutDashboard,
-	LogOut,
 	Settings2,
+	UserPlus2,
 	UserRoundCheck,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { UserDropdown } from "../user-dropdown";
 import type { Session } from "next-auth";
 import Link from "next/link";
+import { use } from "react";
 
 // This is sample data.
 const data = {
@@ -42,7 +42,12 @@ const data = {
 				{
 					title: "Registrar",
 					url: "/registrar",
-					icon: Barcode,
+					icon: UserPlus2,
+				},
+				{
+					title: "Registrar Usuario",
+					url: "/registrar/usuario",
+					icon: UserPlus2,
 				},
 				{
 					title: "Pagos",
@@ -61,6 +66,7 @@ export function AppSidebar({
 	session: Promise<Session | null>;
 }) {
 	const pathname = usePathname();
+	const userSession = use(session);
 
 	return (
 		<Sidebar {...props}>
@@ -92,26 +98,34 @@ export function AppSidebar({
 						</SidebarGroupLabel>
 						<SidebarGroupContent>
 							<SidebarMenu>
-								{item.items.map((item) => (
-									<SidebarMenuItem key={item.title}>
-										<SidebarMenuButton
-											asChild
-											className="group/menu-button font-medium gap-3 h-12 rounded-md bg-gradient-to-r hover:bg-transparent hover:from-sidebar-accent hover:to-sidebar-accent/40 data-[active=true]:from-primary/20 data-[active=true]:to-primary/5 [&>svg]:size-auto"
-											isActive={pathname === item.url}
-										>
-											<Link href={item.url}>
-												{item.icon && (
-													<item.icon
-														className="text-muted-foreground/60 group-data-[active=true]/menu-button:text-primary"
-														size={18}
-														aria-hidden="true"
-													/>
-												)}
-												<span>{item.title}</span>
-											</Link>
-										</SidebarMenuButton>
-									</SidebarMenuItem>
-								))}
+								{item.items.map((item) => {
+									if (
+										item.url.startsWith("/registrar") &&
+										userSession?.user?.role === "representante"
+									)
+										return null;
+
+									return (
+										<SidebarMenuItem key={item.title}>
+											<SidebarMenuButton
+												asChild
+												className="group/menu-button font-medium gap-3 h-12 rounded-md bg-gradient-to-r hover:bg-transparent hover:from-sidebar-accent hover:to-sidebar-accent/40 data-[active=true]:from-primary/20 data-[active=true]:to-primary/5 [&>svg]:size-auto"
+												isActive={pathname === item.url}
+											>
+												<Link href={item.url}>
+													{item.icon && (
+														<item.icon
+															className="text-muted-foreground/60 group-data-[active=true]/menu-button:text-primary"
+															size={18}
+															aria-hidden="true"
+														/>
+													)}
+													<span>{item.title}</span>
+												</Link>
+											</SidebarMenuButton>
+										</SidebarMenuItem>
+									);
+								})}
 							</SidebarMenu>
 						</SidebarGroupContent>
 					</SidebarGroup>
@@ -119,22 +133,24 @@ export function AppSidebar({
 			</SidebarContent>
 			<SidebarFooter>
 				<SidebarMenu>
-					<SidebarMenuItem>
-						<SidebarMenuButton
-							className="group/menu-button font-medium gap-3 h-12 rounded-md bg-gradient-to-r hover:bg-transparent hover:from-sidebar-accent hover:to-sidebar-accent/40 data-[active=true]:from-primary/20 data-[active=true]:to-primary/10 [&>svg]:size-auto"
-							asChild
-							isActive={pathname.startsWith("/configuracion")}
-						>
-							<Link href="/configuracion">
-								<Settings2
-									className="text-muted-foreground/60 group-data-[active=true]/menu-button:text-primary"
-									size={18}
-									aria-hidden="true"
-								/>
-								<span>Configuración</span>
-							</Link>
-						</SidebarMenuButton>
-					</SidebarMenuItem>
+					{userSession?.user?.role !== "representante" && (
+						<SidebarMenuItem>
+							<SidebarMenuButton
+								className="group/menu-button font-medium gap-3 h-12 rounded-md bg-gradient-to-r hover:bg-transparent hover:from-sidebar-accent hover:to-sidebar-accent/40 data-[active=true]:from-primary/20 data-[active=true]:to-primary/10 [&>svg]:size-auto"
+								asChild
+								isActive={pathname.startsWith("/configuracion")}
+							>
+								<Link href="/configuracion">
+									<Settings2
+										className="text-muted-foreground/60 group-data-[active=true]/menu-button:text-primary"
+										size={18}
+										aria-hidden="true"
+									/>
+									<span>Configuración</span>
+								</Link>
+							</SidebarMenuButton>
+						</SidebarMenuItem>
+					)}
 					<UserDropdown sessionPromise={session} />
 				</SidebarMenu>
 				{/* <hr className="border-t border-border mx-2 -mt-px" />

@@ -22,10 +22,13 @@ import { QRDetails } from "../details/qr-code";
 import { PDFPreview } from "../details/pdf-preview";
 
 export default function ResumeForm() {
+	const form = useForm({});
+
 	const registerData = useRegisterStore((state) => state.registerData);
 	const clearRegisterData = useRegisterStore(
 		(state) => state.clearRegisterData,
 	);
+
 	const [data, setData] = useState<
 		| {
 				password: string;
@@ -220,14 +223,13 @@ export default function ResumeForm() {
 	if (!registerData || !registerData.athlete)
 		return "Completa el formulario para ver tus datos";
 
-	const form = useForm();
-
 	return (
 		<form
 			onSubmit={form.handleSubmit(() =>
 				toast.promise(onSubmit, {
 					loading: "Guardando...",
 					success: (data) => {
+						clearRegisterData();
 						return data;
 					},
 					error: (error) => error.message,
