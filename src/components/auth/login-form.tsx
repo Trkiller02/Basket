@@ -143,7 +143,7 @@ export function LoginForm({
 						/>
 						<div className="flex items-center">
 							<a
-								href="/session/recuperar"
+								href="/sesion/recuperar"
 								className="ml-auto text-sm underline-offset-4 hover:underline"
 							>
 								¿Olvido su contraseña?

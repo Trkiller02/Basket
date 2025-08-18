@@ -9,7 +9,7 @@ export default async function InvoicesPage() {
 		fetchData<{ result: string }>("/api/config?property=pricing"),
 	]);
 
-	if (!session) return redirect("/session/iniciar");
+	if (!session) return redirect("/sesion/iniciar");
 
 	return (
 		<InvoicesFormForm

@@ -7,7 +7,7 @@ import type { Health } from "./health";
 import type { CreateInvoices } from "./invoice";
 import type { User } from "./user";
 
-export const userSchema = Yup.object({
+export const userSchema: Yup.ObjectSchema<Omit<User, "id">> = Yup.object({
 	name: Yup.string()
 		.matches(regexList.onlyString, Messages.MATCH_ERR)
 		.min(2, Messages.MIN_ERR)
@@ -19,8 +19,11 @@ export const userSchema = Yup.object({
 		.max(50, Messages.MAX_ERR)
 		.required(Messages.REQUIRED),
 	phone_number: Yup.string()
-		.optional()
-		.matches(regexList.forPersonalPhoneNumber, Messages.PHONE_FORMAT),
+		.matches(regexList.forPersonalPhoneNumber, {
+			message: Messages.PHONE_FORMAT,
+			excludeEmptyString: true,
+		})
+		.optional(),
 	ci_number: Yup.string()
 		.matches(regexList.forDNI, Messages.DNI_MATCH)
 		.min(8, Messages.MIN_ERR)
