@@ -16,14 +16,12 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { setUpper } from "@/utils/setUpper";
 import { representativeSchema } from "@/utils/interfaces/schemas";
 import { toast } from "sonner";
-import { use } from "react";
 import { setEntityData } from "@/lib/action-data";
 import type { Session } from "next-auth";
+import { useSession } from "next-auth/react";
 
-export const FillEntity = ({
-	userSession,
-}: { userSession: Promise<Session | null> }) => {
-	const session = use(userSession);
+export const FillEntity = () => {
+	const { data: session } = useSession();
 	const form = useForm({
 		criteriaMode: "firstError",
 		mode: "all",

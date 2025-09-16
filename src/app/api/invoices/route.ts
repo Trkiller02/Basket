@@ -1,28 +1,52 @@
 import { db } from "@/lib/db";
-import { and, between, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { athletes, invoices, representatives, users } from "@drizzle/schema";
 import { type NextRequest, NextResponse } from "next/server";
 import { MsgError } from "@/utils/messages";
-import { getLocalTimeZone, today } from "@internationalized/date";
-import { headers } from "next/headers";
 import { regexList } from "@/utils/regexPatterns";
-import { NOTIFICATION_MSG, NOTIFICATION_TYPE } from "@/utils/typeNotifications";
+import { NOTIFICATION_MSG } from "@/utils/typeNotifications";
 import { auth } from "@/auth";
 import { insertHistory } from "@/lib/db-data";
+import type { CreateInvoices } from "@/utils/interfaces/invoice";
 
 export const runtime = "nodejs";
 
-export const GET = async (req: NextRequest) => {
+export const GET = auth(async (req: NextRequest) => {
 	const params = req.nextUrl.searchParams;
 
 	const pageNumber = Number(params.get("page")) || 1;
 	const limitNumber = Number(params.get("limit")) || 10;
 	const query = params.get("query") ?? "";
+	const toTable = params.get("table") ?? "";
+	const verified = params.get("verified");
+
 	try {
 		const result = await db
-			.select()
+			.select({
+				id: invoices.id,
+				representative_id: invoices.representative_id,
+				athlete_id: invoices.athlete_id,
+				payment_date: invoices.payment_date,
+				...(toTable
+					? {
+							description: invoices.description,
+							image_path: invoices.image_path,
+						}
+					: {}),
+			})
 			.from(invoices)
-			.where(eq(invoices.representative_id, query))
+			.where(
+				!query
+					? undefined
+					: and(
+							eq(invoices.representative_id, query),
+							typeof verified === "object"
+								? undefined
+								: verified
+									? eq(invoices.verified, true)
+									: eq(invoices.verified, false),
+						),
+			)
 			.limit(limitNumber)
 			.offset(pageNumber - 1);
 
@@ -32,8 +56,48 @@ export const GET = async (req: NextRequest) => {
 				{ status: 404 },
 			);
 
+		const AthletesList = new Map<string, string>();
+		const RepresentativesList = new Map<string, string>();
+
+		for (const invoice of result) {
+			if (!AthletesList.has(invoice.athlete_id)) {
+				const [athlete] = await db
+					.select({
+						ci_number: users.ci_number,
+					})
+					.from(athletes)
+					.innerJoin(users, eq(athletes.user_id, users.id))
+					.where(and(eq(athletes.id, invoice.athlete_id)));
+
+				AthletesList.set(invoice.athlete_id, athlete.ci_number);
+			}
+
+			if (!RepresentativesList.has(invoice.representative_id)) {
+				const [representative] = await db
+					.select({
+						ci_number: users.ci_number,
+					})
+					.from(representatives)
+					.innerJoin(users, eq(representatives.user_id, users.id))
+					.where(and(eq(representatives.id, invoice.representative_id)));
+
+				RepresentativesList.set(
+					invoice.representative_id,
+					representative.ci_number,
+				);
+			}
+		}
+
+		const resultWithCI = result.map((invoice) => ({
+			...invoice,
+			athlete_id: AthletesList.get(invoice.athlete_id) ?? invoice.athlete_id,
+			representative_id:
+				RepresentativesList.get(invoice.representative_id) ??
+				invoice.representative_id,
+		}));
+
 		return NextResponse.json({
-			result,
+			result: resultWithCI,
 			pagination: {
 				page: pageNumber,
 				total_pages: Math.round(result.length / limitNumber),
@@ -45,11 +109,11 @@ export const GET = async (req: NextRequest) => {
 			{ status: 400 },
 		);
 	}
-};
+});
 
 export const POST = auth(async (req) => {
 	const { representative_id, description, athlete_id, image_path } =
-		await req.json();
+		(await req.json()) as CreateInvoices;
 
 	const [represent] = await db
 		.select({

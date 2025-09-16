@@ -21,23 +21,23 @@ import {
 	SelectValue,
 } from "../ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
-import { Eye, EyeClosed } from "lucide-react";
+import { AlertCircleIcon, Eye, EyeClosed } from "lucide-react";
 import { useState } from "react";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { authLoginSchema } from "@/utils/interfaces/schemas";
 import { signIn } from "next-auth/react";
+import { toast } from "sonner";
+import { useSearchParams } from "next/navigation";
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 
-export function LoginForm({
-	className,
-	...props
-}: React.ComponentProps<"form">) {
+export function LoginForm({ className }: React.ComponentProps<"form">) {
+	const error = useSearchParams().get("code");
+
 	const [showPassword, setShowPassword] = useState<boolean>(false);
+
 	const form = useForm({
-		criteriaMode: "firstError",
-		shouldUseNativeValidation: true,
 		defaultValues: {
 			query: "V",
-			password: "",
 		},
 		resolver: yupResolver(authLoginSchema),
 	});
@@ -46,13 +46,17 @@ export function LoginForm({
 		<Form {...form}>
 			<form
 				className={cn("flex flex-col gap-6", className)}
-				{...props}
 				onSubmit={form.handleSubmit((values) =>
-					signIn("credentials", {
-						...values,
-						redirect: true,
-						redirectTo: "/sesion/validar",
-					}),
+					toast.promise(
+						signIn("credentials", {
+							...values,
+							redirect: true,
+							redirectTo: "/",
+						}),
+						{
+							loading: "Iniciando sesión...",
+						},
+					),
 				)}
 			>
 				<div className="flex flex-col items-center gap-2 text-center">
@@ -150,6 +154,13 @@ export function LoginForm({
 							</a>
 						</div>
 					</div>
+					{error && (
+						<Alert variant="destructive">
+							<AlertCircleIcon />
+							<AlertTitle>Fallo al iniciar sesión:</AlertTitle>
+							<AlertDescription>{error}</AlertDescription>
+						</Alert>
+					)}
 					<Button type="submit" className="w-full">
 						Ingresar
 					</Button>

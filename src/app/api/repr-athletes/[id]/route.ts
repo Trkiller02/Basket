@@ -9,7 +9,7 @@ import {
 } from "@drizzle/schema";
 import { and, eq, isNull } from "drizzle-orm";
 import { MsgError } from "@/utils/messages";
-import type { AthleteResultRepr } from "@/utils/interfaces/athlete";
+import { regexList } from "@/utils/regexPatterns";
 
 export async function GET(
 	req: NextRequest,
@@ -27,7 +27,15 @@ export async function GET(
 			user_id: representatives.user_id,
 		})
 		.from(representatives)
-		.where(eq(representatives.user_id, id));
+		.innerJoin(users, eq(representatives.user_id, users.id))
+		.where(
+			and(
+				eq(
+					id.match(regexList.forDNI) ? users.ci_number : representatives.id,
+					id ?? "",
+				),
+			),
+		);
 
 	if (!user)
 		return NextResponse.json({ message: MsgError.NOT_FOUND }, { status: 404 });

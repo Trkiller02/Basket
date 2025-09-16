@@ -4,24 +4,33 @@ import {
 	Card,
 	CardAction,
 	CardContent,
+	CardDescription,
 	CardHeader,
 	CardTitle,
 } from "../ui/card";
 import { Button } from "../ui/button";
-import { Edit2 } from "lucide-react";
+import { Activity, Edit2, Heart, Shield } from "lucide-react";
 import type { Health } from "@/utils/interfaces/health";
 import Link from "next/link";
+import { Badge } from "../ui/badge";
+import { Separator } from "../ui/separator";
 
 export const HealthResume = ({
 	data,
 	formView,
-}: { data: Health; formView?: boolean }) => {
+}: {
+	data: Health;
+	formView?: boolean;
+}) => {
 	if (!data) return null;
 
 	return (
-		<Card className={formView ? "w-full bg-transparent shadow-none" : "w-1/2"}>
-			<CardHeader className="flex flex-row justify-between">
-				<CardTitle id="health-data">Datos de salud:</CardTitle>
+		<Card className="w-full">
+			<CardHeader>
+				<CardTitle className="flex items-center gap-2">
+					<Heart className="h-5 w-5 text-red-500" />
+					Información Médica
+				</CardTitle>
 				<CardAction>
 					<Button variant="link" size="icon" asChild>
 						<Link
@@ -35,50 +44,97 @@ export const HealthResume = ({
 						</Link>
 					</Button>
 				</CardAction>
+				<CardDescription>
+					Historial médico y condiciones de salud
+				</CardDescription>
 			</CardHeader>
-			<CardContent>
-				<ul aria-labelledby="health-data" className="grid grid-cols-3 gap-2">
-					<li className="text-foreground-700 font-semibold">
-						Autorización medica:{" "}
-						<span className="font-normal">
-							{data.medical_authorization ? "SI" : "NO"}
-						</span>
-					</li>
-					<li className="text-foreground-700 font-semibold">
-						Tipo de sangre:{" "}
-						<span className="font-normal">{data.blood_type}</span>
-					</li>
-					<li className="text-foreground-700 font-semibold">
-						Medicamentos:{" "}
-						<span className="font-normal">
-							{data.takes_medications ?? "NO"}
-						</span>
-					</li>
-					<li className="text-foreground-700 font-semibold">
-						Alergias:{" "}
-						<span className="font-normal">{data.has_allergies ?? "NO"}</span>
-					</li>
-					<li className="text-foreground-700 font-semibold">
-						Padece asma:{" "}
-						<span className="font-normal">{data.has_asthma ? "SI" : "NO"}</span>
-					</li>
-					<li className="text-foreground-700 font-semibold">
-						Lesiones:{" "}
-						<span className="font-normal">{data.injuries ?? "NO"}</span>
-					</li>
-					<li className="text-foreground-700 font-semibold">
-						Intervenciones quirurgicas:{" "}
-						<span className="font-normal">
-							{data.surgical_intervention ?? "NO"}
-						</span>
-					</li>
-					<li className="text-foreground-700 font-semibold">
-						Estado actual de salud:{" "}
-						<span className="font-normal">
-							{data.current_illnesses ?? "No especificado."}
-						</span>
-					</li>
-				</ul>
+			<CardContent className="space-y-6">
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+					<div className="space-y-4">
+						<div className="flex items-center gap-3">
+							<Shield className="h-5 w-5 text-muted-foreground" />
+							<div>
+								<p className="text-sm text-muted-foreground">
+									Autorización Médica
+								</p>
+								<Badge
+									variant={
+										data.medical_authorization ? "default" : "destructive"
+									}
+								>
+									{data.medical_authorization ? "Autorizado" : "No Autorizado"}
+								</Badge>
+							</div>
+						</div>
+
+						<div className="flex items-center gap-3">
+							<div className="flex items-center justify-center w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/20">
+								<span className="text-sm font-bold text-red-600 dark:text-red-400">
+									{data.blood_type}
+								</span>
+							</div>
+							<div>
+								<p className="text-sm text-muted-foreground">Tipo de Sangre</p>
+								<p className="font-medium">{data.blood_type}</p>
+							</div>
+						</div>
+
+						<div className="flex items-center gap-3">
+							<Activity className="h-5 w-5 text-muted-foreground" />
+							<div>
+								<p className="text-sm text-muted-foreground">Asma</p>
+								<Badge variant={data.has_asthma ? "destructive" : "secondary"}>
+									{data.has_asthma ? "Sí" : "No"}
+								</Badge>
+							</div>
+						</div>
+					</div>
+
+					<div className="space-y-4">
+						<div>
+							<p className="text-sm text-muted-foreground mb-1">Alergias</p>
+							<p className="font-medium">
+								{data.has_allergies || "No especificado"}
+							</p>
+						</div>
+
+						<div>
+							<p className="text-sm text-muted-foreground mb-1">Medicamentos</p>
+							<p className="font-medium">
+								{data.takes_medications || "Ninguno"}
+							</p>
+						</div>
+
+						<div>
+							<p className="text-sm text-muted-foreground mb-1">
+								Intervenciones Quirúrgicas
+							</p>
+							<p className="font-medium">
+								{data.surgical_intervention || "Ninguna"}
+							</p>
+						</div>
+					</div>
+				</div>
+
+				<Separator />
+
+				<div className="space-y-4">
+					<div>
+						<p className="text-sm text-muted-foreground mb-1">
+							Lesiones Previas
+						</p>
+						<p className="font-medium">
+							{data.injuries || "Ninguna registrada"}
+						</p>
+					</div>
+
+					<div>
+						<p className="text-sm text-muted-foreground mb-1">
+							Enfermedades Actuales
+						</p>
+						<p className="font-medium">{data.current_illnesses || "Ninguna"}</p>
+					</div>
+				</div>
 			</CardContent>
 		</Card>
 	);

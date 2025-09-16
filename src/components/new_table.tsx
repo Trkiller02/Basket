@@ -67,6 +67,8 @@ import { getEntityToFetch } from "@/utils/table/getDataTable";
 import useSWR from "swr";
 import { fetcher } from "@/lib/axios";
 import { ExtractUserProps } from "@/utils/table/extractProps";
+import { adminEntitiesList } from "@/utils/getEntity";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 export interface UserTable
 	extends Omit<User, "password" | "repeat_password" | "restore_code">,
@@ -106,7 +108,7 @@ export default function ContactsTableNew({
 		};
 	}>(
 		session?.user?.role === "representante"
-			? `/api/repr-athletes/${session?.user?.ci_number}?table=true`
+			? `/api/repr-athletes/${session?.user?.id}?table=true`
 			: `/api/${getEntityToFetch(entity)}?${new URLSearchParams(filterData).toString()}`,
 		fetcher,
 	);
@@ -120,6 +122,7 @@ export default function ContactsTableNew({
 	useEffect(() => {
 		if (session?.user?.role !== "representante")
 			setHiddenCols((prev) => prev.add("category").add("solvent"));
+		else setHiddenCols((prev) => prev.add("actions"));
 
 		if (entity === "atleta")
 			setHiddenCols((prev) => {
@@ -354,10 +357,30 @@ export default function ContactsTableNew({
 															key={`${id}-name`}
 															className="last:py-0 h-[inherit]"
 														>
-															<div className="flex items-center gap-3">
+															<div className="flex flex-row justify-center space-x-4">
+																<Avatar className="size-8 md:size-10">
+																	<AvatarImage
+																		src={row.image || "/placeholder.svg"}
+																		alt="profile-image"
+																	/>
+																	<AvatarFallback className="text-4xl md:text-5xl font-bold bg-gray-300 text-white">
+																		{row.lastname[0]}
+																	</AvatarFallback>
+																</Avatar>
+
+																<div className="flex-1 md:text-left">
+																	<p className="font-semibold">
+																		{row.lastname}
+																		<span className="font-medium text-muted-foreground block">
+																			{row.name}
+																		</span>
+																	</p>
+																</div>
+															</div>
+															{/* <div className="flex items-center gap-3">
 																{row.image ? (
 																	<Image
-																		className="rounded-full"
+																		className="rounded-full aspect-square h-full w-auto"
 																		src={
 																			row.image ||
 																			"/placeholder.svg?height=32&width=32&query=avatar"
@@ -375,7 +398,7 @@ export default function ContactsTableNew({
 																		{row.name}
 																	</span>
 																</p>
-															</div>
+															</div> */}
 														</TableCell>
 													);
 
@@ -430,24 +453,29 @@ export default function ContactsTableNew({
 													return (
 														<TableCell
 															key={`${id}-solvent`}
-															className="last:py-0 h-[inherit]"
+															className=" h-[inherit]"
 														>
-															<Tooltip>
-																<TooltipTrigger asChild>
-																	<Badge
-																		variant={
-																			solventValue === 0
-																				? "destructive"
-																				: undefined
-																		}
-																	>
-																		<SolventIcon />
-																	</Badge>
-																</TooltipTrigger>
-																<TooltipContent>
-																	<p>{getInvoiceStatus(solventValue)}</p>
-																</TooltipContent>
-															</Tooltip>
+															<Badge
+																asChild
+																variant={
+																	solventValue === 0 ? "destructive" : undefined
+																}
+															>
+																<Link
+																	href={
+																		solventValue === 0
+																			? `/pagos?q=${row.ci_number}`
+																			: "/pagos/historial"
+																	}
+																>
+																	<SolventIcon />
+																	<p>
+																		{getInvoiceStatus(
+																			solventValue,
+																		).toUpperCase()}
+																	</p>
+																</Link>
+															</Badge>
 														</TableCell>
 													);
 
@@ -482,26 +510,26 @@ export default function ContactsTableNew({
 																	<DropdownMenuGroup>
 																		<DropdownMenuItem asChild>
 																			<Link
-																				href={`/buscar/${row.role}/${row.ci_number}`}
+																				href={`/buscar/${adminEntitiesList.has(row.role ?? "") ? "usuario" : row.role}/${row.ci_number}`}
 																			>
 																				<EyeIcon
 																					className="size-5"
 																					size={20}
 																					aria-hidden="true"
 																				/>
-																				<span className="sr-only">Ver</span>
+																				<span>Ver</span>
 																			</Link>
 																		</DropdownMenuItem>
 																		<DropdownMenuItem>
 																			<Link
-																				href={`/editar/${row.role}/${row.ci_number}`}
+																				href={`/editar/${adminEntitiesList.has(row.role ?? "") ? "usuario" : row.role}/${row.ci_number}`}
 																			>
 																				<PencilIcon
 																					className="size-5"
 																					size={20}
 																					aria-hidden="true"
 																				/>
-																				<span className="sr-only">Editar</span>
+																				<span>Editar</span>
 																			</Link>
 																		</DropdownMenuItem>
 																	</DropdownMenuGroup>
@@ -573,7 +601,7 @@ export default function ContactsTableNew({
 										}
 										disabled={
 											isLoading ||
-											(data?.pagination.total_pages ?? 0) <
+											(data?.pagination?.total_pages ?? 0) <
 												Number(filterData.page ?? "1")
 										}
 										aria-label="Go to next p"

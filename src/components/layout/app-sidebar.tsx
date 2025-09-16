@@ -23,9 +23,8 @@ import {
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { UserDropdown } from "../user-dropdown";
-import type { Session } from "next-auth";
 import Link from "next/link";
-import { use } from "react";
+import { useSession } from "next-auth/react";
 
 // This is sample data.
 const data = {
@@ -59,14 +58,9 @@ const data = {
 	],
 };
 
-export function AppSidebar({
-	session,
-	...props
-}: React.ComponentProps<typeof Sidebar> & {
-	session: Promise<Session | null>;
-}) {
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 	const pathname = usePathname();
-	const userSession = use(session);
+	const { data: userSession } = useSession();
 
 	return (
 		<Sidebar {...props}>
@@ -151,7 +145,7 @@ export function AppSidebar({
 							</SidebarMenuButton>
 						</SidebarMenuItem>
 					)}
-					<UserDropdown sessionPromise={session} />
+					<UserDropdown session={userSession} />
 				</SidebarMenu>
 				{/* <hr className="border-t border-border mx-2 -mt-px" />
 				<SidebarMenu>

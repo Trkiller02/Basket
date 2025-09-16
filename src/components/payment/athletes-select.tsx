@@ -1,7 +1,5 @@
 "use client";
 
-import type React from "react";
-
 import {
 	Upload,
 	FileText,
@@ -21,7 +19,6 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { Athlete } from "@/utils/interfaces/athlete";
@@ -41,7 +38,6 @@ import {
 } from "../ui/form";
 import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { cn } from "@/lib/utils";
 import { getInvoiceStatus, getInvoiceStatusColor } from "@/utils/invoiceHelper";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import {
@@ -56,43 +52,52 @@ import { findEntity } from "@/utils/getEntity";
 import useSWR from "swr";
 import { fetcher } from "@/lib/axios";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
+import { fetchData } from "@/utils/fetchHandler";
 
 export default function InvoicesFormForm({
-	athleteList,
 	pricing,
 	representId,
 }: {
-	athleteList?: Pick<Athlete, "user_id" | "solvent" | "id">[];
 	pricing: number;
 	representId?: string;
 }) {
 	const athleteId = useSearchParams().get("q") ?? undefined;
-	const [reprId, setReprId] = useState<string | undefined>(undefined);
+
+	const [reprId, setReprId] = useState<string | undefined>(
+		representId ?? undefined,
+	);
+
+	const { data: athletesFind, isLoading } = useSWR<{
+		result: Pick<Athlete, "user_id" | "solvent" | "id">[];
+	}>(reprId ? `/api/repr-athletes/${reprId}?invoice=true` : null, fetcher);
+
+	const solventAthletes = useMemo<Set<string>>(() => {
+		const athletesSolventFiltered = athletesFind?.result
+			?.filter((i) => i.solvent !== 0)
+			.map((i) => i.user_id.ci_number);
+
+		return new Set(athletesSolventFiltered ?? []);
+	}, [athletesFind]);
 
 	const form = useForm<CreateInvoices>({
 		resolver: yupResolver(invoiceSchema),
 		defaultValues: {
-			athlete_id: athleteId,
+			athlete_id: athleteId ?? "",
 			representative_id: representId ?? "V",
 		},
 		shouldUseNativeValidation: true,
 		progressive: true,
 	});
 
-	const { data: athletesFind } = useSWR<{
-		result: Pick<Athlete, "user_id" | "solvent">[];
-	}>(reprId ? `/api/repr-athletes/${reprId}?invoice=true` : null, fetcher);
+	const athletesWatched =
+		form.watch("athlete_id")?.split(",").filter(Boolean) ?? [];
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
-	useEffect(() => {
-		console.log({ represent: form.watch("representative_id"), athletesFind });
-	}, [form.watch("representative_id"), athletesFind]);
+	const athletesLength = athletesWatched.length;
+	const montoTotal = athletesLength * pricing;
 
 	const handleToggle = (userId: string) => {
 		const prev = new Set(form.watch("athlete_id")?.split(",").filter(Boolean));
-
-		console.log({ prev, userId });
 
 		if (prev.has(userId)) prev.delete(userId);
 		else prev.add(userId);
@@ -100,16 +105,36 @@ export default function InvoicesFormForm({
 		return Array.from(prev).join(",");
 	};
 
-	const handleSubmit = async (e: CreateInvoices) => {
-		const { image_path, ...props } = e;
+	const handleSubmit = async (data: CreateInvoices) => {
+		for (const athlete of athletesWatched) {
+			if (solventAthletes.has(athlete))
+				throw new Error(`No se puede procesar el pago para ${athlete}`);
+		}
 
-		alert(JSON.stringify(props));
+		const fileUpload = await fetchData<{ message: string }>(
+			"/api/upload-image",
+			{
+				method: "POST",
+				body: {
+					file: data.image_path,
+					name: `${data.athlete_id}-${new Date().toISOString().split("T")[0]}`,
+					type: "invoices",
+				},
+			},
+		);
+
+		if (!fileUpload) throw new Error("Error al subir imagen");
+
+		await fetchData<{ message: string }>("/api/invoices", {
+			method: "POST",
+			body: {
+				representative_id: data.representative_id,
+				description: data.description,
+				athlete_id: data.athlete_id,
+				image_path: fileUpload.message,
+			},
+		});
 	};
-
-	const athletesWatched =
-		form.watch("athlete_id")?.split(",").filter(Boolean) ?? [];
-	const athletesLength = athletesWatched.length;
-	const montoTotal = athletesLength * pricing;
 
 	return (
 		<section className="min-h-screen p-4">
@@ -147,7 +172,15 @@ export default function InvoicesFormForm({
 				<CardContent>
 					<Form {...form}>
 						<form
-							onSubmit={form.handleSubmit(handleSubmit)}
+							onSubmit={form.handleSubmit((values) =>
+								toast.promise(handleSubmit(values), {
+									loading: "Registrando pago...",
+									success: (_) => {
+										return "Pago registrado exitosamente";
+									},
+									error: (error) => error.message,
+								}),
+							)}
 							id="invoice-form"
 							className="space-y-6"
 						>
@@ -232,6 +265,8 @@ export default function InvoicesFormForm({
 								/>
 							)}
 
+							{isLoading && <p>Cargando...</p>}
+
 							{/* Selección de Estudiantes - FindByRepresentative */}
 							{athletesFind && (
 								<FormField
@@ -242,7 +277,7 @@ export default function InvoicesFormForm({
 											<FormLabel>Estudiantes</FormLabel>
 											<FormControl>
 												<div className="space-y-3 md:grid md:grid-cols-2 md:gap-2">
-													{athletesFind?.result?.map((estudiante) => (
+													{athletesFind.result?.map((estudiante) => (
 														<div
 															key={estudiante.user_id.ci_number}
 															className="hover:bg-accent/50 flex items-center gap-3 rounded-lg border p-3 has-[[aria-checked=true]]:border-primary has-[[aria-checked=true]]:bg-primary/5 dark:has-[[aria-checked=true]]:border-blue-900 dark:has-[[aria-checked=true]]:bg-blue-950"
@@ -252,7 +287,7 @@ export default function InvoicesFormForm({
 																defaultChecked={athletesWatched.includes(
 																	estudiante.user_id.ci_number,
 																)}
-																onCheckedChange={(checked) =>
+																onCheckedChange={() =>
 																	field.onChange(
 																		handleToggle(estudiante.user_id.ci_number),
 																	)
@@ -324,7 +359,7 @@ export default function InvoicesFormForm({
 								/>
 							)}
 
-							{/* Selección de Estudiantes */}
+							{/*
 							{athleteList && (
 								<FormField
 									control={form.control}
@@ -403,7 +438,7 @@ export default function InvoicesFormForm({
 																	<div className="text-sm text-gray-500">
 																		{estudiante.user_id.lastname}
 																	</div>
-																</div> */}
+																</div> /*} 
 															</label>
 														</div>
 													))}
@@ -417,7 +452,7 @@ export default function InvoicesFormForm({
 										</FormItem>
 									)}
 								/>
-							)}
+							)} */}
 
 							{/* Concepto */}
 							<FormField

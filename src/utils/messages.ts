@@ -19,6 +19,7 @@ enum MsgError {
 	INTERNAL_SERVER = "Ha ocurrido un error interno",
 	DB_CONNECTION = "No se pudo conectar a la base de datos",
 	DB_ERROR = "Ha ocurrido un error en la base de datos",
+	AUTH_ERROR = "C.I o Contraseña incorrecta",
 }
 
 export { Messages, MsgError };

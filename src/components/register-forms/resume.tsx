@@ -12,7 +12,7 @@ import type { Representative } from "@/utils/interfaces/representative";
 import type { Athlete } from "@/utils/interfaces/athlete";
 import type { Health } from "@/utils/interfaces/health";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MainDialog } from "../details/main-dialog";
 import useSWR from "swr";
 import { fetcher } from "@/lib/axios";
@@ -20,9 +20,13 @@ import { regexList } from "@/utils/regexPatterns";
 import { useForm } from "react-hook-form";
 import { QRDetails } from "../details/qr-code";
 import { PDFPreview } from "../details/pdf-preview";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export default function ResumeForm() {
 	const form = useForm({});
+	const router = useRouter();
+	const pathname = usePathname();
+	const searchParams = useSearchParams();
 
 	const registerData = useRegisterStore((state) => state.registerData);
 	const clearRegisterData = useRegisterStore(
@@ -83,6 +87,17 @@ export default function ResumeForm() {
 
 		f();
 	}, []); */
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: <all dependencies are used>
+	useEffect(() => {
+		if (!data) return;
+
+		const params = new URLSearchParams(searchParams);
+
+		params.append("modal", "true");
+
+		router.push(`${pathname}?${params.toString()}`);
+	}, [data]);
 
 	/* 	const registerRepresentative = async (
 		type: "representative" | "mother" | "father",
@@ -221,7 +236,7 @@ export default function ResumeForm() {
 	};
 
 	if (!registerData || !registerData.athlete)
-		return "Completa el formulario para ver tus datos";
+		return <h1>Completa el formulario para ver tus datos</h1>;
 
 	return (
 		<form
@@ -229,7 +244,6 @@ export default function ResumeForm() {
 				toast.promise(onSubmit, {
 					loading: "Guardando...",
 					success: (data) => {
-						clearRegisterData();
 						return data;
 					},
 					error: (error) => error.message,
@@ -329,7 +343,12 @@ export default function ResumeForm() {
 				},
 			)} */}
 
-			<MainDialog>
+			<MainDialog
+				onAction={() => {
+					clearRegisterData();
+					router.push("/");
+				}}
+			>
 				<QRDetails data={data} />
 				<PDFPreview urlDownload={`/api/reports/register/${data?.athleteId}`} />
 			</MainDialog>

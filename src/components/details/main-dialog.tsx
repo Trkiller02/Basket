@@ -90,11 +90,13 @@ interface DynamicProps {
 	title?: string;
 	description?: string;
 	children: React.ReactNode;
+	onAction?: () => void;
 }
 
 export function MainDialog({
 	title = "¡Importante!",
 	description = "Esta información puede ser importante y confidencial.",
+	onAction,
 	children,
 }: DynamicProps) {
 	const searchParams = useSearchParams();
@@ -103,7 +105,9 @@ export function MainDialog({
 	const isOpen = !!searchParams.get("modal");
 
 	const onOpenChange = () => {
+		onAction?.();
 		const params = new URLSearchParams(searchParams);
+
 		params.delete("modal");
 
 		replace(`${pathname}${params.size > 0 ? `?${params.toString()}` : ""}`);

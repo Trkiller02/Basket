@@ -1,11 +1,13 @@
 // The `JWT` interface can be found in the `next-auth/jwt` submodule
 import { type DefaultJWT, JWT } from "next-auth/jwt";
+import { CredentialsSignin } from "next-auth";
 import NextAuth, { type User, type DefaultSession } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { db } from "./lib/db";
 import { representatives, users } from "@drizzle/schema";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import bcrypt from "bcryptjs";
+import { MsgError } from "./utils/messages";
 
 declare module "next-auth" {
 	/**
@@ -31,6 +33,10 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
 	/** Returned by the `jwt` callback and `auth`, when using JWT sessions */
 	interface JWT extends DefaultJWT, User {}
+}
+
+export class InvalidLoginError extends CredentialsSignin {
+	code = MsgError.AUTH_ERROR;
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -62,20 +68,25 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 						role: users.role,
 					})
 					.from(users)
-					.where(eq(users.ci_number, credentials.query as string));
+					.where(
+						and(
+							eq(users.ci_number, credentials.query as string),
+							isNull(users.deleted_at),
+						),
+					);
 
-				if (!user) return null;
+				if (!user) throw new InvalidLoginError();
 
 				const { password, name, lastname, ...userInfo } = user;
 
-				if (!password) return null;
+				if (!password) throw new InvalidLoginError();
 
 				const isValidPassword = await bcrypt.compare(
 					credentials.password as string,
 					password,
 				);
 
-				if (!isValidPassword) return null;
+				if (!isValidPassword) throw new InvalidLoginError();
 
 				const [{ id: representID }] =
 					user.role === "representante"
@@ -112,6 +123,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 	pages: {
 		signIn: "/sesion/iniciar",
 		signOut: "/sesion/iniciar",
+		error: "/sesion/iniciar",
 	},
 	session: {
 		strategy: "jwt",

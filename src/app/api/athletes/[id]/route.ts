@@ -170,12 +170,7 @@ export const DELETE = auth(
 
 		const [athlete] = await db
 			.select({
-				id: athletes.id,
-				user_id: {
-					id: users.id,
-					email: users.email,
-					ci_number: users.ci_number,
-				},
+				user_id: users.id,
 			})
 			.from(athletes)
 			.innerJoin(users, eq(athletes.user_id, users.id))
@@ -201,7 +196,7 @@ export const DELETE = auth(
 		await db
 			.update(users)
 			.set({ deleted_at: new Date().toISOString() })
-			.where(eq(users.id, athlete.user_id.id));
+			.where(eq(users.id, athlete.user_id));
 
 		await insertHistory({
 			user_id: req.auth.user.id ?? "",

@@ -20,7 +20,7 @@ export interface DataInvoices {
 }
 
 export interface CreateInvoices {
-	representative_id?: string;
+	representative_id: string;
 	description?: string;
 	athlete_id: string;
 	image_path: string;

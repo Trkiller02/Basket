@@ -15,13 +15,6 @@ export type Athlete = {
 	>;
 };
 
-export interface DataRequest
-	extends Partial<Pick<Athlete, "solvent" | "age" | "category" | "position">>,
-		Pick<User, "name" | "lastname" | "email" | "phone_number" | "ci_number"> {
-	id: string;
-	role_id?: string;
-}
-
 export interface AthleteResultRepr {
 	id: string;
 	user_id: {

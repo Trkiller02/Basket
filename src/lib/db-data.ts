@@ -9,11 +9,13 @@ import {
 	users,
 	history,
 	type historyTypes,
+	invoices,
 } from "@drizzle/schema";
 import type { RegisterData } from "@/store/useRegisterStore";
 import { regexList } from "@/utils/regexPatterns";
 import type { Representative } from "@/utils/interfaces/representative";
 import bcrypt from "bcryptjs";
+import type { CreateInvoices } from "@/utils/interfaces/invoice";
 
 export const registerTransaction = async (data: RegisterData) => {
 	const {

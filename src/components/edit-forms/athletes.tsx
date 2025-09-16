@@ -1,6 +1,6 @@
 "use client";
 
-import { Save, Upload } from "lucide-react";
+import { Save, Trash2, Upload } from "lucide-react";
 
 import { dateHandler } from "@/utils/dateHandler";
 
@@ -92,6 +92,12 @@ function AthleteEditForm({ data }: { data: Athlete }) {
 			body: setUpper<Partial<Athlete>>(data),
 			method: "PATCH",
 		});
+
+	const onDelete = async () => {
+		return await fetchData<{ message: string }>(`/api/athletes/${data.id}`, {
+			method: "DELETE",
+		});
+	};
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
@@ -393,9 +399,26 @@ function AthleteEditForm({ data }: { data: Athlete }) {
 					)}
 				/>
 
-				<div className="col-span-2 inline-flex items-center gap-4">
+				<div className="col-span-2 inline-flex items-center gap-4 justify-end">
 					<Button variant="outline" asChild>
 						<Link href="/">Cancelar</Link>
+					</Button>
+
+					<Button
+						type="button"
+						variant="destructive"
+						className="flex items-center space-x-2"
+						onClick={() =>
+							toast.promise(onDelete, {
+								loading: "Eliminando...",
+								success: (data) => data?.message ?? "Datos eliminados",
+								error: (err: Error) =>
+									`Error al eliminar datos: ${err.message}`,
+							})
+						}
+					>
+						<Trash2 className="h-4 w-4" />
+						<span>Eliminar</span>
 					</Button>
 
 					<Button type="submit" className="flex items-center space-x-2">

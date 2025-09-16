@@ -8,9 +8,6 @@ export const GET = auth(
 	async (req, { params }: { params: Promise<{ id: string }> }) => {
 		const { id } = await params;
 
-		if (!req.auth)
-			return NextResponse.json({ error: "No autenticado" }, { status: 401 });
-
 		try {
 			const [invoice] = await db
 				.select()

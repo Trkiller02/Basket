@@ -154,7 +154,7 @@ export const healthSchema: Yup.ObjectSchema<Omit<Health, "id" | "athlete_id">> =
 	});
 
 export const invoiceSchema: Yup.ObjectSchema<CreateInvoices> = Yup.object({
-	representative_id: Yup.string().optional(),
+	representative_id: Yup.string().required(Messages.REQUIRED),
 	athlete_id: Yup.string().required(Messages.REQUIRED),
 	description: Yup.string().optional(),
 	image_path: Yup.string().required(Messages.REQUIRED),

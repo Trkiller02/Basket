@@ -60,7 +60,7 @@ export function UserCard({ user }: { user: User }) {
 									src={user.image || "/placeholder.svg"}
 									alt="profile-image"
 								/>
-								<AvatarFallback className="text-4xl md:text-5xl font-bold bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+								<AvatarFallback className="text-4xl md:text-5xl font-bold bg-gray-300 text-white">
 									{initials}
 								</AvatarFallback>
 							</Avatar>

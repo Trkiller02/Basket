@@ -4,11 +4,13 @@ import Image from "next/image";
 
 export default async function SesionLayout({
 	children,
-}: { children: React.ReactNode }) {
+}: {
+	children: React.ReactNode;
+}) {
 	return (
 		<div className="grid min-h-svh lg:grid-cols-2">
 			<div className="flex flex-col gap-4 p-6 md:p-10">
-				<div className="flex justify-center gap-2 md:justify-start">
+				<aside className="flex justify-center gap-2 md:justify-start">
 					<a href="/" className="flex items-center gap-2 font-medium">
 						<Image
 							src={Logo}
@@ -19,10 +21,10 @@ export default async function SesionLayout({
 						/>
 						Trapichito.
 					</a>
-				</div>
-				<div className="flex flex-1 items-center justify-center">
-					<div className="w-full max-w-xs">{children}</div>
-				</div>
+				</aside>
+				<main className="flex flex-1 items-center justify-center">
+					<section className="w-full max-w-xs">{children}</section>
+				</main>
 			</div>
 			<div className="bg-muted relative hidden lg:block">
 				<Image

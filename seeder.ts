@@ -26,10 +26,13 @@ import { eq } from "drizzle-orm";
 			restore_code: await bcrypt.hash("123456", 10),
 		});
 
-		await db.insert(configurations).values({
-			id: "pricing",
-			value: "189",
-		});
+		await db
+			.insert(configurations)
+			.values({
+				id: "pricing",
+				value: "189",
+			})
+			.onConflictDoNothing();
 
 		db.$client.end();
 

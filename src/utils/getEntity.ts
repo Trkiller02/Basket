@@ -8,6 +8,12 @@ export const entitiesList = new Set(["representante", "usuario", "atleta"]);
 
 export const adminEntitiesList = new Set(["secretaria", "administrador"]);
 
+export const entityToFetch = Object.freeze({
+	usuario: "users",
+	representante: "representatives",
+	atleta: "athletes",
+});
+
 export const findEntity = async (id: string, registerData?: RegisterData) => {
 	try {
 		if (registerData) {

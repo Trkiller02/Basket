@@ -1,9 +1,11 @@
+import { auth } from "@/auth";
 import { getEntityData } from "@/lib/action-data";
 import { MsgError } from "@/utils/messages";
-import type { Session } from "next-auth";
 import { redirect } from "next/navigation";
 
-export async function UserValidation({ session }: { session: Session | null }) {
+export async function UserValidation() {
+	const session = await auth();
+
 	if (session?.user?.role === "representante") {
 		try {
 			const user = await getEntityData(

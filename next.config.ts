@@ -1,11 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+	compiler: {
+		removeConsole: true,
+	},
 	/* config options here */
 	experimental: {
 		parallelServerCompiles: true,
-		useLightningcss: true,
+		nodeMiddleware: true,
 		ppr: "incremental",
+		globalNotFound: true,
 	},
 };
 

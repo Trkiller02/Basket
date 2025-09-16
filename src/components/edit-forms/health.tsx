@@ -61,6 +61,7 @@ export default function HealthEditForm({ data }: { data?: Health }) {
 					}),
 				)}
 			>
+				<h1 className="col-span-2 font-semibold text-lg">Datos medicos:</h1>
 				{/* BLOOD_TYPE FIELD */}
 				<FormField
 					control={form.control}
@@ -233,7 +234,7 @@ export default function HealthEditForm({ data }: { data?: Health }) {
 					)}
 				/>
 
-				<div className="col-span-2 inline-flex items-center gap-4">
+				<div className="col-span-2 inline-flex items-center gap-4 justify-end">
 					<Button variant="outline" asChild>
 						<Link href="/">Cancelar</Link>
 					</Button>

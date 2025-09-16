@@ -4,12 +4,17 @@ import type { Representative } from "@/utils/interfaces/representative";
 import type { Athlete } from "@/utils/interfaces/athlete";
 import type { User } from "@/utils/interfaces/user";
 import type { Health } from "@/utils/interfaces/health";
-import { adminEntitiesList, entitiesList } from "@/utils/getEntity";
+import {
+	adminEntitiesList,
+	entitiesList,
+	entityToFetch,
+} from "@/utils/getEntity";
 import AthleteEditForm from "@/components/edit-forms/athletes";
 import HealthEditForm from "@/components/edit-forms/health";
 import RepresentativeEditForm from "@/components/edit-forms/representative";
 import UserEditForm from "@/components/edit-forms/user";
 import { auth } from "@/auth";
+import { Separator } from "@/components/ui/separator";
 
 interface EntityPageParams {
 	entity: string;
@@ -23,30 +28,33 @@ export default async function EditPage({
 }) {
 	const { entity, id } = await params;
 
+	if (!entitiesList.has(entity) || id === undefined) return redirect("/");
+
 	const session = await auth();
 
 	if (!adminEntitiesList.has(session?.user.role ?? "")) return redirect("/");
 
-	if (adminEntitiesList.has(entity)) return redirect(`/editar/usuario/${id}`);
-
-	if (!entitiesList.has(entity) || id === undefined) return redirect("/");
-
-	const data = await fetchData(`/api/${entity}/${id}`);
-
-	if (entity === "representante")
-		return <RepresentativeEditForm data={data as Representative} />;
-
-	if (entity === "usuario") return <UserEditForm data={data as User} />;
-
-	const [athlete, health] = await Promise.all([
-		fetchData<Athlete>(`/api/athletes/${id}`),
-		fetchData<Health>(`/api/health/${id}?formAthlete=true`),
+	const [data, health] = await Promise.all([
+		fetchData(
+			`/api/${entityToFetch[entity as keyof typeof entityToFetch]}/${id}`,
+		),
+		entity === "atleta"
+			? fetchData<Health>(`/api/health/${id}?formAthlete=true`)
+			: undefined,
 	]);
 
-	return (
-		<>
-			<AthleteEditForm data={athlete as Athlete} />
-			<HealthEditForm data={health as Health} />
-		</>
-	);
+	switch (entity) {
+		case "atleta":
+			return (
+				<>
+					<AthleteEditForm data={data as Athlete} />
+					<Separator className="my-4" />
+					<HealthEditForm data={health as Health} />
+				</>
+			);
+		case "representante":
+			return <RepresentativeEditForm data={data as Representative} />;
+		default:
+			return <UserEditForm data={data as User} />;
+	}
 }

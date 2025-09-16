@@ -1,8 +1,6 @@
-import { type NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { sql } from "drizzle-orm";
+import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { FormatEnum, pgDump } from "pg-dump-restore";
+import { pgDump } from "pg-dump-restore";
 import { getPropertiesDBConnection } from "@/utils/restore_helper";
 import { cwd } from "node:process";
 import path from "node:path";
@@ -24,7 +22,7 @@ export const POST = auth(async (request) => {
 	const pathname = path.join(cwd(), filename);
 
 	try {
-		const { stderr, stdout } = await pgDump(DB_PROPERTIES, {
+		const { stderr } = await pgDump(DB_PROPERTIES, {
 			filePath: pathname,
 			clean: true,
 			ifExists: true,
@@ -50,7 +48,9 @@ export const POST = auth(async (request) => {
 			action: "CREO",
 		});
 
-		return new NextResponse(fileContent, { headers });
+		return new NextResponse(fileContent as unknown as ReadableStream, {
+			headers,
+		});
 	} catch (error) {
 		console.error("Error al crear backup SQL:", error);
 		return NextResponse.json(

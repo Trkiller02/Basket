@@ -1,4 +1,3 @@
-import { auth } from "@/auth";
 import dynamic from "next/dynamic";
 import { notFound } from "next/navigation";
 
@@ -21,15 +20,14 @@ const LazyValidateUser = dynamic(() =>
 
 async function AuthPage({ params }: { params: Promise<{ step: string }> }) {
 	const { step } = await params;
-	const session = auth();
 
 	if (step === "iniciar") return <LazyLoginForm />;
 
-	if (step === "completar") return <LazyFillEntity userSession={session} />;
+	if (step === "completar") return <LazyFillEntity />;
 
 	if (step === "recuperar") return <LazyRestorePassword />;
 
-	if (step === "validar") return <LazyValidateUser session={await session} />;
+	if (step === "validar") return <LazyValidateUser />;
 
 	return notFound();
 }

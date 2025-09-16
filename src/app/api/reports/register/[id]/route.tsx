@@ -1,5 +1,7 @@
 import RegistrationForm from "@/components/reports/create-athlete";
 import { db } from "@/lib/db";
+import { Health } from "@/utils/interfaces/health";
+import { Representative } from "@/utils/interfaces/representative";
 import {
 	athletes,
 	health,
@@ -11,7 +13,7 @@ import { renderToStream } from "@react-pdf/renderer";
 import { and, eq, isNull } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
 
-export const GET = async (
+export const POST = async (
 	req: NextRequest,
 	{ params }: { params: Promise<{ id: string }> },
 ) => {
@@ -100,9 +102,13 @@ export const GET = async (
 		<RegistrationForm
 			data={{
 				athlete,
-				healthData,
-				father: Array.isArray(father) ? father[0] : undefined,
-				mother: Array.isArray(mother) ? mother[0] : undefined,
+				health: healthData as Health,
+				father: Array.isArray(father)
+					? (father[0] as Representative)
+					: undefined,
+				mother: Array.isArray(mother)
+					? (mother[0] as Representative)
+					: undefined,
 			}}
 		/>,
 	);

@@ -79,7 +79,7 @@ export const POST = auth(async (request) => {
 			process.env.DATABASE_URL ?? "",
 		);
 
-		const { stderr, stdout } = await pgRestore(DB_PROPERTIES, {
+		const { stderr } = await pgRestore(DB_PROPERTIES, {
 			filePath: pathname,
 		});
 
