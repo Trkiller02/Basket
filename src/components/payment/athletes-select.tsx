@@ -68,7 +68,11 @@ export default function InvoicesFormForm({
 		representId ?? undefined,
 	);
 
-	const { data: athletesFind, isLoading } = useSWR<{
+	const {
+		data: athletesFind,
+		isLoading,
+		error,
+	} = useSWR<{
 		result: Pick<Athlete, "user_id" | "solvent" | "id">[];
 	}>(reprId ? `/api/repr-athletes/${reprId}?invoice=true` : null, fetcher);
 
@@ -191,7 +195,9 @@ export default function InvoicesFormForm({
 									name="representative_id"
 									render={({ field }) => (
 										<FormItem>
-											<FormLabel>Cédula de identidad:</FormLabel>
+											<FormLabel>
+												Cédula de identidad del representante:
+											</FormLabel>
 											<FormControl>
 												<div className="flex items-center gap-2 w-full">
 													<Select
@@ -238,10 +244,8 @@ export default function InvoicesFormForm({
 																			{
 																				loading: "Verificando si existe...",
 																				success: (data) => {
-																					setReprId(data?.id);
-																					return {
-																						message: "Registro encontrado",
-																					};
+																					setReprId(data?.ci_number);
+																					return "Registro encontrado";
 																				},
 																				error: (error) => error.message,
 																			},
@@ -358,6 +362,8 @@ export default function InvoicesFormForm({
 									)}
 								/>
 							)}
+
+							{error && <p>Error al cargar datos: {error.message}</p>}
 
 							{/*
 							{athleteList && (

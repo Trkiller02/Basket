@@ -6,6 +6,7 @@ const omitKeys = new Set([
 	"restore_code",
 	"category",
 	"position",
+	"role",
 ]);
 
 export const setUpper = <T extends Record<string, unknown>>(obj: T): T => {

@@ -14,7 +14,11 @@ export default async function InvoicesPage() {
 	return (
 		<InvoicesFormForm
 			pricing={Number(pricing?.result)}
-			representId={session?.user?.ci_number}
+			representId={
+				session.user.role === "representante"
+					? session?.user?.ci_number
+					: undefined
+			}
 		/>
 	);
 }

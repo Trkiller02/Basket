@@ -363,7 +363,7 @@ export default function ContactsTableNew({
 																		src={row.image || "/placeholder.svg"}
 																		alt="profile-image"
 																	/>
-																	<AvatarFallback className="text-4xl md:text-5xl font-bold bg-gray-300 text-white">
+																	<AvatarFallback>
 																		{row.lastname[0]}
 																	</AvatarFallback>
 																</Avatar>
@@ -455,27 +455,31 @@ export default function ContactsTableNew({
 															key={`${id}-solvent`}
 															className=" h-[inherit]"
 														>
-															<Badge
-																asChild
-																variant={
-																	solventValue === 0 ? "destructive" : undefined
-																}
-															>
-																<Link
-																	href={
+															{row.role === "atleta" ? (
+																<Badge
+																	asChild
+																	variant={
 																		solventValue === 0
-																			? `/pagos?q=${row.ci_number}`
-																			: "/pagos/historial"
+																			? "destructive"
+																			: undefined
 																	}
 																>
-																	<SolventIcon />
-																	<p>
-																		{getInvoiceStatus(
-																			solventValue,
-																		).toUpperCase()}
-																	</p>
-																</Link>
-															</Badge>
+																	<Link
+																		href={
+																			solventValue === 0
+																				? `/pagos?q=${row.ci_number}`
+																				: "/pagos/historial"
+																		}
+																	>
+																		<SolventIcon />
+																		<p>
+																			{getInvoiceStatus(
+																				solventValue,
+																			).toUpperCase()}
+																		</p>
+																	</Link>
+																</Badge>
+															) : null}
 														</TableCell>
 													);
 
@@ -517,10 +521,10 @@ export default function ContactsTableNew({
 																					size={20}
 																					aria-hidden="true"
 																				/>
-																				<span>Ver</span>
+																				Ver
 																			</Link>
 																		</DropdownMenuItem>
-																		<DropdownMenuItem>
+																		<DropdownMenuItem asChild>
 																			<Link
 																				href={`/editar/${adminEntitiesList.has(row.role ?? "") ? "usuario" : row.role}/${row.ci_number}`}
 																			>
@@ -529,7 +533,7 @@ export default function ContactsTableNew({
 																					size={20}
 																					aria-hidden="true"
 																				/>
-																				<span>Editar</span>
+																				Editar
 																			</Link>
 																		</DropdownMenuItem>
 																	</DropdownMenuGroup>

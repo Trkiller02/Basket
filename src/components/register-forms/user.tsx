@@ -49,6 +49,7 @@ import {
 import { Label } from "../ui/label";
 import { useState } from "react";
 import Link from "next/link";
+import { setEntityData } from "@/lib/action-data";
 
 export default function UserForm() {
 	const [recoveryCode, setRecoveryCode] = useState<string>("");
@@ -57,15 +58,16 @@ export default function UserForm() {
 	const form = useForm<Omit<User, "id">>({
 		defaultValues: {
 			ci_number: "V",
+			role: "representante",
 		},
 		resolver: yupResolver(userSchema),
 	});
 
 	const onSubmit = async (data: Omit<User, "id" | "restore_code">) =>
-		await fetchData<{ message: string }>(`/api/users`, {
-			body: setUpper(data),
-			method: "POST",
-		});
+		await setEntityData<{ message: string }>(
+			data.role === "representante" ? "representatives" : "users",
+			setUpper(data ? { user_id: data, ocupation: data.role } : data),
+		);
 
 	const generateRecoveryCode = () => {
 		const generatedCode = Math.random()
@@ -163,6 +165,36 @@ export default function UserForm() {
 					)}
 				/>
 
+				{/* ROLE FIELD */}
+				<FormField
+					control={form.control}
+					name={"role"}
+					render={({ field }) => (
+						<FormItem>
+							<FormLabel>Rol:</FormLabel>
+							<FormControl>
+								<Select
+									{...field}
+									required
+									defaultValue={field.value}
+									onValueChange={field.onChange}
+								>
+									<SelectTrigger>
+										<SelectValue placeholder="Seleccione un rol" />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="representante">Representante</SelectItem>
+										<SelectItem value="secretaria">Secretaria</SelectItem>
+										<SelectItem value="administrador">Administrador</SelectItem>
+									</SelectContent>
+								</Select>
+							</FormControl>
+							<FormDescription>Elija el rol que desea asignar</FormDescription>
+							<FormMessage />
+						</FormItem>
+					)}
+				/>
+
 				{/* NAME FIELD */}
 				<FormField
 					control={form.control}
@@ -241,37 +273,12 @@ export default function UserForm() {
 					)}
 				/>
 
-				{/* ROLE FIELD */}
-				<FormField
-					control={form.control}
-					name={"role"}
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel>Rol:</FormLabel>
-							<FormControl>
-								<Select {...field} defaultValue="representante" required>
-									<SelectTrigger>
-										<SelectValue placeholder="Seleccione un rol" />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="representante">Representante</SelectItem>
-										<SelectItem value="secretaria">Secretaria</SelectItem>
-										<SelectItem value="administrador">Administrador</SelectItem>
-									</SelectContent>
-								</Select>
-							</FormControl>
-							<FormDescription>Elija el rol que desea asignar</FormDescription>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
-
 				<FormField
 					control={form.control}
 					name="password"
 					render={({ field }) => (
 						<FormItem>
-							<FormLabel>Contraseña Actual</FormLabel>
+							<FormLabel>Contraseña</FormLabel>
 							<FormControl>
 								<div className="relative">
 									<Input
@@ -294,8 +301,9 @@ export default function UserForm() {
 									</Button>
 								</div>
 							</FormControl>
+
 							<FormDescription>
-								Requerida solo si deseas cambiar tu contraseña
+								Crea una contraseña segura y difícil de adivinar
 							</FormDescription>
 							<FormMessage />
 						</FormItem>
@@ -307,7 +315,7 @@ export default function UserForm() {
 					name="repeat_password"
 					render={({ field }) => (
 						<FormItem>
-							<FormLabel>Confirmar Nueva Contraseña</FormLabel>
+							<FormLabel>Confirmar Contraseña</FormLabel>
 							<FormControl>
 								<div className="relative">
 									<Input

@@ -14,6 +14,7 @@ import {
 import { auth } from "@/auth";
 import type { Health } from "@/utils/interfaces/health";
 import { HealthResume } from "@/components/details/health";
+import { MsgError } from "@/utils/messages";
 
 interface EntityPageParams {
 	entity: string;
