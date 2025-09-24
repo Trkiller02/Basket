@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import fs from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
-
+export const runtime = "nodejs";
 export const POST = async (req: Request) => {
 	try {
 		const { file, name, type } = await req.json();

@@ -2,15 +2,13 @@ import type { UpdateAthletesDto } from "../dto/update-athletes.dto";
 
 import { type NextRequest, NextResponse } from "next/server";
 import { athletes, history, users } from "@drizzle/schema";
-import { and, eq, ilike, isNotNull, isNull } from "drizzle-orm";
+import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { MsgError } from "@/utils/messages";
 import { regexList } from "@/utils/regexPatterns";
-import { headers } from "next/headers";
-import { NOTIFICATION_MSG, NOTIFICATION_TYPE } from "@/utils/typeNotifications";
 import { auth } from "@/auth";
-import { insertHistory } from "@/lib/db-data";
 
+export const runtime = "nodejs";
 /*
 export const athletesController = new Elysia({
 	prefix: "/athletes",
@@ -105,14 +103,15 @@ export const PATCH = auth(
 		const { id } = await params;
 
 		if (!body || Object.keys(body).length === 0)
-			throw { message: MsgError.BAD_REQUEST, code: 400 };
+			return NextResponse.json(
+				{ message: MsgError.BAD_REQUEST },
+				{ status: 400 },
+			);
 
 		const [athlete] = await db
 			.select({
 				id: athletes.id,
-				user_id: {
-					id: users.id,
-				},
+				user_id: users.id,
 			})
 			.from(athletes)
 			.innerJoin(users, eq(athletes.user_id, users.id))
@@ -137,23 +136,29 @@ export const PATCH = auth(
 
 		const { user_id, ...restBody } = body;
 
-		if (restBody) {
-			await db.update(athletes).set(restBody).where(eq(athletes.id, id));
-		}
+		await db.transaction(async (tx) => {
+			if (restBody) {
+				await tx
+					.update(athletes)
+					.set(restBody)
+					.where(eq(athletes.id, athlete.id));
+			}
 
-		if (user_id) {
-			await db
-				.update(users)
-				.set(user_id)
-				.where(eq(users.id, athlete.user_id.id));
-		}
+			if (user_id) {
+				await tx
+					.update(users)
+					.set(user_id)
+					.where(eq(users.id, athlete.user_id));
+			}
 
-		await insertHistory({
-			user_id: req.auth.user.id ?? "",
-			description: "Datos del atleta actualizados",
-			action: "MODIFICO",
-			reference_id: id,
+			await tx.insert(history).values({
+				user_id: req.auth?.user.id ?? "",
+				description: "Datos del atleta actualizados",
+				action: "MODIFICO",
+				reference_id: athlete.user_id,
+			});
 		});
+
 		return NextResponse.json({ message: "Atleta actualizado con exito" });
 	},
 );
@@ -193,16 +198,18 @@ export const DELETE = auth(
 				{ status: 404 },
 			);
 
-		await db
-			.update(users)
-			.set({ deleted_at: new Date().toISOString() })
-			.where(eq(users.id, athlete.user_id));
+		await db.transaction(async (tx) => {
+			await tx
+				.update(users)
+				.set({ deleted_at: new Date().toISOString() })
+				.where(eq(users.id, athlete.user_id));
 
-		await insertHistory({
-			user_id: req.auth.user.id ?? "",
-			description: "Datos del atleta actualizados",
-			action: "ELIMINO",
-			reference_id: id,
+			await tx.insert(history).values({
+				user_id: req.auth?.user.id ?? "",
+				description: "Datos del atleta actualizados",
+				action: "ELIMINO",
+				reference_id: athlete.user_id,
+			});
 		});
 
 		return NextResponse.json({ message: `Eliminado ${id}` });

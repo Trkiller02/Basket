@@ -21,14 +21,15 @@ import { useForm } from "react-hook-form";
 import { QRDetails } from "../details/qr-code";
 import { PDFPreview } from "../details/pdf-preview";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Separator } from "../ui/separator";
 
 export default function ResumeForm() {
 	const form = useForm({});
 	const router = useRouter();
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
-
 	const registerData = useRegisterStore((state) => state.registerData);
+	const deleteProperty = useRegisterStore((state) => state.deleteProperty);
 	const clearRegisterData = useRegisterStore(
 		(state) => state.clearRegisterData,
 	);
@@ -65,29 +66,6 @@ export default function ResumeForm() {
 		fetcher,
 	);
 
-	/* 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
-	useEffect(() => {
-		const f = async () => {
-			const representDataPromise = await Promise.all([
-				...["representative", "mother", "father"].map((type: string) => {
-					const key = type as "representative" | "mother" | "father";
-
-					if (
-						typeof registerData[key] === "string" &&
-						registerData[key] !== "omitted"
-					)
-						return getEntityData<Representative>(
-							"representatives",
-							registerData[key] as string,
-						);
-				}),
-			]);
-			setRepresentData(representDataPromise);
-		};
-
-		f();
-	}, []); */
-
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <all dependencies are used>
 	useEffect(() => {
 		if (!data) return;
@@ -99,140 +77,35 @@ export default function ResumeForm() {
 		router.push(`${pathname}?${params.toString()}`);
 	}, [data]);
 
-	/* 	const registerRepresentative = async (
-		type: "representative" | "mother" | "father",
-	) => {
-		if (!registerData[type] || registerData[type] === "omitted")
-			return undefined;
+	const onSubmit = async () => {
+		const fileUpload = registerData.athlete?.user_id.image
+			? await fetchData<{ message: string }>("/api/upload-image", {
+					method: "POST",
+					body: {
+						file: registerData.athlete?.user_id.image,
+						name: registerData.athlete?.user_id.ci_number,
+						type: "athletes",
+					},
+				})
+			: undefined;
 
-		if (typeof registerData[type] === "string") {
-			const data = await getEntityData<Representative>(
-				"representatives",
-				registerData[type] as string,
-			);
-
-			if (!data) throw new Error("Representante no encontrado");
-
-			return { message: data.id as string };
-		}
-
-		const keygen = crypto.randomUUID();
-
-		const password = keygen.slice(0, 6);
-		const restore_code = keygen.slice(6, 12);
-
-		const response = await setEntityData<{ message: string }>(
-			"representatives",
-			{
-				...(registerData[type] as Representative),
+		const { props, athleteId } = await registerTransaction({
+			...registerData,
+			athlete: {
+				...(registerData.athlete as Athlete),
 				user_id: {
-					...(registerData[type] as Representative).user_id,
-					...(registerData.tutor !== type
-						? {}
-						: {
-								password,
-								restore_code: await bcrypt.hash(restore_code, 10),
-								role: "representante",
-							}),
+					...(registerData.athlete?.user_id as Athlete["user_id"]),
+					image: fileUpload?.message,
 				},
 			},
-		);
+		});
+
+		setData({ ...props, athleteId: athleteId ?? "" });
 
 		return {
-			message: response?.message ?? "",
-			props: { name: registerData[type].user_id.name, password, restore_code },
+			message: "Registro guardado",
+			description: "¡Gracias por completar el formulario!",
 		};
-	}; */
-
-	const onSubmit = async () => {
-		try {
-			const fileUpload = registerData.athlete?.user_id.image
-				? await fetchData<{ message: string }>("/api/upload-image", {
-						method: "POST",
-						body: {
-							file: registerData.athlete?.user_id.image,
-							name: registerData.athlete?.user_id.ci_number,
-							type: "athletes",
-						},
-					})
-				: undefined;
-
-			const { props, athleteId } = await registerTransaction({
-				...registerData,
-				athlete: {
-					...(registerData.athlete as Athlete),
-					user_id: {
-						...(registerData.athlete?.user_id as Athlete["user_id"]),
-						image: fileUpload?.message,
-					},
-				},
-			});
-
-			/* 
-			const [athlete, ...representPromises] = await Promise.all<
-				| {
-						message: string;
-						props?: { name: string; password: string; restore_code: string };
-				  }
-				| undefined
-			>([
-				setEntityData<{ message: string }>("athletes", {
-					...registerData.athlete,
-					image: fileUpload?.message,
-					user_id: {
-						...registerData.athlete?.user_id,
-						role: "atleta",
-					},
-				}),
-				...["representative", "mother", "father"].map((type: string) =>
-					registerRepresentative(
-						type as "representative" | "mother" | "father",
-					),
-				),
-			]);
-
-			await Promise.all([
-				setEntityData("health", {
-					...registerData.health,
-					athlete_id: athlete?.message,
-				}),
-				...["representative", "mother", "father"].map(
-					(type: string, index: number) => {
-						const key = type as "representative" | "mother" | "father";
-
-						if (!representPromises[index]) return undefined;
-
-						return setEntityData("repr-athletes", {
-							athlete_id: athlete?.message,
-							representative_id: representPromises[index]?.message,
-							relation:
-								key === "representative"
-									? "representante"
-									: key === "mother"
-										? "madre"
-										: "padre",
-							tutor: registerData.tutor === key,
-						});
-					},
-				),
-			]);
-
-			const idxAccountRepresent = representPromises.findIndex(
-				(item) => item?.props,
-			); */
-
-			setData({ ...props, athleteId });
-
-			return {
-				message: "Registro guardado",
-				description: "¡Gracias por completar el formulario!",
-			};
-		} catch (error) {
-			throw {
-				message: "Error al guardar datos",
-				description: (error as Error).message,
-			};
-		}
 	};
 
 	if (!registerData || !registerData.athlete)
@@ -250,12 +123,13 @@ export default function ResumeForm() {
 				}),
 			)}
 			id="resumen-form"
+			className="flex flex-col gap-4 px-2 w-full"
 		>
-			<h4 className="text-2xl text-default-800 font-semibold py-2">Atleta:</h4>
+			<h4 className="text-2xl text-default-800 font-semibold">Atleta:</h4>
 			<AthleteResume data={registerData.athlete as Athlete} formView />
 			<HealthResume data={registerData.health as Health} formView />
 
-			<h4 className="text-2xl text-default-800 font-semibold py-2">
+			<h4 className="text-2xl text-default-800 font-semibold pt-4">
 				Representantes:
 			</h4>
 			{/* {typeof registerData.representative === "string" &&
@@ -267,81 +141,39 @@ export default function ResumeForm() {
 								formView
 							/>
 						))} */}
+
 			{registerData.representative === "omitted" ? null : reprLoading ? (
 				<p>Cargando datos...</p>
 			) : (
 				<RepresentativeResume
+					entity={"representante"}
 					data={reprData ?? (registerData.representative as Representative)}
 					formView
+					onDelete={() => deleteProperty?.("representative")}
 				/>
 			)}
-
-			{/* 
-			{typeof registerData.mother === "string" &&
-				(registerData.mother !== "omitted"
-					? null
-					: motherData && (
-							<RepresentativeResume
-								data={motherData as Representative}
-								formView
-							/>
-						))}
-{typeof registerData.mother === "object" && (
-	<RepresentativeResume data={registerData.mother} formView />
-)}
- */}
 
 			{registerData.mother === "omitted" ? null : motherLoading ? (
 				<p>Cargando datos...</p>
 			) : (
 				<RepresentativeResume
+					entity={"madre"}
 					data={motherData ?? (registerData.mother as Representative)}
 					formView
+					onDelete={() => deleteProperty?.("mother")}
 				/>
 			)}
-
-			{/* {typeof registerData.father === "string" &&
-				(registerData.father !== "omitted"
-					? null
-					: fatherData && (
-							<RepresentativeResume
-								data={fatherData as Representative}
-								formView
-							/>
-						))}
-			{typeof registerData.father === "object" && (
-				<RepresentativeResume data={registerData.father} formView />
-			)} */}
 
 			{registerData.father === "omitted" ? null : fatherLoading ? (
 				<p>Cargando datos...</p>
 			) : (
 				<RepresentativeResume
+					entity={"padre"}
 					data={fatherData ?? (registerData.father as Representative)}
 					formView
+					onDelete={() => deleteProperty?.("father")}
 				/>
 			)}
-
-			{/* {["representative", "mother", "father"].map(
-				(type: string, index: number) => {
-					const key = type as "representative" | "mother" | "father";
-
-					if (typeof registerData[key] !== "object" && !representData[index])
-						return null;
-
-					return (
-						<RepresentativeResume
-							key={index.toString()}
-							data={
-								typeof registerData[key] === "object"
-									? registerData[key]
-									: (representData[index] as Representative)
-							}
-							formView
-						/>
-					);
-				},
-			)} */}
 
 			<MainDialog
 				onAction={() => {

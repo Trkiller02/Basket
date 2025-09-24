@@ -1,14 +1,12 @@
 import type { CreateRepresentativeDto } from "./dto/create-representative.dto";
 import { type NextRequest, NextResponse } from "next/server";
-import { representatives, users } from "@drizzle/schema";
+import { history, representatives, users } from "@drizzle/schema";
 import { db } from "@/lib/db";
 import { and, eq, ilike, isNotNull, isNull } from "drizzle-orm";
 import { MsgError } from "@/utils/messages";
-import { headers } from "next/headers";
-import { NOTIFICATION_MSG, NOTIFICATION_TYPE } from "@/utils/typeNotifications";
 import { auth } from "@/auth";
-import { insertHistory } from "@/lib/db-data";
-
+import bcrypt from "bcryptjs";
+export const runtime = "nodejs";
 /*
 export const representativeController = new Elysia({
 	prefix: "/api/representatives",
@@ -141,20 +139,32 @@ export const POST = auth(async (req) => {
 			return NextResponse.json({ message: id }, { status: 201 });
 		}
 
-		const [{ userId }] = await db
-			.insert(users)
-			.values({ ...user_id, id: crypto.randomUUID() })
-			.returning({ userId: users.id });
+		const id = await db.transaction(async (tx) => {
+			const [{ userId }] = await tx
+				.insert(users)
+				.values({
+					...user_id,
+					...(user_id.password
+						? {
+								password: await bcrypt.hash(user_id.password ?? "", 10),
+								restore_code: await bcrypt.hash(user_id.restore_code ?? "", 10),
+							}
+						: {}),
+				})
+				.returning({ userId: users.id });
 
-		const [{ id }] = await db
-			.insert(representatives)
-			.values({ ...rest, user_id: userId })
-			.returning({ id: representatives.id });
+			const [{ id }] = await tx
+				.insert(representatives)
+				.values({ ...rest, user_id: userId })
+				.returning({ id: representatives.id });
 
-		await insertHistory({
-			user_id: req.auth?.user.id ?? "",
-			action: "CREO",
-			description: `Representante ${user_id.ci_number} creado`,
+			await tx.insert(history).values({
+				user_id: req.auth?.user.id ?? "",
+				action: "CREO",
+				description: `Representante ${user_id.ci_number} creado`,
+			});
+
+			return id;
 		});
 
 		return NextResponse.json({ message: id }, { status: 201 });

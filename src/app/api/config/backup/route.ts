@@ -7,6 +7,8 @@ import path from "node:path";
 import fsPromise from "node:fs/promises";
 import { insertHistory } from "@/lib/db-data";
 
+export const runtime = "nodejs";
+
 export const POST = auth(async (request) => {
 	if (!request.auth)
 		return NextResponse.json({ message: "No autenticado" }, { status: 401 });

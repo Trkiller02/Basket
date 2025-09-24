@@ -1,8 +1,10 @@
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { invoices, representatives } from "@drizzle/schema";
+import { history, invoices, representatives } from "@drizzle/schema";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 
 export const GET = auth(
 	async (req, { params }: { params: Promise<{ id: string }> }) => {
@@ -44,5 +46,31 @@ export const GET = auth(
 				{ status: 400 },
 			);
 		}
+	},
+);
+
+export const PATCH = auth(
+	async (req, { params }: { params: Promise<{ id: string }> }) => {
+		const { body } = await req.json();
+		const { id } = await params;
+
+		if (!body || Object.keys(body).length === 0)
+			return NextResponse.json(
+				{ message: "Datos no especificados" },
+				{ status: 400 },
+			);
+
+		await db.transaction(async (tx) => {
+			await tx.update(invoices).set(body).where(eq(invoices.id, +id));
+
+			await tx.insert(history).values({
+				user_id: req.auth?.user.id ?? "",
+				description: `Datos de factura actualizados para ${id}`,
+				action: "MODIFICO",
+				reference_id: id,
+			});
+		});
+
+		return NextResponse.json({ message: "Datos actualizados" });
 	},
 );

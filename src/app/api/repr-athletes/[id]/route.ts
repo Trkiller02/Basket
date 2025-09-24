@@ -4,13 +4,15 @@ import { db } from "@/lib/db";
 import {
 	athletes,
 	athletes_representatives,
+	history,
 	representatives,
 	users,
 } from "@drizzle/schema";
 import { and, eq, isNull } from "drizzle-orm";
 import { MsgError } from "@/utils/messages";
 import { regexList } from "@/utils/regexPatterns";
-
+import { auth } from "@/auth";
+export const runtime = "nodejs";
 export async function GET(
 	req: NextRequest,
 	{ params }: { params: Promise<{ id: string }> },
@@ -111,3 +113,32 @@ export async function GET(
  */
 	return NextResponse.json({ result: athletesResult });
 }
+
+export const PATCH = auth(
+	async (req, { params }: { params: Promise<{ id: string }> }) => {
+		const { body } = await req.json();
+		const { id } = await params;
+
+		if (!body || Object.keys(body).length === 0)
+			return NextResponse.json(
+				{ message: "Datos no especificados" },
+				{ status: 400 },
+			);
+
+		await db.transaction(async (tx) => {
+			await tx
+				.update(athletes_representatives)
+				.set(body)
+				.where(eq(athletes_representatives.id, +id));
+
+			await tx.insert(history).values({
+				user_id: req.auth?.user.id ?? "",
+				description: `Datos de representante actualizados para ${id}`,
+				action: "MODIFICO",
+				reference_id: id,
+			});
+		});
+
+		return NextResponse.json({ message: "Datos actualizados" });
+	},
+);

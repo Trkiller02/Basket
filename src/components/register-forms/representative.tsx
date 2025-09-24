@@ -72,10 +72,18 @@ export default function RepresentativeForm({
 	);
 
 	const disabledKeys = useCallback(() => {
-		if (registerData.mother && !disKeys.has("madre")) {
+		if (
+			registerData.mother &&
+			!disKeys.has("madre") &&
+			registerData.mother !== "omitted"
+		) {
 			setDisKeys((disKeys) => disKeys.add("madre"));
 		}
-		if (registerData.father && !disKeys.has("padre")) {
+		if (
+			registerData.father &&
+			!disKeys.has("padre") &&
+			registerData.mother !== "omitted"
+		) {
 			setDisKeys((disKeys) => disKeys.add("padre"));
 		}
 		if (
@@ -104,7 +112,7 @@ export default function RepresentativeForm({
 		}
 
 		disabledKeys();
-	}, [registerData, etapa]);
+	}, [registerData, etapa, disabledKeys]);
 
 	return (
 		<Form {...form}>
@@ -227,7 +235,11 @@ export default function RepresentativeForm({
 									<FormControl>
 										<Checkbox
 											onCheckedChange={field.onChange}
-											defaultChecked={field.value || disKeys.size >= 2}
+											defaultChecked={
+												field.value ||
+												disKeys.size >= 2 ||
+												key === registerData.tutor
+											}
 											className="data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-white dark:data-[state=checked]:border-blue-700 dark:data-[state=checked]:bg-blue-700"
 										/>
 									</FormControl>
@@ -248,10 +260,7 @@ export default function RepresentativeForm({
 					<Tooltip>
 						<TooltipTrigger asChild>
 							<Button
-								disabled={
-									disKeys.size >= 2 ||
-									(disKeys.size >= 2 && etapa === "representante")
-								}
+								disabled={disKeys.size >= 2 && etapa === "representante"}
 								size="icon"
 								aria-label="omitir entidad"
 								className="self-center"

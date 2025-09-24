@@ -22,12 +22,12 @@ interface RegisterStore {
 	clearRegisterData: () => void;
 	setRelationSearch?: (data: string) => void;
 	clearRelationSearch?: () => void;
+	deleteProperty?: (key: keyof RegisterData) => void;
 }
 
 export const useRegisterStore = create<RegisterStore>((set, get) => ({
 	registerData: {},
-	setRelationSearch: (data: string) =>
-		set((state) => ({ relationSearch: data })),
+	setRelationSearch: (data: string) => set((_) => ({ relationSearch: data })),
 	setRegisterData: (data: RegisterData) =>
 		set((state) => ({ registerData: { ...state.registerData, ...data } })),
 	setSessionData: () => {
@@ -41,8 +41,12 @@ export const useRegisterStore = create<RegisterStore>((set, get) => ({
 
 		if (!data) return;
 
-		set((state) => ({ registerData: JSON.parse(data) }));
+		set((_) => ({ registerData: JSON.parse(data) }));
 	},
-	clearRegisterData: () => set((state) => ({ registerData: {} })),
-	clearRelationSearch: () => set((state) => ({ relationSearch: undefined })),
+	clearRegisterData: () => set((_) => ({ registerData: {} })),
+	clearRelationSearch: () => set((_) => ({ relationSearch: undefined })),
+	deleteProperty: (key: keyof RegisterData) =>
+		set(({ registerData }) => ({
+			registerData: { ...registerData, [key]: undefined },
+		})),
 }));

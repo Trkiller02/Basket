@@ -47,11 +47,35 @@ import {
 	CardTitle,
 } from "../ui/card";
 import { Label } from "../ui/label";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { setEntityData } from "@/lib/action-data";
+import { MainDialog } from "../details/main-dialog";
+import { QRDetails } from "../details/qr-code";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export default function UserForm() {
+	const router = useRouter();
+	const pathname = usePathname();
+	const searchParams = useSearchParams();
+
+	const [data, setData] = useState<{
+		name: string;
+		password: string;
+		restore_code: string;
+	}>();
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: <>
+	useEffect(() => {
+		if (!data) return;
+
+		const params = new URLSearchParams(searchParams);
+
+		params.append("modal", "true");
+
+		router.push(`${pathname}?${params.toString()}`);
+	}, [data]);
+
 	const [recoveryCode, setRecoveryCode] = useState<string>("");
 	const [showPassword, setShowPassword] = useState<boolean>(false);
 
@@ -63,11 +87,20 @@ export default function UserForm() {
 		resolver: yupResolver(userSchema),
 	});
 
-	const onSubmit = async (data: Omit<User, "id" | "restore_code">) =>
-		await setEntityData<{ message: string }>(
+	const onSubmit = async (data: Omit<User, "id">) => {
+		const response = await setEntityData<{ message: string }>(
 			data.role === "representante" ? "representatives" : "users",
 			setUpper(data ? { user_id: data, ocupation: data.role } : data),
 		);
+
+		setData({
+			name: data.name,
+			password: data.password ?? "",
+			restore_code: recoveryCode,
+		});
+
+		return response;
+	};
 
 	const generateRecoveryCode = () => {
 		const generatedCode = Math.random()
@@ -427,6 +460,13 @@ export default function UserForm() {
 						<span>Guardar</span>
 					</Button>
 				</div>
+				<MainDialog
+					onAction={() => {
+						router.push("/");
+					}}
+				>
+					<QRDetails data={data} />
+				</MainDialog>
 			</form>
 		</Form>
 	);

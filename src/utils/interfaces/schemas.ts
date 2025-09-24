@@ -161,11 +161,13 @@ export const invoiceSchema: Yup.ObjectSchema<CreateInvoices> = Yup.object({
 });
 
 export const relationSchema: Yup.ObjectSchema<{
-	relation: "madre" | "padre" | "representante";
+	relation: "mother" | "father" | "representative";
 	value: string;
 	tutor?: boolean;
 }> = Yup.object({
-	relation: Yup.string().oneOf(["madre", "padre", "representante"]).required(),
+	relation: Yup.string()
+		.oneOf(["mother", "father", "representative"])
+		.required(),
 	value: Yup.string()
 		.matches(regexList.forDNI, { message: Messages.DNI_MATCH })
 		.required(),

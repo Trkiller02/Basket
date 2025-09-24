@@ -1,13 +1,12 @@
 import type { CreateAthletesDto } from "./dto/create-athletes.dto";
-import { athletes, users } from "@drizzle/schema";
-import { and, eq, ilike, isNotNull, isNull, sql } from "drizzle-orm";
+import { athletes, history, users } from "@drizzle/schema";
+import { and, eq, ilike, isNotNull, isNull } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { type NextRequest, NextResponse } from "next/server";
 import { MsgError } from "@/utils/messages";
-import { headers } from "next/headers";
 import { auth } from "@/auth";
-import { NOTIFICATION_MSG, NOTIFICATION_TYPE } from "@/utils/typeNotifications";
-import { insertHistory } from "@/lib/db-data";
+
+export const runtime = "nodejs";
 
 /* export const athletesController = new Elysia({
 	prefix: "/athletes",
@@ -112,10 +111,12 @@ export const GET = async (req: NextRequest) => {
 };
 
 export const POST = auth(async (req) => {
-	if (!req.auth)
+	const session = await req.auth;
+
+	if (!session)
 		return NextResponse.json({ message: "No autenticado" }, { status: 401 });
 
-	if (!["secretaria", "administrador"].includes(req.auth.user.role))
+	if (!["secretaria", "administrador"].includes(session.user.role))
 		return NextResponse.json({ message: "No autorizado" }, { status: 401 });
 
 	const body = (await req.json()) as CreateAthletesDto;
@@ -123,21 +124,28 @@ export const POST = auth(async (req) => {
 	const { user_id, ...rest } = body;
 
 	try {
-		const [{ userId }] = await db
-			.insert(users)
-			.values({ ...user_id, id: crypto.randomUUID() })
-			.returning({ userId: users.id });
+		const id = await db.transaction(async (tx) => {
+			const [{ userId }] = await tx
+				.insert(users)
+				.values({
+					...user_id,
+					role: "atleta",
+				})
+				.returning({ userId: users.id });
 
-		const [{ id }] = await db
-			.insert(athletes)
-			.values({ ...rest, user_id: userId })
-			.returning({ id: athletes.id });
+			const [{ id }] = await tx
+				.insert(athletes)
+				.values({ ...rest, user_id: userId })
+				.returning({ id: athletes.id });
 
-		await insertHistory({
-			user_id: req.auth?.user.id ?? "",
-			description: "Datos del atleta creados",
-			action: "CREO",
-			reference_id: id,
+			await tx.insert(history).values({
+				user_id: req.auth?.user.id ?? "",
+				description: "Datos del atleta creados",
+				action: "CREO",
+				reference_id: id,
+			});
+
+			return id;
 		});
 
 		return NextResponse.json({ message: id }, { status: 201 });

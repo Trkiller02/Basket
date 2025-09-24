@@ -31,54 +31,55 @@ const AthleteResume = ({
 
 	return (
 		<Card className="w-full">
-			<CardHeader className="pb-4">
-				<CardAction>
-					<Button
-						variant="ghost"
-						size="icon"
-						className="mt-2 absolute right-3 top-2 col-end-4"
-						asChild
-					>
-						<Link
-							href={
-								formView
-									? "/registrar?etapa=atleta"
-									: `/editar/atleta/${data.id}`
-							}
-						>
-							<Edit2 className="py-1" />
-						</Link>
-					</Button>
-				</CardAction>
-				<div className="flex items-center gap-4">
-					<Avatar className="h-16 w-16">
-						<AvatarImage
-							src={user_id.image || "/placeholder.svg"}
-							alt={`${user_id.name} ${user_id.lastname}`}
-						/>
-						<AvatarFallback className="text-lg">
-							{user_id.name[0]}
-							{user_id.lastname[0]}
-						</AvatarFallback>
-					</Avatar>
-					<div className="flex-1">
-						<CardTitle className="flex items-center gap-2">
-							<User className="h-5 w-5" />
-							Información Personal
-						</CardTitle>
+			<CardHeader className="pb-4 relative">
+				<div className="space-y-4">
+					<CardTitle className="flex items-center gap-3 text-2xl pl-2">
+						<User className="h-6 w-6" />
+						Información Personal
+					</CardTitle>
+					<div className="flex items-center gap-6 relative">
+						<Avatar className="h-16 w-16">
+							<AvatarImage
+								src={user_id.image || "/placeholder.svg"}
+								alt={`${user_id.name} ${user_id.lastname}`}
+							/>
+							<AvatarFallback className="text-lg">
+								{user_id.name[0]}
+								{user_id.lastname[0]}
+							</AvatarFallback>
+						</Avatar>
 
-						<CardDescription>
-							{user_id.name} {user_id.lastname}
+						<CardDescription className="flex-1 md:text-left">
+							<p className="font-semibold text-lg">
+								{user_id.lastname}
+								<span className="font-medium text-muted-foreground block text-lg">
+									{user_id.name}
+								</span>
+							</p>
 						</CardDescription>
 					</div>
-					<div className="flex gap-2">
-						{restData.category && (
-							<Badge variant="secondary">{restData.category}</Badge>
-						)}
-						{restData.position && (
-							<Badge variant="outline">{restData.position}</Badge>
-						)}
-					</div>
+				</div>
+
+				<div className="flex items-center gap-4 absolute right-0 top-0 mx-4">
+					{restData.category && (
+						<Badge variant="secondary">{restData.category}</Badge>
+					)}
+					{restData.position && (
+						<Badge variant="outline">{restData.position}</Badge>
+					)}
+					<CardAction>
+						<Button variant="ghost" size="icon" asChild>
+							<Link
+								href={
+									formView
+										? "/registrar?etapa=atleta"
+										: `/editar/atleta/${data.id}`
+								}
+							>
+								<Edit2 />
+							</Link>
+						</Button>
+					</CardAction>
 				</div>
 			</CardHeader>
 			<CardContent className="space-y-6">

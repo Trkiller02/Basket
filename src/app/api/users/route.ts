@@ -2,10 +2,10 @@ import { NextResponse, type NextRequest } from "next/server";
 import type { CreateUserDto } from "./dto/create-user.dto";
 import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import { MsgError } from "@/utils/messages";
-import { users } from "@drizzle/schema";
+import { history, users } from "@drizzle/schema";
 import { db } from "@/lib/db";
 import { auth } from "@/auth";
-
+export const runtime = "nodejs";
 export async function GET(req: NextRequest) {
 	const params = req.nextUrl.searchParams;
 
@@ -83,8 +83,19 @@ export const POST = auth(async (req) => {
 	const body = (await req.json()) as CreateUserDto;
 
 	try {
-		const [{ id: userId }] = await db.insert(users).values(body).returning({
-			id: users.id,
+		const userId = await db.transaction(async (tx) => {
+			const [{ id }] = await db.insert(users).values(body).returning({
+				id: users.id,
+			});
+
+			await tx.insert(history).values({
+				user_id: req.auth?.user.id ?? "",
+				description: `Usuario ${id} creado`,
+				action: "CREO",
+				reference_id: id,
+			});
+
+			return id;
 		});
 
 		return NextResponse.json({ message: userId }, { status: 201 });

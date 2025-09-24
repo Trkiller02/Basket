@@ -2,7 +2,7 @@ import { QrPDF } from "@/components/reports/qrcode";
 import { renderToStream } from "@react-pdf/renderer";
 import { NextResponse } from "next/server";
 import QRCode from "qrcode";
-
+export const runtime = "nodejs";
 export const POST = async (req: Request) => {
 	const data = await req.json();
 

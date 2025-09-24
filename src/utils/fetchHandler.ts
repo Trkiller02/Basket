@@ -18,6 +18,7 @@ export const fetchData = async <T>(
 				!["GET", "DELETE"].includes(method ?? "GET") && options?.body
 					? await JSON.stringify(options?.body)
 					: undefined,
+			credentials: "include",
 		},
 	);
 

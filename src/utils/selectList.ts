@@ -18,15 +18,15 @@ export const entitySelect = [
 
 export const relationSelect = [
 	{
-		key: "madre",
+		key: "mother",
 		value: "MADRE",
 	},
 	{
-		key: "representante",
+		key: "representative",
 		value: "REPRESENTANTE LEGAL",
 	},
 	{
-		key: "padre",
+		key: "father",
 		value: "PADRE",
 	},
 ];

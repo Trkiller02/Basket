@@ -1,6 +1,12 @@
 import { db } from "@/lib/db";
 import { and, eq, isNull } from "drizzle-orm";
-import { athletes, invoices, representatives, users } from "@drizzle/schema";
+import {
+	athletes,
+	history,
+	invoices,
+	representatives,
+	users,
+} from "@drizzle/schema";
 import { type NextRequest, NextResponse } from "next/server";
 import { MsgError } from "@/utils/messages";
 import { regexList } from "@/utils/regexPatterns";
@@ -115,6 +121,8 @@ export const POST = auth(async (req) => {
 	const { representative_id, description, athlete_id, image_path } =
 		(await req.json()) as CreateInvoices;
 
+	const athletesNotFound = new Set<string>();
+
 	const [represent] = await db
 		.select({
 			id: representatives.id,
@@ -152,26 +160,33 @@ export const POST = auth(async (req) => {
 				.innerJoin(users, eq(athletes.user_id, users.id))
 				.where(and(eq(users.ci_number, athleteID), isNull(users.deleted_at)));
 
-			const [{ id }] = await db
-				.insert(invoices)
-				.values({
-					representative_id: represent.id,
-					description,
-					athlete_id: athlete,
-					image_path,
-				})
-				.returning({ id: invoices.id });
+			if (!athlete) {
+				athletesNotFound.add(athlete);
+				continue;
+			}
 
-			await db
-				.update(athletes)
-				.set({ solvent: 3 })
-				.where(eq(athletes.id, athlete));
+			await db.transaction(async (tx) => {
+				const [{ id }] = await tx
+					.insert(invoices)
+					.values({
+						representative_id: represent.id,
+						description,
+						athlete_id: athlete,
+						image_path,
+					})
+					.returning({ id: invoices.id });
 
-			await insertHistory({
-				user_id: req.auth?.user.id ?? represent.user_id.id,
-				description: `${NOTIFICATION_MSG.PAYMENT} de atleta ${athleteID}`,
-				action: "PAGO",
-				reference_id: String(id),
+				await tx
+					.update(athletes)
+					.set({ solvent: 3 })
+					.where(eq(athletes.id, athlete));
+
+				await tx.insert(history).values({
+					user_id: req.auth?.user.id ?? represent.user_id.id,
+					description: `${NOTIFICATION_MSG.PAYMENT} de atleta ${athleteID}`,
+					action: "PAGO",
+					reference_id: String(id),
+				});
 			});
 		}
 	} else {
@@ -183,28 +198,44 @@ export const POST = auth(async (req) => {
 			.innerJoin(users, eq(athletes.user_id, users.id))
 			.where(and(eq(users.ci_number, athlete_id), isNull(users.deleted_at)));
 
-		const [{ id }] = await db
-			.insert(invoices)
-			.values({
-				representative_id: represent.id,
-				description,
-				athlete_id: athlete,
-				image_path,
-			})
-			.returning({ id: invoices.id });
+		if (!athlete)
+			return NextResponse.json(
+				{ message: "Atleta no encontrado" },
+				{ status: 404 },
+			);
 
-		await db
-			.update(athletes)
-			.set({ solvent: 3 })
-			.where(eq(athletes.id, athlete));
+		await db.transaction(async (tx) => {
+			const [{ id }] = await tx
+				.insert(invoices)
+				.values({
+					representative_id: represent.id,
+					description,
+					athlete_id: athlete,
+					image_path,
+				})
+				.returning({ id: invoices.id });
 
-		await insertHistory({
-			user_id: req.auth?.user.id ?? represent.user_id.id,
-			description: `${NOTIFICATION_MSG.PAYMENT} de atleta ${athlete}`,
-			action: "PAGO",
-			reference_id: String(id),
+			await tx
+				.update(athletes)
+				.set({ solvent: 3 })
+				.where(eq(athletes.id, athlete));
+
+			await tx.insert(history).values({
+				user_id: req.auth?.user.id ?? represent.user_id.id,
+				description: `${NOTIFICATION_MSG.PAYMENT} de atleta ${athlete}`,
+				action: "PAGO",
+				reference_id: String(id),
+			});
 		});
 	}
+
+	if (athletesNotFound.size > 0)
+		return NextResponse.json(
+			{
+				message: `No se pudo procesar los atletas: ${[...athletesNotFound].join(", ")}`,
+			},
+			{ status: 404 },
+		);
 
 	return NextResponse.json({ message: "Completado" }, { status: 201 });
 	/* } catch (error) {

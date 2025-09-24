@@ -52,32 +52,75 @@ export const RowSteps = memo(
 		const [successStep, setSuccessStep] = useState<Set<string>>(new Set());
 		const [omittedStep, setOmittedStep] = useState<Set<string>>(new Set());
 
+		// biome-ignore lint/correctness/useExhaustiveDependencies: <Need evaluation on change of registerData & etapa>
 		useEffect(() => {
+			if (etapa === "resumen") setSuccessStep((state) => state.add("resumen"));
+			else {
+				if (successStep.has("resumen"))
+					setSuccessStep((state) => {
+						state.delete("resumen");
+						return state;
+					});
+			}
+
 			if (registerData.athlete) setSuccessStep((state) => state.add("atleta"));
 			if (registerData.health) setSuccessStep((state) => state.add("salud"));
-			if (
-				registerData.representative &&
-				registerData.representative !== "omitted"
-			)
-				setSuccessStep((state) => state.add("representante"));
-			if (registerData.mother && registerData.mother !== "omitted") {
-				setSuccessStep((state) => state.add("madre"));
+
+			if (registerData.representative) {
+				if (registerData.representative === "omitted")
+					setOmittedStep((state) => state.add("representante"));
+				else setSuccessStep((state) => state.add("representante"));
+			} else {
+				if (successStep.has("representante"))
+					setSuccessStep((state) => {
+						state.delete("representante");
+						return state;
+					});
+
+				if (omittedStep.has("representante"))
+					setOmittedStep((state) => {
+						state.delete("representante");
+						return state;
+					});
 			}
 
-			if (registerData.representative === "omitted")
-				setOmittedStep((state) => state.add("representante"));
-
-			if (registerData.mother === "omitted")
-				setOmittedStep((state) => state.add("madre"));
-			if (registerData.father && registerData.father !== "omitted") {
-				setSuccessStep((state) => state.add("padre"));
+			if (registerData.mother) {
+				if (registerData.mother === "omitted")
+					setOmittedStep((state) => state.add("madre"));
+				else setSuccessStep((state) => state.add("madre"));
+			} else {
+				if (successStep.has("madre"))
+					setSuccessStep((state) => {
+						state.delete("madre");
+						return state;
+					});
+				if (omittedStep.has("madre"))
+					setOmittedStep((state) => {
+						state.delete("madre");
+						return state;
+					});
 			}
-			if (registerData.father === "omitted")
-				setOmittedStep((state) => state.add("padre"));
-		}, [registerData]);
+
+			if (registerData.father) {
+				if (registerData.father === "omitted")
+					setOmittedStep((state) => state.add("padre"));
+				else setSuccessStep((state) => state.add("padre"));
+			} else {
+				if (successStep.has("padre"))
+					setSuccessStep((state) => {
+						state.delete("padre");
+						return state;
+					});
+				if (omittedStep.has("padre"))
+					setOmittedStep((state) => {
+						state.delete("padre");
+						return state;
+					});
+			}
+		}, [registerData, etapa, successStep, omittedStep]);
 
 		return (
-			<div className="flex flex-col gap-2 m-2">
+			<div className="flex flex-col gap-2 m-2 self-start">
 				<h4 className="text-2xl text-primary font-semibold">
 					Registro
 					<span className="text-base text-default-800 block font-normal">
@@ -89,8 +132,10 @@ export const RowSteps = memo(
 					<div className="flex flex-row items-center justify-between gap-4">
 						<Progress
 							getValueLabel={(value, max) => `${value}/${max}`}
-							max={formEntities.size}
-							value={omittedStep.size + successStep.size}
+							value={Math.round(
+								((omittedStep.size + successStep.size) / formEntities.size) *
+									100,
+							)}
 						/>
 						<span>
 							{Math.round(

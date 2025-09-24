@@ -45,10 +45,13 @@ export default function RepresentativeEditForm({
 	});
 
 	const onSubmit = async (data: Partial<Representative>) =>
-		await fetchData<{ message: string }>(`/api/representatives/${data.id}`, {
-			body: setUpper<Partial<Representative>>(data),
-			method: "PATCH",
-		});
+		await fetchData<{ message: string }>(
+			`/api/representatives/${data.id ?? data.user_id?.ci_number}`,
+			{
+				body: setUpper<Partial<Representative>>(data),
+				method: "PATCH",
+			},
+		);
 
 	const onDelete = async () => {
 		return await fetchData<{ message: string }>(`/api/athletes/${data.id}`, {

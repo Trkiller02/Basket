@@ -1,23 +1,26 @@
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { insertHistory } from "@/lib/db-data";
-import { athletes_representatives } from "@drizzle/schema";
-import { ilike, or } from "drizzle-orm";
+import { athletes_representatives, history } from "@drizzle/schema";
+import { ilike } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
-
+export const runtime = "nodejs";
 export const POST = auth(async (req) => {
 	try {
 		const { athlete_id, representative_id, relation, tutor } = await req.json();
 
-		const [{ id }] = await db
-			.insert(athletes_representatives)
-			.values({ athlete_id, representative_id, relation, tutor })
-			.returning({ id: athletes_representatives.id });
+		const id = await db.transaction(async (tx) => {
+			const [{ id: repAthlete }] = await tx
+				.insert(athletes_representatives)
+				.values({ athlete_id, representative_id, relation, tutor })
+				.returning({ id: athletes_representatives.id });
 
-		await insertHistory({
-			description: `Representante ${representative_id} asignado al atleta ${athlete_id}`,
-			action: "CREO",
-			user_id: req.auth?.user.id ?? "",
+			await tx.insert(history).values({
+				description: `Representante ${representative_id} asignado al atleta ${athlete_id}`,
+				action: "CREO",
+				user_id: req.auth?.user.id ?? "",
+			});
+
+			return repAthlete;
 		});
 
 		return NextResponse.json({ message: id }, { status: 201 });

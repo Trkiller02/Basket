@@ -1,14 +1,13 @@
 import { RepresentativeService } from "../service";
 import type { UpdateRepresentativeDto } from "../dto/update-representative.dto";
 import { type NextRequest, NextResponse } from "next/server";
-import { representatives, users } from "@drizzle/schema";
+import { history, representatives, users } from "@drizzle/schema";
 import { db } from "@/lib/db";
 import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import { MsgError } from "@/utils/messages";
 import { regexList } from "@/utils/regexPatterns";
 import { auth } from "@/auth";
-import { insertHistory } from "@/lib/db-data";
-
+export const runtime = "nodejs";
 /*
 export const representativeController = new Elysia({
 	prefix: "/api/representatives",
@@ -89,13 +88,41 @@ export const GET = async (
 			),
 		);
 
-	if (!result)
+	if (!result) {
+		const [user] = await db
+			.select({
+				id: users.id,
+				ci_number: users.ci_number,
+				name: users.name,
+				lastname: users.lastname,
+				email: users.email,
+				phone_number: users.phone_number,
+				role: users.role,
+			})
+			.from(users)
+			.where(
+				and(
+					eq(
+						id?.includes("@")
+							? users.email
+							: id.includes("-")
+								? users.id
+								: users.ci_number,
+						id ?? "",
+					),
+					deleted ? isNotNull(users.deleted_at) : isNull(users.deleted_at),
+				),
+			);
+
+		if (user) return NextResponse.json({ user_id: user });
+
 		return NextResponse.json(
 			{ message: MsgError.NOT_FOUND },
 			{
 				status: 404,
 			},
 		);
+	}
 
 	return NextResponse.json(result);
 };
@@ -110,6 +137,7 @@ export const PATCH = auth(
 
 		const body = (await req.json()) as UpdateRepresentativeDto;
 		const { id } = await params;
+		const deleted = req.nextUrl.searchParams.get("deleted");
 
 		if (!body || Object.keys(body).length === 0)
 			return NextResponse.json(
@@ -120,11 +148,7 @@ export const PATCH = auth(
 		const [representative] = await db
 			.select({
 				id: representatives.id,
-				user_id: {
-					id: users.id,
-					email: users.email,
-					ci_number: users.ci_number,
-				},
+				user_id: users.id,
 			})
 			.from(representatives)
 			.innerJoin(users, eq(representatives.user_id, users.id))
@@ -133,15 +157,37 @@ export const PATCH = auth(
 					eq(
 						id?.includes("@")
 							? users.email
-							: id.includes("-")
-								? representatives.id
-								: users.ci_number,
+							: id.match(regexList.forDNI)
+								? users.ci_number
+								: representatives.id,
 						id ?? "",
 					),
+					deleted ? isNotNull(users.deleted_at) : isNull(users.deleted_at),
 				),
 			);
 
-		if (!representative)
+		const [user] = !representative
+			? await db
+					.select({
+						id: users.id,
+					})
+					.from(users)
+					.where(
+						and(
+							eq(
+								id?.includes("@")
+									? users.email
+									: id.includes("-")
+										? users.id
+										: users.ci_number,
+								id ?? "",
+							),
+							deleted ? isNotNull(users.deleted_at) : isNull(users.deleted_at),
+						),
+					)
+			: [undefined];
+
+		if (!user && !representative)
 			return NextResponse.json(
 				{ message: MsgError.NOT_FOUND },
 				{
@@ -151,24 +197,34 @@ export const PATCH = auth(
 
 		const { user_id, ...restBody } = body;
 
-		if (restBody) {
-			await db
-				.update(representatives)
-				.set(restBody)
-				.where(eq(representatives.id, id));
-		}
+		await db.transaction(async (tx) => {
+			if (restBody) {
+				if (representative) {
+					await tx
+						.update(representatives)
+						.set(restBody)
+						.where(eq(representatives.id, representative.id));
+				} else {
+					await tx.insert(representatives).values({
+						occupation: restBody.occupation ?? "",
+						height: restBody.height ?? 150,
+						user_id: user?.id ?? "",
+					});
+				}
+			}
 
-		if (user_id) {
-			await db
-				.update(users)
-				.set(user_id)
-				.where(eq(users.id, representative.user_id.id));
-		}
+			if (user_id) {
+				await tx
+					.update(users)
+					.set(user_id)
+					.where(eq(users.id, representative?.user_id ?? user?.id ?? ""));
+			}
 
-		await insertHistory({
-			user_id: req.auth?.user.id ?? "",
-			action: "MODIFICO",
-			description: `Representante ${representative.user_id.ci_number} actualizado`,
+			await tx.insert(history).values({
+				user_id: req.auth?.user.id ?? "",
+				action: "MODIFICO",
+				description: `Representante ${representative?.user_id ?? user?.id ?? ""} actualizado`,
+			});
 		});
 
 		return NextResponse.json({
@@ -225,15 +281,17 @@ export const DELETE = auth(
 				},
 			);
 
-		await db
-			.update(users)
-			.set({ deleted_at: new Date(Date.now()).toISOString().split("T")[0] })
-			.where(eq(users.id, representative.user_id.id));
+		await db.transaction(async (tx) => {
+			await tx
+				.update(users)
+				.set({ deleted_at: new Date(Date.now()).toISOString().split("T")[0] })
+				.where(eq(users.id, representative.user_id.id));
 
-		await insertHistory({
-			user_id: req.auth?.user.id ?? "",
-			action: "ELIMINO",
-			description: `Representante ${representative.user_id.ci_number} eliminado`,
+			await tx.insert(history).values({
+				user_id: req.auth?.user.id ?? "",
+				action: "ELIMINO",
+				description: `Representante ${representative.user_id.ci_number} eliminado`,
+			});
 		});
 
 		return NextResponse.json({

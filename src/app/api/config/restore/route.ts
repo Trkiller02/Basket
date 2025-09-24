@@ -6,6 +6,8 @@ import fsPromise from "node:fs/promises";
 import { pgRestore } from "pg-dump-restore";
 import { getPropertiesDBConnection } from "@/utils/restore_helper";
 
+export const runtime = "nodejs";
+
 export const POST = auth(async (request) => {
 	try {
 		if (!request.auth)

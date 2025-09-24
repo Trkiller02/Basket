@@ -1,6 +1,6 @@
 "use client";
 
-import { useRegisterStore } from "@/store/useRegisterStore";
+import { RegisterData, useRegisterStore } from "@/store/useRegisterStore";
 import { useGetStep } from "@/utils/getStep";
 import { relationSchema } from "@/utils/interfaces/schemas";
 import { relationSelect } from "@/utils/selectList";
@@ -39,7 +39,10 @@ import {
 const DialogRepresentative = ({
 	open,
 	etapa,
-}: { open: boolean; etapa: string }) => {
+}: {
+	open: boolean;
+	etapa: string;
+}) => {
 	const { replace } = useRouter();
 	const [disKeys, setDisKeys] = useState<Set<string>>(new Set([]));
 
@@ -57,10 +60,18 @@ const DialogRepresentative = ({
 	}); */
 
 	const disabledKeys = useCallback(() => {
-		if (registerData.mother && !disKeys.has("madre")) {
+		if (
+			registerData.mother &&
+			!disKeys.has("madre") &&
+			registerData.mother !== "omitted"
+		) {
 			setDisKeys((disKeys) => disKeys.add("madre"));
 		}
-		if (registerData.father && !disKeys.has("padre")) {
+		if (
+			registerData.father &&
+			!disKeys.has("padre") &&
+			registerData.father !== "omitted"
+		) {
 			setDisKeys((disKeys) => disKeys.add("padre"));
 		}
 		if (
@@ -71,38 +82,36 @@ const DialogRepresentative = ({
 		}
 	}, [disKeys, registerData]);
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
-	useEffect(() => disabledKeys(), [registerData]);
-
 	const form = useForm<{
-		relation: "madre" | "padre" | "representante";
+		relation: "mother" | "father" | "representative";
 		value: string;
 		tutor?: boolean;
 	}>({
 		resolver: yupResolver(relationSchema),
 		defaultValues: {
-			relation: "representante",
+			relation: "representative",
 			value: relationSearch,
 		},
 	});
+
+	useEffect(() => disabledKeys(), [disabledKeys]);
 
 	const onSubmit = ({
 		relation,
 		value,
 		tutor,
-	}: { relation: string; value: string; tutor?: boolean }) => {
-		if (relation === "madre")
-			return setRegisterData({
-				mother: value,
-				tutor: !registerData.tutor && tutor ? "mother" : registerData.tutor,
-			});
-		if (relation === "padre")
-			return setRegisterData({
-				father: value,
-				tutor: !registerData.tutor && tutor ? "father" : registerData.tutor,
-			});
-
-		setRegisterData({ representative: value, tutor: "representative" });
+	}: {
+		relation: string;
+		value: string;
+		tutor?: boolean;
+	}) => {
+		return setRegisterData({
+			[relation]: value,
+			tutor:
+				!registerData.tutor && tutor
+					? (relation as RegisterData["tutor"])
+					: registerData.tutor,
+		});
 	};
 
 	return (
@@ -132,11 +141,19 @@ const DialogRepresentative = ({
 											<SelectContent>
 												{relationSelect.map(({ value, key }) => (
 													<SelectItem
-														key={value}
-														value={value}
-														disabled={disKeys.has(value)}
+														key={key}
+														value={key}
+														disabled={disKeys.has(
+															key === "representative"
+																? "representante"
+																: key === "mother"
+																	? "madre"
+																	: key === "father"
+																		? "padre"
+																		: key,
+														)}
 													>
-														{key}
+														{value}
 													</SelectItem>
 												))}
 											</SelectContent>
@@ -149,63 +166,6 @@ const DialogRepresentative = ({
 								)}
 							/>
 
-							{/* <Controller
-							control={form.control}
-							name="relation"
-							render={({ field, fieldState: { error } }) => (
-								<Select
-									{...field}
-									items={relationSelect}
-									label="Relación:"
-									defaultSelectedKeys={[etapa]}
-									disabledKeys={Array.from(disKeys)}
-									description={"Ingrese la relación con el atleta."}
-									isInvalid={!!error}
-									errorMessage={error?.message}
-									isRequired
-								>
-									{({ value, key }: { value: string; key: string }) => (
-										<SelectItem key={key}>{value}</SelectItem>
-									)}
-								</Select>
-							)}
-						/> */}
-							{/* <Controller
-								control={form.control}
-								name="tutor"
-								render={({ field, fieldState: { error } }) => {
-									const { value, ...restField } = field;
-									return (
-										<Checkbox
-											{...restField}
-											isSelected={
-												form.watch("relation") === "representante"
-													? true
-													: value
-											}
-											isInvalid={!!error}
-											classNames={{
-												base: cn(
-													"bg-default-100",
-													"hover:bg-default-200",
-													"r rounded-xl m-1 border-2 border-transparent",
-													"data-[selected=true]:border-primary",
-												),
-												label: "w-full",
-											}}
-										>
-											<div className="flex flex-col items-start">
-												<p>Tutor legal</p>
-												<span
-													className={`text-tiny ${error ? "text-danger" : "text-default-800"}`}
-												>
-													{error ? error.message : "Responsable del atleta."}
-												</span>
-											</div>
-										</Checkbox>
-									);
-								}}
-							/> */}
 							<FormField
 								control={form.control}
 								name="tutor"
@@ -216,6 +176,7 @@ const DialogRepresentative = ({
 												<Checkbox
 													onCheckedChange={field.onChange}
 													defaultChecked={field.value}
+													disabled={!!registerData.tutor}
 													className="data-[state=checked]:border-blue-600 data-[state=checked]:bg-blue-600 data-[state=checked]:text-white dark:data-[state=checked]:border-blue-700 dark:data-[state=checked]:bg-blue-700"
 												/>
 											</FormControl>

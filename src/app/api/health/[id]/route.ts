@@ -1,9 +1,10 @@
+import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { regexList } from "@/utils/regexPatterns";
-import { athletes, health, users } from "@drizzle/schema";
+import { athletes, health, history, users } from "@drizzle/schema";
 import { and, eq, isNull } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
-
+export const runtime = "nodejs";
 export const GET = async (
 	req: NextRequest,
 	{ params }: { params: Promise<{ id: string }> },
@@ -50,12 +51,28 @@ export const GET = async (
 	return NextResponse.json(result);
 };
 
-export const PATCH = async (
-	req: Request,
-	{ params }: { params: Promise<{ id: string }> },
-) => {
-	const { body } = await req.json();
-	const { id } = await params;
+export const PATCH = auth(
+	async (req, { params }: { params: Promise<{ id: string }> }) => {
+		const { body } = await req.json();
+		const { id } = await params;
 
-	const result = await db.update(health).set(body).where(eq(health.id, +id));
-};
+		if (!body || Object.keys(body).length === 0)
+			return NextResponse.json(
+				{ message: "Datos no especificados" },
+				{ status: 400 },
+			);
+
+		await db.transaction(async (tx) => {
+			await tx.update(health).set(body).where(eq(health.id, +id));
+
+			await tx.insert(history).values({
+				user_id: req.auth?.user.id ?? "",
+				description: `Datos de salud actualizados para ${id}`,
+				action: "MODIFICO",
+				reference_id: id,
+			});
+		});
+
+		return NextResponse.json({ message: "Datos actualizados" });
+	},
+);

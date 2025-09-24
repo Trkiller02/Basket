@@ -15,7 +15,7 @@ import type { Invoices } from "@/utils/interfaces/invoice";
 import type { Representative } from "@/utils/interfaces/representative";
 import type { Athlete } from "@/utils/interfaces/athlete";
 import { InvoicePDF } from "@/components/reports/invoice";
-
+export const runtime = "nodejs";
 export const GET = async (
 	req: NextRequest,
 	{ params }: { params: Promise<{ id: string }> },

@@ -12,4 +12,5 @@ export type CreateRepresentativeDto = Omit<
 	"user_id"
 > & {
 	user_id: CreateUserDto;
+	tutor?: boolean;
 };

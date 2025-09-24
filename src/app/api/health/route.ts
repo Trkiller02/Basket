@@ -1,10 +1,9 @@
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { insertHistory } from "@/lib/db-data";
 import type { Health } from "@/utils/interfaces/health";
-import { health } from "@drizzle/schema";
+import { health, history } from "@drizzle/schema";
 import { NextResponse } from "next/server";
-
+export const runtime = "nodejs";
 export const GET = async (req: Request) => {
 	const result = await db.select().from(health);
 
@@ -17,16 +16,18 @@ export const GET = async (req: Request) => {
 export const POST = auth(async (req) => {
 	const body = await req.json();
 
-	const [{ id }] = await db
-		.insert(health)
-		.values(body as Health & { athlete_id: string })
-		.returning({ id: health.id });
+	const id = await db.transaction(async (tx) => {
+		const [{ id }] = await tx
+			.insert(health)
+			.values(body as Health & { athlete_id: string })
+			.returning({ id: health.id });
 
-	await insertHistory({
-		user_id: req.auth?.user.id ?? "",
-		description: `Registro de salud para ${body.athlete_id} creado`,
-		action: "CREO",
-		reference_id: id.toString(),
+		await tx.insert(history).values({
+			user_id: req.auth?.user.id ?? "",
+			description: `Registro de salud para ${body.athlete_id} creado`,
+			action: "CREO",
+			reference_id: id.toString(),
+		});
 	});
 
 	return NextResponse.json({ message: id });

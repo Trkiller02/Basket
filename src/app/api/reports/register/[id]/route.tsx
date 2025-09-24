@@ -12,7 +12,7 @@ import {
 import { renderToStream } from "@react-pdf/renderer";
 import { and, eq, isNull } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
-
+export const runtime = "nodejs";
 export const POST = async (
 	req: NextRequest,
 	{ params }: { params: Promise<{ id: string }> },

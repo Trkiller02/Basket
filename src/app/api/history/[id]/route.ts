@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 import { history } from "@drizzle/schema";
 import { eq } from "drizzle-orm";
 import { NextResponse, type NextRequest } from "next/server";
-
+export const runtime = "nodejs";
 export const GET = async (
 	req: NextRequest,
 	{ params }: { params: Promise<{ id: string }> },

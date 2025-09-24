@@ -360,7 +360,7 @@ export default function ContactsTableNew({
 															<div className="flex flex-row justify-center space-x-4">
 																<Avatar className="size-8 md:size-10">
 																	<AvatarImage
-																		src={row.image || "/placeholder.svg"}
+																		src={row.image ?? "/placeholder.svg"}
 																		alt="profile-image"
 																	/>
 																	<AvatarFallback>

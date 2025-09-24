@@ -1,9 +1,10 @@
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { insertHistory } from "@/lib/db-data";
-import { configurations } from "@drizzle/schema";
+import { configurations, history } from "@drizzle/schema";
 import { eq } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 
 export const GET = async (req: NextRequest) => {
 	const querys = req.nextUrl.searchParams;
@@ -34,16 +35,18 @@ export const PATCH = auth(async (req) => {
 	if (!property)
 		return NextResponse.json({ message: "No se especificó propiedad" });
 
-	await db
-		.update(configurations)
-		.set({ value })
-		.where(eq(configurations.id, property));
+	await db.transaction(async (tx) => {
+		await tx
+			.update(configurations)
+			.set({ value })
+			.where(eq(configurations.id, property));
 
-	await insertHistory({
-		user_id: req.auth.user.id ?? "",
-		description: "Datos de configuración actualizados",
-		action: "MODIFICO",
-		reference_id: property,
+		await tx.insert(history).values({
+			user_id: req.auth?.user.id ?? "",
+			description: "Datos de configuración actualizados",
+			action: "MODIFICO",
+			reference_id: property,
+		});
 	});
 
 	return NextResponse.json({ message: "Configuración actualizada" });

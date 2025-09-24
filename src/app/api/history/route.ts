@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { auth } from "@/auth";
 import type { SystemLog } from "@/utils/interfaces/history";
 import { sql } from "drizzle-orm";
-
+export const runtime = "nodejs";
 export const GET = auth(async (req) => {
 	if (!req.auth)
 		return NextResponse.json({ error: "No autenticado" }, { status: 401 });

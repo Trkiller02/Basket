@@ -4,10 +4,10 @@ import { insertHistory } from "@/lib/db-data";
 import type { User } from "@/utils/interfaces/user";
 import { MsgError } from "@/utils/messages";
 import { regexList } from "@/utils/regexPatterns";
-import { users } from "@drizzle/schema";
+import { history, users } from "@drizzle/schema";
 import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import { NextResponse, type NextRequest } from "next/server";
-
+export const runtime = "nodejs";
 export async function GET(
 	req: NextRequest,
 	{ params }: { params: Promise<{ id: string }> },
@@ -110,12 +110,14 @@ export const PATCH = auth(
 				);
 			}
 
-			await db.update(users).set(user_data).where(eq(users.id, user.id));
+			await db.transaction(async (tx) => {
+				await tx.update(users).set(user_data).where(eq(users.id, user.id));
 
-			await insertHistory({
-				user_id: req.auth?.user.id ?? "",
-				action: "MODIFICO",
-				description: `Usuario ${user.ci_number} actualizado`,
+				await tx.insert(history).values({
+					user_id: req.auth?.user.id ?? "",
+					action: "MODIFICO",
+					description: `Usuario ${user.ci_number} actualizado`,
+				});
 			});
 
 			return NextResponse.json({
@@ -176,15 +178,17 @@ export const DELETE = auth(
 				);
 			}
 
-			await db
-				.update(users)
-				.set({ deleted_at: new Date(Date.now()).toISOString().split("T")[0] })
-				.where(eq(users.id, user.id));
+			await db.transaction(async (tx) => {
+				await db
+					.update(users)
+					.set({ deleted_at: new Date(Date.now()).toISOString().split("T")[0] })
+					.where(eq(users.id, user.id));
 
-			await insertHistory({
-				user_id: req.auth?.user.id ?? "",
-				action: "ELIMINO",
-				description: `Usuario ${user.ci_number} eliminado`,
+				await tx.insert(history).values({
+					user_id: req.auth?.user.id ?? "",
+					action: "ELIMINO",
+					description: `Usuario ${user.ci_number} eliminado`,
+				});
 			});
 
 			return NextResponse.json({

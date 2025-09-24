@@ -104,13 +104,12 @@ export function MainDialog({
 	const { replace } = useRouter();
 	const isOpen = !!searchParams.get("modal");
 
-	const onOpenChange = () => {
-		onAction?.();
+	const onOpenChange = async () => {
 		const params = new URLSearchParams(searchParams);
-
 		params.delete("modal");
-
 		replace(`${pathname}${params.size > 0 ? `?${params.toString()}` : ""}`);
+
+		onAction?.();
 	};
 
 	// Filtrar children válidos (no null, undefined, etc.)
