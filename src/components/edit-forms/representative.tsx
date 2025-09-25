@@ -54,9 +54,12 @@ export default function RepresentativeEditForm({
 		);
 
 	const onDelete = async () => {
-		return await fetchData<{ message: string }>(`/api/athletes/${data.id}`, {
-			method: "DELETE",
-		});
+		return await fetchData<{ message: string }>(
+			`/api/representatives/${data.id}`,
+			{
+				method: "DELETE",
+			},
+		);
 	};
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
