@@ -1,8 +1,9 @@
 import type { NextConfig } from "next";
+process.loadEnvFile();
 
 const nextConfig: NextConfig = {
 	compiler: {
-		removeConsole: true,
+		removeConsole: process.env.NODE_ENV === "production",
 	},
 	/* config options here */
 	experimental: {

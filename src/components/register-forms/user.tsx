@@ -88,9 +88,16 @@ export default function UserForm() {
 	});
 
 	const onSubmit = async (data: Omit<User, "id">) => {
-		const response = await setEntityData<{ message: string }>(
-			data.role === "representante" ? "representatives" : "users",
-			setUpper(data ? { user_id: data, ocupation: data.role } : data),
+		const response = await fetchData<{ message: string }>(
+			`/api/${data.role === "representante" ? "representatives" : "users"}`,
+			{
+				method: "POST",
+				body: setUpper(
+					data.role === "representante"
+						? { user_id: data, ocupation: data.role }
+						: data,
+				),
+			},
 		);
 
 		setData({
