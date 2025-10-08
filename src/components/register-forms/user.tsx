@@ -327,7 +327,6 @@ export default function UserForm() {
 											onChange={({ target: { value } }) => setOccupation(value)}
 										/>
 									</FormControl>
-									<FormDescription>Ej: Maria Jose</FormDescription>
 									<FormMessage />
 								</FormItem>
 							)}
