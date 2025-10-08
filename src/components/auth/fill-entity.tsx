@@ -16,12 +16,12 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { setUpper } from "@/utils/setUpper";
 import { representativeSchema } from "@/utils/interfaces/schemas";
 import { toast } from "sonner";
-import { setEntityData } from "@/lib/action-data";
-import type { Session } from "next-auth";
 import { useSession } from "next-auth/react";
+import { fetchData } from "@/utils/fetchHandler";
 
 export const FillEntity = () => {
 	const { data: session } = useSession();
+
 	const form = useForm({
 		criteriaMode: "firstError",
 		mode: "all",
@@ -33,12 +33,15 @@ export const FillEntity = () => {
 		height?: number;
 	}) => {
 		try {
-			const response = await setEntityData<{ message: string }>(
-				"representatives",
-				setUpper({
-					...data,
-					user_id: session?.user?.id ?? "",
-				}),
+			const response = await fetchData<{ message: string }>(
+				"/api/representatives",
+				{
+					method: "POST",
+					body: setUpper({
+						...data,
+						user_id: session?.user?.id ?? "",
+					}),
+				},
 			);
 
 			if (response) return "Se ha registrado correctamente";

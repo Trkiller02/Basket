@@ -49,7 +49,6 @@ import {
 import { Label } from "../ui/label";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { setEntityData } from "@/lib/action-data";
 import { MainDialog } from "../details/main-dialog";
 import { QRDetails } from "../details/qr-code";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -78,6 +77,7 @@ export default function UserForm() {
 
 	const [recoveryCode, setRecoveryCode] = useState<string>("");
 	const [showPassword, setShowPassword] = useState<boolean>(false);
+	const [occupation, setOccupation] = useState<string>("");
 
 	const form = useForm<Omit<User, "id">>({
 		defaultValues: {
@@ -93,9 +93,7 @@ export default function UserForm() {
 			{
 				method: "POST",
 				body: setUpper(
-					data.role === "representante"
-						? { user_id: data, ocupation: data.role }
-						: data,
+					data.role === "representante" ? { user_id: data, occupation } : data,
 				),
 			},
 		);
@@ -312,6 +310,31 @@ export default function UserForm() {
 						</FormItem>
 					)}
 				/>
+
+				{form.watch("role") === "representante" && (
+					<>
+						{/* OCCUPATION FIELD */}
+						<FormField
+							name="occupation"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Ocupación:</FormLabel>
+									<FormControl>
+										<Input
+											placeholder="Ej: Secretaria"
+											{...field}
+											required
+											onChange={({ target: { value } }) => setOccupation(value)}
+										/>
+									</FormControl>
+									<FormDescription>Ej: Maria Jose</FormDescription>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+						<br />
+					</>
+				)}
 
 				<FormField
 					control={form.control}

@@ -2,7 +2,6 @@
 
 import type { RegisterData } from "@/store/useRegisterStore";
 import { regexList } from "@/utils/regexPatterns";
-import { setEntityData } from "./action-data";
 import { db } from "./db";
 import {
 	athletes,

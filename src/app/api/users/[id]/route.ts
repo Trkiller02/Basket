@@ -7,7 +7,9 @@ import { regexList } from "@/utils/regexPatterns";
 import { history, users } from "@drizzle/schema";
 import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import { NextResponse, type NextRequest } from "next/server";
+
 export const runtime = "nodejs";
+
 export async function GET(
 	req: NextRequest,
 	{ params }: { params: Promise<{ id: string }> },
@@ -177,6 +179,12 @@ export const DELETE = auth(
 					{ status: 404 },
 				);
 			}
+
+			if (user.role === "administrador")
+				return NextResponse.json(
+					{ message: "No se puede eliminar un administrador" },
+					{ status: 400 },
+				);
 
 			await db.transaction(async (tx) => {
 				await db
