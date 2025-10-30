@@ -197,7 +197,7 @@ export const registerTransaction = async (data: RegisterData) => {
 				: [{ id: undefined }];
 
 		// Insert the representative to representative table
-		const [{ id: reprId }] =
+		const [reprId]: { id: string; name?: string }[] =
 			reprUserId && typeof representative === "object"
 				? await tx
 						.insert(representatives)
@@ -209,14 +209,14 @@ export const registerTransaction = async (data: RegisterData) => {
 				: typeof representative === "string" &&
 						representative.match(regexList.forDNI)
 					? await tx
-							.select({ id: representatives.id })
+							.select({ id: representatives.id, name: users.name })
 							.from(representatives)
 							.innerJoin(users, eq(representatives.user_id, users.id))
 							.where(eq(users.ci_number, representative))
-					: [{ id: undefined }];
+					: [];
 
 		// Insert the mother to representative table
-		const [{ id: motherId }] =
+		const [motherId]: { id: string; name?: string }[] =
 			motherUserId && typeof mother === "object"
 				? await tx
 						.insert(representatives)
@@ -227,14 +227,14 @@ export const registerTransaction = async (data: RegisterData) => {
 						.returning({ id: representatives.id })
 				: typeof mother === "string" && mother.match(regexList.forDNI)
 					? await tx
-							.select({ id: representatives.id })
+							.select({ id: representatives.id, name: users.name })
 							.from(representatives)
 							.innerJoin(users, eq(representatives.user_id, users.id))
 							.where(eq(users.ci_number, mother))
-					: [{ id: undefined }];
+					: [];
 
 		// Insert the father to representative table
-		const [{ id: fatherId }] =
+		const [fatherId]: { id: string; name?: string }[] =
 			fatherUserId && typeof father === "object"
 				? await tx
 						.insert(representatives)
@@ -245,11 +245,11 @@ export const registerTransaction = async (data: RegisterData) => {
 						.returning({ id: representatives.id })
 				: typeof father === "string" && father.match(regexList.forDNI)
 					? await tx
-							.select({ id: representatives.id })
+							.select({ id: representatives.id, name: users.name })
 							.from(representatives)
 							.innerJoin(users, eq(representatives.user_id, users.id))
 							.where(eq(users.ci_number, father))
-					: [{ id: undefined }];
+					: [];
 
 		// Insert the athlete to athlete table
 		const [{ id: athleteId }] = await tx
@@ -271,7 +271,7 @@ export const registerTransaction = async (data: RegisterData) => {
 		reprId &&
 			(await tx.insert(athletes_representatives).values({
 				athlete_id: athleteId,
-				representative_id: reprId,
+				representative_id: reprId.id,
 				relation: "representante",
 				tutor: tutor === "representative",
 			}));
@@ -279,7 +279,7 @@ export const registerTransaction = async (data: RegisterData) => {
 		motherId &&
 			(await tx.insert(athletes_representatives).values({
 				athlete_id: athleteId,
-				representative_id: motherId,
+				representative_id: motherId.id,
 				relation: "madre",
 				tutor: tutor === "mother",
 			}));
@@ -287,7 +287,7 @@ export const registerTransaction = async (data: RegisterData) => {
 		fatherId &&
 			(await tx.insert(athletes_representatives).values({
 				athlete_id: athleteId,
-				representative_id: fatherId,
+				representative_id: fatherId.id,
 				relation: "padre",
 				tutor: tutor === "father",
 			}));
@@ -296,10 +296,10 @@ export const registerTransaction = async (data: RegisterData) => {
 			props: {
 				name:
 					tutor === "representative"
-						? (representative as Representative).user_id.name
+						? ((representative as Representative).user_id?.name ?? reprId.name)
 						: tutor === "mother"
-							? (mother as Representative).user_id.name
-							: (father as Representative).user_id.name,
+							? ((mother as Representative).user_id?.name ?? reprId.name)
+							: ((father as Representative).user_id?.name ?? reprId.name),
 				password,
 				restore_code,
 			},

@@ -25,13 +25,14 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { updateEntityData } from "@/lib/action-data";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import useSWR from "swr";
 import { fetcher } from "@/lib/axios";
 import Link from "next/link";
+import { fetchData } from "@/utils/fetchHandler";
+import { toast } from "sonner";
 
 export default function ConfigurationPage() {
 	const { data: pricing, isLoading } = useSWR<{ result: string }>(
@@ -44,9 +45,20 @@ export default function ConfigurationPage() {
 
 		const formData = new FormData(event.currentTarget);
 
-		await updateEntityData("config", "pricing", {
-			value: formData.get("value") as string,
-		});
+		return toast.promise(
+			fetchData<{ message: string }>("/api/config", {
+				method: "PATCH",
+				body: {
+					property: "pricing",
+					value: formData.get("value") as string,
+				},
+			}),
+			{
+				loading: "Guardando...",
+				success: (data) => data?.message ?? "Datos guardados",
+				error: (error) => error.message,
+			},
+		);
 	};
 
 	return (
@@ -110,10 +122,16 @@ export default function ConfigurationPage() {
 							<Alert>
 								<Info className="size-6" />
 								<AlertTitle className="flex">
-									Monto actual:&nbsp;
-									<strong>
-										<i>{pricing?.result} Bs</i>
-									</strong>
+									{isLoading ? (
+										"Cargando..."
+									) : (
+										<>
+											Monto actual:&nbsp;
+											<strong>
+												<i>{pricing?.result} Bs</i>
+											</strong>
+										</>
+									)}
 								</AlertTitle>
 							</Alert>
 							<Button type="submit">Cambiar</Button>
